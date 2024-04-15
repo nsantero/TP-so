@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "utils.h": "c",
+        "socket.h": "c",
+        "stdio.h": "c",
+        "list.h": "c",
+        "log.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
