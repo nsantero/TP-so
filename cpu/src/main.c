@@ -1,4 +1,4 @@
-#include ".../include/main.h"
+#include "../include/main.h"
 
 int main(int argc, char* argv[]) {
     
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 	int memoria_fd = crear_conexion(logger,config_valores.ip_memoria, config_valores.puerto_memoria);
 	int server_dispatch_fd = iniciar_servidor(logger,  "127.0.0.1", config_valores.puerto_escucha_dispatch);  //cambiar eso hardcodeado
 
-	while(server_escuchar(server_dispatch_fd));
+//	while(server_escuchar(server_dispatch_fd));
 
     return 0;
 }

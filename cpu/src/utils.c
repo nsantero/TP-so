@@ -1,5 +1,4 @@
-#include "utils.h"
-
+#include "../../utils/include/utils.h"
 
 void cargar_configuracion(char* archivo_configuracion)
 {

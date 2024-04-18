@@ -95,7 +95,7 @@ int crear_conexion(t_log* logger, char* ip, char* puerto) {
        freeaddrinfo(servinfo);
        return 0;
    } else
-       log_info(logger, "Cliente conectado en %s:%s \n", ip, puerto, );
+       log_info(logger, "Cliente conectado en %s:%s \n", ip, puerto);
 
 
    freeaddrinfo(servinfo);
@@ -107,7 +107,7 @@ int crear_conexion(t_log* logger, char* ip, char* puerto) {
 
 
 
-int server_escuchar(t_log* logger, char* server_name, int server_socket) {
+/*int server_escuchar(t_log* logger, char* server_name, int server_socket) {
    int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
 
@@ -122,4 +122,4 @@ int server_escuchar(t_log* logger, char* server_name, int server_socket) {
        return 1;
    }
    return 0;
-}
+}*/
