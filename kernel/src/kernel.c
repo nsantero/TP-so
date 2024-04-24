@@ -4,8 +4,12 @@
 #include <commons/config.h>
 #include <commons/collections/list.h> //implementación de listas enlazadas que se pueden usar para la cola de procesos
 
-int main(int argc, char* argv[]) {
-    decir_hola("Kernel");
+int main() {
+    inicializar();
+
+    while (list_is_empty(cola_de_procesos)){
+        planificar();
+    }
     return 0;
 }
 
@@ -103,4 +107,5 @@ void planificar_fifo() {
     ejecutar_proceso(pcb); //falta implementar esta funcion
     free(pcb); //libero memoria
 }
+
 
