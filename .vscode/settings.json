@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "shared.h": "c",
+        "stdbool.h": "c",
+        "list.h": "c",
+        "netdb.h": "c",
+        "config.h": "c",
+        "cstdlib": "c"
+    }
+}
