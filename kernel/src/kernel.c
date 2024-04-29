@@ -3,6 +3,7 @@
 #include <utils/hello.h>
 #include <commons/config.h>
 #include <commons/collections/list.h> //implementación de listas enlazadas que se pueden usar para la cola de procesos
+#include <pthread.h>
 
 int main() {
     inicializar();
