@@ -1,0 +1,124 @@
+[INFO] 20:07:35:812 KERNEL/(15264:15264): Se creo el log!
+[INFO] 20:09:49:307 KERNEL/(15669:15669): Se creo el log!
+[INFO] 20:11:23:394 KERNEL/(15888:15888): Se creo el log!
+[INFO] 20:12:00:915 KERNEL/(16031:16031): Se creo el log!
+[INFO] 20:12:20:741 KERNEL/(16031:16031): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 20:12:24:098 KERNEL/(16031:16031): Me conecte a cpu (dispatch)
+[INFO] 20:12:26:238 KERNEL/(16031:16031): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 20:12:29:398 KERNEL/(16031:16031): Me conecte a cpu (interrupt)
+[INFO] 20:12:31:147 KERNEL/(16031:16031): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 20:12:32:246 KERNEL/(16031:16031): Me conecte a memoria
+[INFO] 20:13:08:795 KERNEL/(16031:16031): [32mEscuchando en kernel
+[INFO] 20:13:08:797 KERNEL/(16031:16031): Servidor iniciado
+[INFO] 20:13:12:985 KERNEL/(16031:16031): Servidor listo para recibir al cliente
+[INFO] 20:44:00:677 KERNEL/(20093:20093): Se creo el log!
+[INFO] 20:44:00:684 KERNEL/(20093:20093): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 20:44:00:684 KERNEL/(20093:20093): Me conecte a cpu (dispatch)
+[INFO] 20:44:00:685 KERNEL/(20093:20093): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 20:44:00:685 KERNEL/(20093:20093): Me conecte a cpu (interrupt)
+[INFO] 20:44:00:685 KERNEL/(20093:20093): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 20:44:00:685 KERNEL/(20093:20093): Me conecte a memoria
+[INFO] 20:44:00:686 KERNEL/(20093:20093): [32mEscuchando en kernel
+[INFO] 20:44:00:686 KERNEL/(20093:20093): Servidor iniciado
+[INFO] 20:44:00:686 KERNEL/(20093:20093): Servidor listo para recibir al cliente
+[INFO] 21:00:15:089 KERNEL/(21626:21626): Se creo el log!
+[INFO] 21:00:15:092 KERNEL/(21626:21626): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 21:00:15:093 KERNEL/(21626:21626): Me conecte a cpu (dispatch)
+[INFO] 21:00:15:095 KERNEL/(21626:21626): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 21:00:15:095 KERNEL/(21626:21626): Me conecte a cpu (interrupt)
+[INFO] 21:00:15:096 KERNEL/(21626:21626): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 21:00:15:096 KERNEL/(21626:21626): Me conecte a memoria
+[INFO] 21:00:15:097 KERNEL/(21626:21626): [32mEscuchando en kernel
+[INFO] 21:00:15:097 KERNEL/(21626:21626): Servidor iniciado
+[INFO] 21:00:15:099 KERNEL/(21626:21626): Servidor listo para recibir al cliente
+[INFO] 21:00:30:652 ENTRADASALIDA/(21631:21631): Se creo el log!
+[INFO] 21:00:30:727 KERNEL/(21626:21626): [32mCliente conectado a kernel
+[INFO] 21:00:30:727 ENTRADASALIDA/(21631:21631): [32mMe conecte en 127.0.0.1:8003 (a KERNEL)
+
+[INFO] 21:00:30:727 ENTRADASALIDA/(21631:21631): Me conecte a kernel
+[INFO] 21:00:30:728 ENTRADASALIDA/(21631:21631): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 21:00:30:728 ENTRADASALIDA/(21631:21631): Me conecte a memoria
+[INFO] 21:00:30:729 KERNEL/(21626:21632): [33mMe llegó el mensaje: soy e/s
+[INFO] 21:00:30:729 KERNEL/(21626:21632): [34mEl cliente se desconecto de kernel server
+[INFO] 21:09:07:070 KERNEL/(22040:22040): Se creo el log!
+[INFO] 21:09:07:076 KERNEL/(22040:22040): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 21:09:07:076 KERNEL/(22040:22040): Me conecte a cpu (dispatch)
+[INFO] 21:09:07:077 KERNEL/(22040:22040): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 21:09:07:077 KERNEL/(22040:22040): Me conecte a cpu (interrupt)
+[INFO] 21:09:07:077 KERNEL/(22040:22040): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 21:09:07:077 KERNEL/(22040:22040): Me conecte a memoria
+[INFO] 21:09:07:078 KERNEL/(22040:22040): [32mEscuchando en kernel
+[INFO] 21:09:07:078 KERNEL/(22040:22040): Servidor iniciado
+[INFO] 21:09:07:078 KERNEL/(22040:22040): Servidor listo para recibir al cliente
+[INFO] 21:09:17:157 ENTRADASALIDA/(22044:22044): Se creo el log!
+[INFO] 21:09:17:159 KERNEL/(22040:22040): [32mCliente conectado a kernel
+[INFO] 21:09:17:160 ENTRADASALIDA/(22044:22044): [32mMe conecte en 127.0.0.1:8003 (a KERNEL)
+
+[INFO] 21:09:17:160 ENTRADASALIDA/(22044:22044): Me conecte a kernel
+[INFO] 21:09:17:160 ENTRADASALIDA/(22044:22044): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 21:09:17:160 ENTRADASALIDA/(22044:22044): Me conecte a memoria
+[INFO] 21:09:17:161 KERNEL/(22040:22045): [33mMe llegó el mensaje: soy e/s
+[INFO] 21:09:17:161 KERNEL/(22040:22045): [34mEl cliente se desconecto de kernel server
+[INFO] 22:04:36:065 KERNEL/(22610:22610): Se creo el log!
+[INFO] 22:04:36:067 KERNEL/(22610:22610): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 22:04:36:073 KERNEL/(22610:22610): Me conecte a cpu (dispatch)
+[INFO] 22:04:36:083 KERNEL/(22610:22610): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 22:04:36:083 KERNEL/(22610:22610): Me conecte a cpu (interrupt)
+[INFO] 22:04:36:084 KERNEL/(22610:22610): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 22:04:36:084 KERNEL/(22610:22610): Me conecte a memoria
+[INFO] 22:04:36:085 KERNEL/(22610:22610): [32mEscuchando en kernel
+[INFO] 22:04:36:085 KERNEL/(22610:22610): Servidor iniciado
+[INFO] 22:04:36:086 KERNEL/(22610:22610): Servidor listo para recibir al cliente
+[INFO] 22:14:01:341 KERNEL/(23256:23256): Se creo el log!
+[INFO] 22:14:01:352 KERNEL/(23256:23256): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 22:14:01:352 KERNEL/(23256:23256): Me conecte a cpu (dispatch)
+[INFO] 22:14:01:353 KERNEL/(23256:23256): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 22:14:01:353 KERNEL/(23256:23256): Me conecte a cpu (interrupt)
+[INFO] 22:14:01:375 KERNEL/(23256:23256): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 22:14:01:376 KERNEL/(23256:23256): Me conecte a memoria
+[INFO] 22:14:01:376 KERNEL/(23256:23256): [32mEscuchando en kernel
+[INFO] 22:14:01:376 KERNEL/(23256:23256): Servidor iniciado
+[INFO] 22:14:01:376 KERNEL/(23256:23256): Servidor listo para recibir al cliente
+[INFO] 22:26:10:631 KERNEL/(23917:23917): Se creo el log!
+[INFO] 22:26:10:639 KERNEL/(23917:23917): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 22:26:10:640 KERNEL/(23917:23917): Me conecte a cpu (dispatch)
+[INFO] 22:26:10:641 KERNEL/(23917:23917): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 22:26:10:642 KERNEL/(23917:23917): Me conecte a cpu (interrupt)
+[INFO] 22:26:10:642 KERNEL/(23917:23917): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 22:26:10:642 KERNEL/(23917:23917): Me conecte a memoria
+[INFO] 22:26:10:643 KERNEL/(23917:23917): [32mEscuchando en kernel
+[INFO] 22:26:10:643 KERNEL/(23917:23917): Servidor iniciado
+[INFO] 22:26:10:643 KERNEL/(23917:23917): Servidor listo para recibir al cliente
+[INFO] 22:26:21:073 ENTRADASALIDA/(23921:23921): Se creo el log!
+[INFO] 22:26:21:075 KERNEL/(23917:23917): [32mCliente conectado a kernel
+[INFO] 22:26:21:076 ENTRADASALIDA/(23921:23921): [32mMe conecte en 127.0.0.1:8003 (a KERNEL)
+
+[INFO] 22:26:21:077 ENTRADASALIDA/(23921:23921): Me conecte a kernel
+[INFO] 22:26:21:078 ENTRADASALIDA/(23921:23921): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 22:26:21:078 ENTRADASALIDA/(23921:23921): Me conecte a memoria
+[INFO] 22:26:21:079 KERNEL/(23917:23922): [33mMe llegó el mensaje: soy e/s
+[INFO] 22:26:21:079 KERNEL/(23917:23922): [34mEl cliente se desconecto de kernel server

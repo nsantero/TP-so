@@ -6,7 +6,9 @@
       "name": "Linux",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/../utils/src"
+        "${workspaceFolder}/../shared/src",
+        "${workspaceFolder}/include/memoria.h",
+        "${workspaceFolder}/../shared/include"
       ],
       "defines": [],
       "compilerPath": "/usr/bin/gcc",
