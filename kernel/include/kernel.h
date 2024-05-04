@@ -42,3 +42,9 @@ char* server_name = "kernel";
 void cargar_configuracion(char* archivo_configuracion);
 static void procesar_conexion(void *void_args);
 int server_escuchar(int fd_memoria);
+
+int pid_counter = 1; //contador del pid, lo inicializo en 1
+int quantum; 
+char* algoritmo_planificacion; 
+
+t_list* cola_de_procesos;
