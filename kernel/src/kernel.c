@@ -5,32 +5,47 @@
 #include <pthread.h>
 #include <kernel.h>
 
-int main() {
-    inicializar();
-
-    while (list_is_empty(cola_de_procesos)){
-        planificar();
-    }
-    return 0;
-}
-
 //Implementación de PCB
 
 typedef struct {
     int PID; //id del proceso
     int pc; //direccionamiento
     int quantum; // duración del quantum 
-    int* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+    CPU_Registers cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
+
+
+typedef struct {
+    uint32_t PC;    // Program Counter
+    uint8_t AX;     // Registro Numérico de propósito general
+    uint8_t BX;     // Registro Numérico de propósito general
+    uint8_t CX;     // Registro Numérico de propósito general
+    uint8_t DX;     // Registro Numérico de propósito general
+    uint32_t EAX;   // Registro Numérico de propósito general
+    uint32_t EBX;   // Registro Numérico de propósito general
+    uint32_t ECX;   // Registro Numérico de propósito general
+} CPU_Registers;
 
 //Inicialización de un nuevo PCB
 
 PCB* crearPCB() {
     PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
+	 if (nuevoPCB == NULL) {
+        // Manejar error de asignación de memoria
+        return NULL;
+    }
     nuevoPCB -> PID = pid_counter++; // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum; //quantum generico tomado de kernel.config
-//    nuevoPCB->cpuRegisters = malloc(sizeof(int) * num_reg);
+	// Inicializar los registros de la CPU
+    nuevoPCB -> cpuRegisters.PC = 0;
+    nuevoPCB -> cpuRegisters.AX = 0;
+    nuevoPCB -> cpuRegisters.BX = 0;
+    nuevoPCB -> cpuRegisters.CX = 0;
+    nuevoPCB -> cpuRegisters.DX = 0;
+    nuevoPCB -> cpuRegisters.EAX = 0;
+    nuevoPCB -> cpuRegisters.EBX = 0;
+    nuevoPCB -> cpuRegisters.ECX = 0;
     return nuevoPCB;
 }
 

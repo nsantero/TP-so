@@ -2,6 +2,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <kernel.h>
+#include <semaphore.h>
+#include "../src/kernel.c"
 
 int main() {
     pthread_t hilo_largo_plazo;
