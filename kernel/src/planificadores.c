@@ -5,9 +5,10 @@
 #include <semaphore.h>
 #include "../src/kernel.c"
 
-int main() {
-    pthread_t hilo_largo_plazo;
-    pthread_t hilo_corto_plazo;
+
+//Hilos
+
+int main(void) {
 
     pthread_create(&hilo_largo_plazo, NULL, largo_plazo, NULL);
     pthread_create(&hilo_corto_plazo, NULL, corto_plazo, NULL);
@@ -18,16 +19,43 @@ int main() {
     return 0;
 }
 
+// Semaforos
+
+void inicilizar_sem_planificadores()
+{
+	sem_corto_plazo = malloc(sizeof(sem_t));
+	sem_init(sem_corto_plazo, 0, 0);
+
+	sem_largo_plazo = malloc(sizeof(sem_t));
+	sem_init(sem_largo_plazo, 0, 0);
+
+	sem_grado_multiprogramacion = malloc(sizeof(sem_t));
+	sem_init(sem_grado_multiprogramacion, 0, leer_grado_multiprogramación());
+
+	mutex_detener_planificador = malloc(sizeof(sem_t));
+	sem_init(mutex_detener_planificador, 0, 1);
+}
+
 int leer_grado_multiprogramación() {
     FILE* archivo = fopen ("kernel.config", "r");
     int GRADO_MULTIPROGRAMACION;
+}
+
+bool permitePasarAREady() {
+    leer_grado_multiprogramacion() > 0;
 }
 
 
 // PLANIFICADOR LARGO PLAZO
 
 void* largo_plazo(void* arg) {
-    //desarrollar
+    if(strcmp(algoritmo_planificacion, "FIFO") == 0) {
+        planificar_fifo();
+    } else if (strcmp(algoritmo_planificacion, "RR") == 0) {
+        planificar_round_robin();
+    } else if (strcmp(algoritmo_planificacion, "VRR") == 0 ) {
+        printf ("Algoritmo de planificacion no conocido: %s\n", algoritmo_planificacion);
+    }
 }
 
 // PLANIFICADOR CORTO PLAZO

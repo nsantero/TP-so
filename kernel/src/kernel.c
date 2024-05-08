@@ -5,26 +5,18 @@
 #include <pthread.h>
 #include <kernel.h>
 
+
 //Implementación de PCB
+
+typedef enum {NEW, READY, RUNNING, BLOCKED, EXIT} Estado;
 
 typedef struct {
     int PID; //id del proceso
     int pc; //direccionamiento
     int quantum; // duración del quantum 
-    CPU_Registers cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+    CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
 
-
-typedef struct {
-    uint32_t PC;    // Program Counter
-    uint8_t AX;     // Registro Numérico de propósito general
-    uint8_t BX;     // Registro Numérico de propósito general
-    uint8_t CX;     // Registro Numérico de propósito general
-    uint8_t DX;     // Registro Numérico de propósito general
-    uint32_t EAX;   // Registro Numérico de propósito general
-    uint32_t EBX;   // Registro Numérico de propósito general
-    uint32_t ECX;   // Registro Numérico de propósito general
-} CPU_Registers;
 
 //Inicialización de un nuevo PCB
 
@@ -34,19 +26,80 @@ PCB* crearPCB() {
         // Manejar error de asignación de memoria
         return NULL;
     }
-    nuevoPCB -> PID = pid_counter++; // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
+    nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
-    nuevoPCB -> quantum = quantum; //quantum generico tomado de kernel.config
-	// Inicializar los registros de la CPU
-    nuevoPCB -> cpuRegisters.PC = 0;
-    nuevoPCB -> cpuRegisters.AX = 0;
-    nuevoPCB -> cpuRegisters.BX = 0;
-    nuevoPCB -> cpuRegisters.CX = 0;
-    nuevoPCB -> cpuRegisters.DX = 0;
-    nuevoPCB -> cpuRegisters.EAX = 0;
-    nuevoPCB -> cpuRegisters.EBX = 0;
-    nuevoPCB -> cpuRegisters.ECX = 0;
+    nuevoPCB -> quantum = quantum;
+    nuevoPCB -> estado =  //quantum generico tomado de kernel.config
+//	nuevoPCB -> cpuRegisters = crearRegistrosCPU; //voy a la funcion de creacion de registros de la CPU
     return nuevoPCB;
+}
+
+int pidActual = 0;
+int generarPID() {
+    pidActual += 1;
+    return pidActual;
+}
+//como declaro los registros de cpu ¿?
+
+// NUEVO PROCESO 
+
+void nuevoProceso (struct PCB** listaNEW) {
+    int PID = generarPID();
+
+    struct PCB* nuevoPCB = crearPCB(PID, NEW);
+
+    agregarALista(listaNEW, nuevoPCB);
+}
+
+void agregarALista (struct PCB** lista, struct PCB** nuevoProceso) {
+    //evaluo si la lista esta vacia, si esta vacia el nuevo proceso va ser el primero
+    if (*lista == NULL) {
+        *lista = nuevoProceso;
+    }
+    else {
+        //lo agrego al final de la lista
+        struct PCB* ultimoProceso = *lista;
+        while (ultimoProceso->next != NULL){
+            ultimoProceso = ultimoProceso->next;
+        }
+        ultimoProceso->next = nuevoProceso;
+    }
+    nuevoProceso-> next = NULL;
+}
+
+// LISTAS DE ESTADOS
+
+struct PCB* NEW = NULL;
+struct PCB* READY = NULL;
+struct PCB* EXEC = NULL;
+struct PCB* BLOCKED = NULL;
+struct PCB* EXIT = NULL;
+
+//INICIALIZAR PLANIFICADORES
+
+void_inicializar() {
+    t_config* config = config_create("kernel.config");
+
+    // valor del quantum
+    if (config_has_property(config, "QUANTUM")) {
+        quantum = config_get_int_value(config, "QUANTUM");
+    } else {
+        printf ("No se encontro el parametro 'QUANTUM' en el archivo de configuracion.\n");
+    }
+
+    config_destroy(config);
+
+    // tipo de planificador (FIFO o RR)
+
+    if (config_has_property(config, "ALGORITMO_PLANIFICACION")) {
+        algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+    } else {
+        printf ("No se encontro el parametro 'ALGORITMO_PLANIFICACION' en el archivo de configuracion.\n");
+    }
+
+    // inicilizamos la cola de procesos
+
+    cola_de_procesos = list_create();
 }
 
 // CONFIGURACIÓN 
