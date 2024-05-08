@@ -45,8 +45,6 @@ int server_escuchar(int fd_memoria);
 
 // PCB
 
-typedef enum {NEW, READY, RUNNING, BLOCKED, EXIT} Estado;
-
 typedef struct {
     int PID; //id del proceso
     int pc; //direccionamiento
@@ -75,5 +73,11 @@ typedef struct {
     char DI [5];
 } CPU_Registers;
 
+// LISTAS DE ESTADOS
+
+t_list* lista_NEW;
+t_list* lista_READY;
+t_list* lista_EXIT;
+t_list* lista_BLOCKED;
 
 

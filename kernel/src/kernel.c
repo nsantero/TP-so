@@ -28,8 +28,7 @@ PCB* crearPCB() {
     }
     nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
-    nuevoPCB -> quantum = quantum;
-    nuevoPCB -> estado =  //quantum generico tomado de kernel.config
+    nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 //	nuevoPCB -> cpuRegisters = crearRegistrosCPU; //voy a la funcion de creacion de registros de la CPU
     return nuevoPCB;
 }
@@ -41,43 +40,10 @@ int generarPID() {
 }
 //como declaro los registros de cpu ¿?
 
-// NUEVO PROCESO 
-
-void nuevoProceso (struct PCB** listaNEW) {
-    int PID = generarPID();
-
-    struct PCB* nuevoPCB = crearPCB(PID, NEW);
-
-    agregarALista(listaNEW, nuevoPCB);
-}
-
-void agregarALista (struct PCB** lista, struct PCB** nuevoProceso) {
-    //evaluo si la lista esta vacia, si esta vacia el nuevo proceso va ser el primero
-    if (*lista == NULL) {
-        *lista = nuevoProceso;
-    }
-    else {
-        //lo agrego al final de la lista
-        struct PCB* ultimoProceso = *lista;
-        while (ultimoProceso->next != NULL){
-            ultimoProceso = ultimoProceso->next;
-        }
-        ultimoProceso->next = nuevoProceso;
-    }
-    nuevoProceso-> next = NULL;
-}
-
-// LISTAS DE ESTADOS
-
-struct PCB* NEW = NULL;
-struct PCB* READY = NULL;
-struct PCB* EXEC = NULL;
-struct PCB* BLOCKED = NULL;
-struct PCB* EXIT = NULL;
 
 //INICIALIZAR PLANIFICADORES
 
-void_inicializar() {
+void_inicializar_planificadores() {
     t_config* config = config_create("kernel.config");
 
     // valor del quantum
@@ -97,9 +63,12 @@ void_inicializar() {
         printf ("No se encontro el parametro 'ALGORITMO_PLANIFICACION' en el archivo de configuracion.\n");
     }
 
-    // inicilizamos la cola de procesos
+    // inicializamos lista de estados
 
-    cola_de_procesos = list_create();
+    lista_NEW = list_create();
+	lista_READY = list_create();
+	lista_EXIT = list_create();
+	lista_BLOCKED = list_create();
 }
 
 // CONFIGURACIÓN 
