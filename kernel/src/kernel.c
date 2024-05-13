@@ -12,7 +12,7 @@ typedef enum {NEW, READY, RUNNING, BLOCKED, EXIT} Estado;
 
 typedef struct {
     int PID; //id del proceso
-    int pc; //direccionamiento
+    int pc; //direccionarte a la proxima instruccion 
     int quantum; // duración del quantum 
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
@@ -29,9 +29,9 @@ PCB* crearPCB() {
     nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
-//	nuevoPCB -> cpuRegisters = crearRegistrosCPU; //voy a la funcion de creacion de registros de la CPU
-    return nuevoPCB;
-}
+//	nuevoPCB -> cpuRegisters = crearRegistrosCPU; //voy a la funcion de creacion de registros de la CPUreturn nuevoPCB;
+	free(PCB);
+	}
 
 int pidActual = 0;
 int generarPID() {

@@ -13,7 +13,7 @@ int main(void) {
     pthread_create(&hilo_largo_plazo, NULL, largo_plazo, NULL);
     pthread_create(&hilo_corto_plazo, NULL, corto_plazo, NULL);
 
-    pthread_join(hilo_largo_plazo, NULL);
+    pthread_join(hilo_largo_plazo, NULL); // detach no te guarda el valor 
     pthread_join(hilo_corto_plazo, NULL);
 
     return 0;
@@ -65,7 +65,7 @@ void* largo_plazo(void* arg) {
         sem_wait(sem_procesos_new);
         sem_wait(sem_procesos_ready);
         PCB* pcb= list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
-        PCB* pcb = list_add(lista_NEW, 0); // lo agrega al comienzo de la lista
+        PCB* pcb = list_add(lista_READY, 0); // lo agrega al comienzo de la lista, cambiarlo en base a queue
         sem_post(sem_procesos_new);
         sem_post(sem_procesos_ready);
     }
@@ -86,13 +86,16 @@ void* corto_plazo(void* arg) {
 }
 
 void planificar_fifo() {
-    if (list_is_empty(lista_Ready)) {
+    if (list_is_empty(lista_READY)) {
         printf ("No hay procesos en la cola.\n");
         return;
     }
 
-    PCB* pcb= list_remove(cola_de_procesos, 0);
+    PCB* pcb= list_remove(lista_READY, 0);
+    // variable global con mutex donde definamos que pueda ejecutar wait(mutex)
+    // LISTA RUNNING
     ejecutar_proceso(pcb); //falta implementar esta funcion
+    // signal (mutex)
     free(pcb); //libero memoria
 }
 
