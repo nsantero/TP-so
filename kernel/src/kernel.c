@@ -14,7 +14,8 @@ typedef struct {
     int PID; //id del proceso
     int pc; //direccionarte a la proxima instruccion 
     int quantum; // duración del quantum 
-    CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+    CPU_Registers* cpuRegisters;
+	char Estado; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
 
 
@@ -65,7 +66,7 @@ void_inicializar_planificadores() {
 
     // inicializamos lista de estados
 
-    lista_NEW = list_create();
+    lista_NEW = list_create(); //queue
 	lista_READY = list_create();
 	lista_EXIT = list_create();
 	lista_BLOCKED = list_create();

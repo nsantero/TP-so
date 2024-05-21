@@ -79,5 +79,5 @@ t_list* lista_NEW;
 t_list* lista_READY;
 t_list* lista_EXIT;
 t_list* lista_BLOCKED;
-
+t_list* lista_RUNNING;
 

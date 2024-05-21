@@ -4,7 +4,15 @@
 #include <kernel.h>
 #include <semaphore.h>
 #include "../src/kernel.c"
+#include <queue.h>
 
+
+// Estructura del proceso
+
+typedef struct proceso {
+    PCB pcb_info;
+    char *descripcion;
+}Proceso;
 
 //Hilos
 
@@ -41,6 +49,12 @@ void inicializar_sem_planificadores()
 
     sem_procesos_ready = malloc (sizeof(sem_t));
     sem_init(sem_procesos_ready, 0, 1);
+
+    sem_procesos_running = malloc (sizeof(sem_t));
+    sem_init(sem_procesos_running, 0, 1);
+
+    sem_proceso_ejecutando = malloc (sizeof(sem_t));
+    sem_init(sem_proceso_ejecutando, 0, 0);
 }
 
 int leer_grado_multiprogramación() {
@@ -58,14 +72,20 @@ bool permitePasarAREady() {
 // Informativo: sem_wait bloquea el hilo si el semaforo se encuentra en 0 o menor a 0. Si el valor del
 //semaforo es 1, decrementa el valor (-1) y ejecuta el hilo.
 
+void crearProceso {
+    Proceso;
+    list_add (lista_NEW, 0); // agregar al final de la lista 
+}
+
 void* largo_plazo(void* arg) {
     if (list_size(lista_NEW) != 0)  {
 
         sem_wait(sem_grado_multiprogramacion); // me fijo que el grado de multiprogramacion este ok
         sem_wait(sem_procesos_new);
         sem_wait(sem_procesos_ready);
-        PCB* pcb= list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
-        PCB* pcb = list_add(lista_READY, 0); // lo agrega al comienzo de la lista, cambiarlo en base a queue
+        list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
+        list_add(lista_READY, 0); 
+        PCB* Estado = "READY"; // lo agrega al comienzo de la lista, cambiarlo en base a queue
         sem_post(sem_procesos_new);
         sem_post(sem_procesos_ready);
     }
@@ -75,7 +95,10 @@ void* largo_plazo(void* arg) {
 // PLANIFICADOR CORTO PLAZO
 // Evaluo que tipo de planificador se debe implementar
 
-void* corto_plazo(void* arg) {
+void* corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
+
+    if (list_size (lista_READY) != 0) {
+
     if(strcmp(algoritmo_planificacion, "FIFO") == 0) {
         planificar_fifo();
     } else if (strcmp(algoritmo_planificacion, "RR") == 0) {
@@ -83,20 +106,30 @@ void* corto_plazo(void* arg) {
     } else if (strcmp(algoritmo_planificacion, "VRR") == 0 ) {
         printf ("Algoritmo de planificacion no conocido: %s\n", algoritmo_planificacion);
     }
+    }
 }
 
 void planificar_fifo() {
-    if (list_is_empty(lista_READY)) {
+    if (list_is_empty(lista_READY)) { // QUEUE *cola_ready
         printf ("No hay procesos en la cola.\n");
         return;
     }
 
-    PCB* pcb= list_remove(lista_READY, 0);
+    sem_wait (sem_procesos_ready); 
+    list_remove(lista_READY, 0);
+    sem_post (sem_procesos_ready); 
     // variable global con mutex donde definamos que pueda ejecutar wait(mutex)
     // LISTA RUNNING
-    ejecutar_proceso(pcb); //falta implementar esta funcion
+    sem_wait(sem_proceso_ejecutando);
+    sem_wait (sem_procesos_running);
+    list_add (lista_RUNNING, 0);
+    sem_post (sem_procesos_running);
+    PCB* Estado = "RUNNING";
+    ejecutar_proceso(pcb); //falta implementar esta funcion ( ¿se la pasa a CPU ?)
     // signal (mutex)
+    sem_post(sem_proceso_ejecutando);
     free(pcb); //libero memoria
+    }
 }
 
 // implementación RR
