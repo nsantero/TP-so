@@ -114,13 +114,12 @@ void planificar_fifo() {
         printf ("No hay procesos en la cola.\n");
         return;
     }
-
-    sem_wait (sem_procesos_ready); 
-    list_remove(lista_READY, 0);
-    sem_post (sem_procesos_ready); 
     // variable global con mutex donde definamos que pueda ejecutar wait(mutex)
     // LISTA RUNNING
     sem_wait(sem_proceso_ejecutando);
+    sem_wait (sem_procesos_ready); 
+    list_remove(lista_READY, 0);
+    sem_post (sem_procesos_ready); 
     sem_wait (sem_procesos_running);
     list_add (lista_RUNNING, 0);
     sem_post (sem_procesos_running);
@@ -129,8 +128,20 @@ void planificar_fifo() {
     // signal (mutex)
     sem_post(sem_proceso_ejecutando);
     free(pcb); //libero memoria
-    }
+
 }
+
+/* IDEA PARA LAS INTERRUPCIONES 
+
+interrupt_proceso { 
+        if (quantumUsado > quantum) {
+        sem_wait(sem_procesos_blocked);
+        PCB* Estado = "BLOCKED";
+        list_add (lista_BLOCKED, 0);
+        sem_wait(sem_procesos_blocked);
+        }
+    // enviar a la cpu el status del contexto de ejecución
+    send (cpu) PCB; // a chequear */
 
 // implementación RR
 void planificar_round_robin() {
