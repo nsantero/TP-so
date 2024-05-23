@@ -19,10 +19,6 @@
 #include "utils.h"
 #include "conexiones.h"
 
-typedef struct { 
-    uint32_t AX, BX, CX, DX; 
-}registros_cpu;
-
 int memoria_fd;
 t_log* logger;
 

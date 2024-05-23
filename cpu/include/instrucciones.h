@@ -11,12 +11,10 @@ typedef struct{
 	char* param1;
 	char* param2;
 	char* param3;
-	int direccion;
-	uint32_t registroValor;
-
 } memoria_cpu_data;
 
 typedef enum{
+	EXECUTE,
 	SET,
 	SUM,
 	SUB,

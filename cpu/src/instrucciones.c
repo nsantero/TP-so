@@ -1,20 +1,38 @@
-#include "../include/config.h"
-#include "../include/instrucciones.h"
+#include "config.h"
+#include "instrucciones.h"
 
 extern cpu_config* config;
 
 bool sigo_ejecutando = true;
 
-pcb* recibir_cpu_kernel(int socket){
-    t_buffer* bufferEnviar =  buffer_create();
-	        
-    pcb* pcb1 = malloc(sizeof(pcb));
-    int offset = 0;
-	
-	/* lógica de recepción de pcb */
+extern logger;
 
-    return pcb1;
-}
+pcb* recibir_cpu_kernel(int socket) {
+    t_buffer* bufferEnviar =  recibir_buffer(socket, bufferEnviar);;
+   
+    t_identificador id_recibido = stream_recv_de_header(socket);
+    
+	// Si no llega el BUFFER, tira error
+    if (bufferEnviar == NULL) {
+        log_error(logger, "Error al recibir el buffer del socket");
+        return NULL;
+    }
+
+    pcb* pcb1 = malloc(sizeof(pcb));
+    if (!pcb1) {
+        log_error(logger, "No se pudo asignar memoria para el PCB");
+        free(bufferEnviar);
+        return NULL;
+    }
+
+    pcb1->registros_cpu = malloc(sizeof(registros_cpu));
+    if (!pcb1->registros_cpu) {
+        log_error(logger, "No se pudo asignar memoria para registros CPU");
+        free(pcb1);
+        free(bufferEnviar);
+        return NULL;
+    }
+}	
 
 void atender_dispatch(logger){
 	log_info(logger, "CPU escuchando puerto dispatch");
@@ -32,19 +50,18 @@ void ejecutar_ciclo_de_instruccion(pcb *pcb, int socket_kernel) {
 
 	sigo_ejecutando = 1;
 
-	while (sigo_ejecutando /* && chequear_si_hay_interrupcion()*/) {
+	while (sigo_ejecutando /* && chequear_si_hay_interrupcion() para el prox CHECKPOINT*/) {
 		t_instruccion *instruccion = fetch(pcb);
 
 		decode(instruccion, pcb);
 
 		free(instruccion);
-
 	}
 }
 
 t_instruccion* fetch(pcb *pcb) {
 	
-	/* recibir instruccion de memoria */
+	/* recibir instruccion de memoria? */
 
 	t_instruccion *instruccion_recibida = convertir_data_a_instruccion();
 
@@ -53,41 +70,56 @@ t_instruccion* fetch(pcb *pcb) {
 	return instruccion_recibida;
 }
 
-t_instruccion* convertir_data_a_instruccion(memoria_cpu_data *data_cpu) {
-	t_instruccion *instruccion = malloc(sizeof(*instruccion));
-
-	instruccion->identificador = data_cpu->programCounter;
-	instruccion->param1 = data_cpu->param1;
-	instruccion->param2 = data_cpu->param2;
-	instruccion->param3 = data_cpu->param3;
-
-	return instruccion;
-}
-
 void decode(t_instruccion *instruccion, pcb *pcb) {
-	int dir_logica;
-	int32_t direccionFisica;
 	switch (instruccion->identificador) {
 		case SET:
 			log_info(logger, "PID: %d - Ejecutando: SET - %s - %s", pcb->pid, instruccion->param1, instruccion->param2);
-			execute_SET();
+			execute_SET(instruccion->param1, instruccion->param2);
 
 		case SUM:
 			log_info(logger, "PID: %d - Ejecutando: SUM - %s - %s", pcb->pid, instruccion->param1, instruccion->param2);
-			execute_SUM();
+			execute_SUM(instruccion->param1, instruccion->param2);
 			break;
 
 		case SUB:
 			log_info(logger, "PID: %d - Ejecutando: SUB - %s - %s", pcb->pid, instruccion->param1, instruccion->param2);
-			execute_SUB();
+			execute_SUB(instruccion->param1, instruccion->param2);
 			break;
 
 		case JNZ:
 			log_info(logger, "PID: %d - Ejecutando: JNZ - %s - %s", pcb->pid, instruccion->param1, instruccion->param2);
-			execute_JNZ();
+			execute_JNZ(instruccion->param1, instruccion->param2, pcb->programCounter);
+			break;
+		
+		case IO_GEN_SLEEP:
+			log_info(logger, "PID: %d - Ejecutando: IO_GEN_SLEEP - %s - %s", pcb->pid, instruccion->param1, instruccion->param2);
+			int tiempo = 1; //HARDCODEADO, PENSAR LÓGICA
+			char* interfaz = "algo"; // PENSAR CÓMO SE PASA LA INTERFAZ
+			execute_IO_GEEN_SLEEP(interfaz, tiempo);
 			break;
 
 		default:
 			break;
 	}
+}
+
+void execute_SET(uint32_t *registro, int valor){
+	*registro = valor;
+}
+
+void execute_SUM(uint32_t * registroDestino,uint32_t *registroOrigen){
+	*registroDestino += *registroOrigen;
+}
+
+void execute_SUB(uint32_t * registroDestino,uint32_t * registroOrigen){
+	*registroDestino -= *registroOrigen;
+}
+
+void execute_JNZ(uint32_t * registro,uint32_t valor, uint32_t pc){
+	if(*registro!=0)
+		pc = valor;
+}
+
+void execute_IO_GEEN_SLEEP(interfaz, tiempo){
+	
 }

@@ -1,4 +1,4 @@
-#include "../include/shared.h"
+#include "shared.h"
 
 void decir_hola(char* quien) {
    printf("Hola desde %s!!\n", quien);
@@ -45,6 +45,13 @@ int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto)
 	return socket_servidor;
 } 
 
+t_buffer* crear_buffer(void) {
+    t_buffer* nuevoBuffer = malloc(sizeof(*nuevoBuffer));
+    nuevoBuffer->size = 0;
+    nuevoBuffer->stream = NULL;
+    return nuevoBuffer;
+}
+
 void* recibir_buffer(int* size, int socket_cliente){
 	void * buffer;
 
@@ -53,6 +60,15 @@ void* recibir_buffer(int* size, int socket_cliente){
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 
 	return buffer;
+}
+
+uint8_t stream_recv_de_header(int fromSocket) {
+    uint8_t header;
+    ssize_t msgBytes = recv(fromSocket, &header, sizeof(header), 0);
+    if (msgBytes == -1) {
+        printf("\e[0;31mstream_recv_buffer: Error en la recepción del header [%s]\e[0m\n", strerror(errno));
+    }
+    return header;
 }
 
 void enviar_mensaje(char* mensaje, int socket_cliente){
@@ -97,7 +113,6 @@ void* serializar_paquete(t_paquete* paquete, int bytes) {
 
 	return paquete_serializado; 
 }
-
 
 void eliminar_paquete(t_paquete* paquete) {
     free(paquete->buffer->stream);
@@ -156,6 +171,7 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
 
     return socket_cliente;
 }
+
 void liberar_conexion(int socket_cliente)
 {
     close(socket_cliente);
