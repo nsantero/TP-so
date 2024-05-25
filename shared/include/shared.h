@@ -45,6 +45,29 @@ typedef struct
     t_buffer *buffer;
 } t_paquete;
 
+typedef struct { 
+    uint32_t AX, BX, CX, DX; 
+}registros_cpu;
+
+typedef struct
+{
+    int pid;
+	int programCounter;
+	int quantum;
+	registros_cpu* registros_cpu;
+    //estado_proceso estadoProceso;
+} pcb;
+
+typedef enum{
+	EXECUTE,
+	ENVIO_PCB,
+	SET,
+	SUM,
+	SUB,
+	JNZ,
+    IO_GEN_SLEEP
+} t_identificador;
+
 /**
 * @fn    decir_hola
 * @brief Imprime un saludo al nombre que se pase por parámetro por consola.
@@ -55,6 +78,8 @@ void decir_hola(char* quien);
 int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto);
 void* recibir_buffer(int* size, int socket_cliente);
 char* recibir_mensaje(int socket_cliente);
+t_buffer* crear_buffer(void);
+uint8_t stream_recv_de_header(int fromSocket);
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto);
 void liberar_conexion(int socket_cliente);
 int esperar_cliente(t_log* logger, const char* name, int socket_servidor);

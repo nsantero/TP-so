@@ -42,3 +42,42 @@ char* server_name = "kernel";
 void cargar_configuracion(char* archivo_configuracion);
 static void procesar_conexion(void *void_args);
 int server_escuchar(int fd_memoria);
+
+// PCB
+
+typedef struct {
+    int PID; //id del proceso
+    int pc; //direccionamiento
+    int quantum;
+    Estado estado; // duración del quantum 
+    CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+} PCB;
+
+int pid_counter = 1; //contador del pid, lo inicializo en 1
+int quantum; 
+char* algoritmo_planificacion; 
+
+t_list* cola_de_procesos;
+
+typedef struct {
+    char PC [5];
+    char AX [2];
+    char BX [2];
+    char CX [2];
+    char DX [2];
+    char EAX [5];
+    char EBX [5];
+    char ECX [5];
+    char EDX [5];
+    char SI [5];
+    char DI [5];
+} CPU_Registers;
+
+// LISTAS DE ESTADOS
+
+t_list* lista_NEW;
+t_list* lista_READY;
+t_list* lista_EXIT;
+t_list* lista_BLOCKED;
+t_list* lista_RUNNING;
+
