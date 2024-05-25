@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>//Preguntar si se puede incluir
 #include "../include/entradasalida.h"
 
 
@@ -41,6 +42,8 @@ int main(int argc, char* argv[]) {
     memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
 	log_info(logger, "Me conecte a memoria");
 
+	iniciar_interfaz("ENTRADASALIDA","/home/utnso/tp-2024-1c-File-System-Fanatics/entradasalida/entradasalida.config");
+
 	// envio mensajes
 	enviar_mensaje("soy e/s", memoria_fd);
     enviar_mensaje("soy e/s", kernel_fd);
@@ -48,3 +51,30 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
+
+
+void iniciar_interfaz(char nombre_interfaz, char* archivoConfig){
+
+	char* tipoInterfaz = config_valores.tipo_interfaz;
+
+	if(tipoInterfaz == "GENERICA"){
+		IO_GEN_SLEEP();
+	}
+		else if (tipoInterfaz == "STDIN"){
+			IO_STDIN_READ();
+		}
+			else if (tipoInterfaz == "STDOUT"){
+		
+				}
+				else{//Es del tipo DialFS
+
+	}
+
+}
+
+void IO_GEN_SLEEP(){
+
+	sleep(config_valores.tiempo_unidad_trabajo);
+
+}
+
