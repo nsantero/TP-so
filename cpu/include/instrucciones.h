@@ -3,15 +3,6 @@
 #include "cpu.h"
 
 // ESTRUCTURAS //
-typedef enum{
-	EXECUTE,
-	SET,
-	SUM,
-	SUB,
-	JNZ,
-    IO_GEN_SLEEP
-} t_identificador;
-
 typedef struct {
 	t_identificador identificador;
 	char* param1;

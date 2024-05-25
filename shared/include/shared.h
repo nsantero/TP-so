@@ -53,7 +53,18 @@ typedef struct
 	int programCounter;
 	int quantum;
 	registros_cpu* registros_cpu;
+    //estado_proceso estadoProceso;
 } pcb;
+
+typedef enum{
+	EXECUTE,
+	ENVIO_PCB,
+	SET,
+	SUM,
+	SUB,
+	JNZ,
+    IO_GEN_SLEEP
+} t_identificador;
 
 /**
 * @fn    decir_hola

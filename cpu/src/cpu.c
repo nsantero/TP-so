@@ -1,5 +1,7 @@
 #include "../include/cpu.h"
 
+//////////////////////////////////////////////////////////////// CONFIGURACIÓN ////////////////////////////////////////////////////////////////
+
 void cargar_configuracion_cpu(char* archivo_configuracion)
 {
         t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
@@ -16,6 +18,8 @@ void cargar_configuracion_cpu(char* archivo_configuracion)
         config_valores.cant_enradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
         config_valores.algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
 }
+
+//////////////////////////////////////////////////////////////// FUNCIÓN MAIN ////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
 	cpu_log = log_create("../cpu.log", "CPU", true, LOG_LEVEL_INFO); // Creación del Log
@@ -38,14 +42,14 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS; // Fin de Proceso? 
 }
 
-///////////////////////////////////////////////////////////// PROCESO CONEXION ///////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////// PROCESO CONEXION ////////////////////////////////////////////////////////////////
 
 static void procesar_conexion_dispatch(void* void_args) {
     int *args = (int*) void_args;
         int cliente_socket_dispatch = *args;
 
-    op_code cop;
-        while (cliente_socket_dispatch != -1 && !recibio_interrupcion) {
+    t_identificador cop;
+    while (cliente_socket_dispatch != -1 && !recibio_interrupcion) {
 
         if (recv(cliente_socket_dispatch, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
             log_info(cpu_log, ANSI_COLOR_BLUE"El cliente se desconecto de DISPATCH");
@@ -56,6 +60,23 @@ static void procesar_conexion_dispatch(void* void_args) {
             case MENSAJE:
                 char* mensaje = recibir_mensaje(cliente_socket_dispatch);
                 log_info(cpu_log, "Recibi el mensaje: %s , soy dispatch", mensaje);
+                break;
+
+            case PAQUETE:
+                t_list *paquete_recibido = recibir_paquete(cliente_socket_dispatch);
+                //log_info(cpu_log, ANSI_COLOR_YELLOW "Recibí un paquete con los siguientes valores: ");
+                break;
+
+            case ENVIO_PCB: 
+                pcb* contexto = recv_pcb(cliente_socket_dispatch);
+
+                if (contexto->pid!=-1) {                    
+                    ciclo_instruccion(contexto, cliente_socket_dispatch, cpu_log);
+                    destroy_pcb(contexto);
+                    break;    
+                } else {
+                    log_error(cpu_log, "Error al recibir el PCB");
+                }
                 break;
 
             default: {
@@ -114,6 +135,7 @@ int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch) {
     }
     return 0;
 }
+
 
 
 

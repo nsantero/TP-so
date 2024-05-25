@@ -1,53 +1,29 @@
 #include "instrucciones.h"
 
-// RECEPCIÓN DEL PCB //
-pcb* recibir_cpu_kernel(int socket) {
-    t_buffer* bufferEnviar =  recibir_buffer(socket, bufferEnviar);;
-   
-    t_identificador id_recibido = stream_recv_de_header(socket);
-    
-	// Si no llega el BUFFER, tira error
-    if (bufferEnviar == NULL) {
-        log_error(cpu_log, "Error al recibir el buffer del socket");
-        return NULL;
-    }
-
-    pcb* pcb1 = malloc(sizeof(pcb));
-    if (!pcb1) {
-        log_error(cpu_log, "No se pudo asignar memoria para el PCB");
-        free(bufferEnviar);
-        return NULL;
-    }
-
-    pcb1->registros_cpu = malloc(sizeof(registros_cpu));
-    if (!pcb1->registros_cpu) {
-        log_error(cpu_log, "No se pudo asignar memoria para registros CPU");
-        free(pcb1);
-        free(bufferEnviar);
-        return NULL;
-    }
-}	
-
 ///////////////////////////////////////////////////////////// CICLO DE INSTRUCCIÓN ///////////////////////////////////////////////////////////////////
 
-void ejecutar_ciclo_de_instruccion(pcb *pcb, int socket_kernel) {
+void ciclo_instruccion(pcb* contexto, int cliente_socket_dispatch, t_log* logger) {
+    //log_info(logger,ANSI_COLOR_BLUE "Inicio del ciclo de instrucción");
+    while (cliente_socket_dispatch != -1) {
 
-	sigo_ejecutando = 1;
+    t_instruccion * instruccion = malloc(sizeof(t_instruccion));
 
-	while (sigo_ejecutando /* && chequear_si_hay_interrupcion() para el prox CHECKPOINT*/) {
-		t_instruccion *instruccion = fetch(pcb);
-
-		decode(instruccion, pcb);
-
-		free(instruccion);
-	}
+    if(instruccion){
+		decode(instruccion,contexto);
+        contexto->programCounter++;
+           
+        /*free(instruccion->opcode);
+        free(instruccion->operando1);
+        free(instruccion->operando2);
+        free(instruccion);*/
+    }
 }
 
-t_instruccion* fetch(pcb *pcb) {
+/*t_instruccion* fetch(pcb *pcb){
 	
-	/* recibir instruccion de memoria? */
+	 recibir instruccion de memoria? 
+}; */
 
-}
 
 void decode(t_instruccion *instruccion, pcb *pcb) {
 	switch (instruccion->identificador) {
@@ -75,7 +51,6 @@ void decode(t_instruccion *instruccion, pcb *pcb) {
 			int tiempo = 1; //HARDCODEADO, PENSAR LÓGICA
 			char* interfaz = "algo"; // PENSAR CÓMO SE PASA LA INTERFAZ
 			execute_IO_GEEN_SLEEP(interfaz, tiempo);
-			break;
 
 		default:
 			break;

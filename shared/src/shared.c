@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "../include/shared.h"
 
 void decir_hola(char* quien) {
    printf("Hola desde %s!!\n", quien);
@@ -60,15 +60,6 @@ void* recibir_buffer(int* size, int socket_cliente){
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 
 	return buffer;
-}
-
-uint8_t stream_recv_de_header(int fromSocket) {
-    uint8_t header;
-    ssize_t msgBytes = recv(fromSocket, &header, sizeof(header), 0);
-    if (msgBytes == -1) {
-        printf("\e[0;31mstream_recv_buffer: Error en la recepción del header [%s]\e[0m\n", strerror(errno));
-    }
-    return header;
 }
 
 void enviar_mensaje(char* mensaje, int socket_cliente){
@@ -178,6 +169,79 @@ void liberar_conexion(int socket_cliente)
     socket_cliente = -1;
 }
 
+void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio){
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
+	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
+
+	paquete->buffer->size += tamanio + sizeof(int);
+}
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente){
+	int bytes = paquete->buffer->size + sizeof(int) + sizeof(op_code);
+	void* a_enviar = serializar_paquete(paquete, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	free(a_enviar);
+}
+
+//////////////////////////////////////////////////////////////// PCB ////////////////////////////////////////////////////////////////
+
+void empaquetar_pcb(t_paquete* paquete, pcb* contexto){
+    
+	agregar_a_paquete(paquete, &(contexto->pid), sizeof(int));
+	agregar_a_paquete(paquete, &(contexto->programCounter), sizeof(int));
+	//agregar_a_paquete(paquete, &(contexto->estado), sizeof(estado_proceso));
+	empaquetar_registros(paquete, contexto->registros_cpu); // FALTA HACER!!	
+}
+
+pcb* desempaquetar_pcb(t_list* paquete, int* counter) {
+	pcb* contexto = malloc(sizeof(pcb));
+
+	int* pid = list_get(paquete, 0);
+	contexto->pid = *pid;
+	free(pid);
+
+	int* pc = list_get(paquete, 1);
+	contexto->programCounter = *pc;
+	free(pc);
+
+	//estado_proceso* estado = list_get(paquete, 3); /* ver desde el KERNEL bien los tipos */
+	//contexto->estado = *estado;
+	//free(estado);
+
+	/*int comienzo_registros = ;
+	registros_cpu* registro_contexto = desempaquetar_registros(paquete, comienzo_registros);
+	contexto->registros_cpu = registro_contexto;
+
+	// liberar memoria
+    if (contexto->registros_cpu == NULL) {
+        registros_destroy(contexto->registros_cpu);
+        free(contexto);
+        return NULL;
+    }
+
+	return contexto;*/
+}
+
+pcb* recv_pcb(int socket_modulo){
+	t_list* paquete = recibir_mensaje(socket_modulo);
+	int counter = 0;
+	pcb* contexto_recibido = desempaquetar_pcb(paquete, &counter);
+	list_destroy(paquete); // para liberar memoria
+	return contexto_recibido;
+}
+
+void send_pcb(pcb* contexto, int socket_modulo){
+	printf("\n ENVIANDO PCB PID: %d\n", contexto->pid);
+    t_paquete* paquete = crear_paquete(ENVIO_PCB);
+	empaquetar_pcb(paquete, contexto);
+	enviar_mensaje(paquete, socket_modulo);
+	eliminar_paquete(paquete);
+	//pcb_destroyer(contexto);
+}
 
 
 

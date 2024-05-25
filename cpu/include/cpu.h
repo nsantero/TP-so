@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include "../../shared/include/shared.h"
+#include "instrucciones.h"
 
 // ESTRUCTURAS //
 typedef struct
