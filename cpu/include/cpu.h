@@ -1,3 +1,6 @@
+#ifndef CPU_H_
+#define CPU_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -12,30 +15,33 @@
 #include <assert.h>
 #include <pthread.h>
 #include "../../shared/include/shared.h"
+#include "instrucciones.h"
 
-#include "utils.h"
-
+// ESTRUCTURAS //
 typedef struct
 {
-	char* ip_memoria;
-    char* puerto_memoria; 		
-    char* puerto_escucha_dispatch; 		
-    char* puerto_escucha_interrupt; 		
-    int cant_enradas_tlb; 			
-    char* algoritmo_tlb; 			
-   
+    char* ip_memoria;
+    char* puerto_memoria;
+    char* puerto_escucha_dispatch;
+    char* puerto_escucha_interrupt;
+    int cant_enradas_tlb;
+    char* algoritmo_tlb;
 } cpu_config;
 
-int memoria_fd;
-int fd_cpu_dispatch;
-int fd_cpu_interrupt;
+// VARIABLES //
 cpu_config config_valores;
-t_log* logger;
+int socket_memoria;
+t_log* cpu_log;
 char* server_name_dispatch = "CPU_DISPATCH";
 char* server_name_interrupt = "CPU_INTERRUPT";
-
-void cargar_configuracion(char* archivo_configuracion);
-int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
-static void procesar_conexion_interrupt(void* void_args);
-static void procesar_conexion_dispatch(void* void_args);
+int fd_cpu_dispatch;
+int fd_cpu_interrupt;
 bool recibio_interrupcion = false;
+
+// FUNCIONES //
+void cargar_configuracion_cpu(char* archivo_configuracion);
+int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
+static void procesar_conexion_dispatch(void* void_args);
+static void procesar_conexion_interrupt(void* void_args);
+
+#endif
