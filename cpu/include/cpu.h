@@ -28,7 +28,19 @@ typedef struct
     char* algoritmo_tlb;
 } cpu_config;
 
+typedef struct
+{
+	char* instruccion;
+    char* operando1; 		
+    char* operando2; 		
+    //tengo que agregar porque puede haber mas, creo que hasta 5 
+} t_instruccion;
+
 // VARIABLES //
+
+int memoria_fd;
+int fd_cpu_dispatch;
+int fd_cpu_interrupt;
 cpu_config config_valores;
 int socket_memoria;
 t_log* cpu_log;
@@ -41,6 +53,10 @@ bool recibio_interrupcion = false;
 // FUNCIONES //
 void cargar_configuracion_cpu(char* archivo_configuracion);
 int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
+
+static void procesar_conexion_interrupt(void* void_args);
+t_instruccion recv_instruccion(int memoria_fd);
+
 static void procesar_conexion_dispatch(void* void_args);
 static void procesar_conexion_interrupt(void* void_args);
 

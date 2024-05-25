@@ -2,14 +2,58 @@
 
 //////////////////////////////////////////////////////////////// CONFIGURACIÓN ////////////////////////////////////////////////////////////////
 
+
+t_instruccion recv_instruccion(int memoria_fd){
+
+	t_list *paquete = recibir_paquete(memoria_fd);
+
+	// Obtener el path del paquete
+	char *instruccion_cadena = (char *)list_get(paquete, 0);
+
+	log_info(logger, "Recibi la instruccion: %s", instruccion_cadena ); 
+
+	char **palabras = string_split(instruccion_cadena , " ");
+    
+    t_instruccion instruccion;
+
+	instruccion.instruccion = malloc(sizeof(char) * (strlen(palabras[0]) + 1));
+    strcpy(instruccion.instruccion, palabras[0]);
+
+	instruccion.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
+    strcpy(instruccion.operando1, palabras[1]); 
+
+	instruccion.operando2 = malloc(sizeof(char) * (strlen(palabras[2]) + 1));
+    strcpy(instruccion.operando2, palabras[2]);
+
+        // Liberar memoria en caso de error
+        free(instruccion.instruccion);  
+        free(instruccion.operando1);
+        free(instruccion.operando2);
+        instruccion.instruccion = NULL;
+        instruccion.operando1 = NULL;
+        instruccion.operando2 = NULL;
+    
+
+    // Liberar memoria asignada a palabras
+    int i = 0;
+    while (palabras[i] != NULL) {
+        free(palabras[i]);
+        i++;
+    }
+    free(palabras);
+	free(paquete);
+
+    return instruccion;
+}
+
 void cargar_configuracion_cpu(char* archivo_configuracion)
 {
         t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
-
         if (config == NULL) {
                 perror("Archivo de configuracion no encontrado");
                 exit(-1);
         }
+
 
         config_valores.ip_memoria = config_get_string_value(config, "IP_MEMORIA");
         config_valores.puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
@@ -20,7 +64,9 @@ void cargar_configuracion_cpu(char* archivo_configuracion)
 }
 
 //////////////////////////////////////////////////////////////// FUNCIÓN MAIN ////////////////////////////////////////////////////////////////
+  
 
+  
 int main(int argc, char* argv[]) {
 	cpu_log = log_create("../cpu.log", "CPU", true, LOG_LEVEL_INFO); // Creación del Log
 	log_info(cpu_log, "Se creo el log!");
@@ -38,6 +84,21 @@ int main(int argc, char* argv[]) {
 
 	log_info(cpu_log, "Servidor listo para recibir al cliente");
 	atender_dispatch(cpu_log); // Escucho al cliente
+  
+  ////////////
+  
+	t_paquete *paquete = crear_paquete(PEDIDO_INSTRUCCION);
+
+	// Agregar el path al paquete
+	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
+	
+
+	enviar_paquete(paquete, memoria_fd);
+	eliminar_paquete(paquete);
+
+
+  t_instruccion instruccion = recv_instruccion(memoria_fd);
+
 	
     return EXIT_SUCCESS; // Fin de Proceso? 
 }
@@ -45,6 +106,7 @@ int main(int argc, char* argv[]) {
 //////////////////////////////////////////////////////////////// PROCESO CONEXION ////////////////////////////////////////////////////////////////
 
 static void procesar_conexion_dispatch(void* void_args) {
+  
     int *args = (int*) void_args;
         int cliente_socket_dispatch = *args;
 
