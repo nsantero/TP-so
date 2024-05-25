@@ -8,6 +8,10 @@
 
 
 
+char* leer_string(char *buffer, int *desplazamiento);
+
+
+
 
 
 

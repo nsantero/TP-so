@@ -165,6 +165,88 @@ void liberar_conexion(int socket_cliente)
     socket_cliente = -1;
 }
 
+void agregar_entero_a_paquete(t_paquete *paquete, uint32_t x)
+{
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint32_t));
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint32_t));
+	paquete->buffer->size += sizeof(uint32_t);
+}
 
+void crear_buffer(t_paquete* paquete){
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->buffer->size = 0;
+	paquete->buffer->stream = NULL;
+}
+
+t_paquete* crear_paquete(op_code codigo_op){
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+	paquete->codigo_operacion = codigo_op;
+	crear_buffer(paquete);
+	return paquete;
+}
+
+void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio){
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
+	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
+
+	paquete->buffer->size += tamanio + sizeof(int);
+}
+
+
+t_list* recibir_paquete(int socket_cliente){
+	int size;
+	int desplazamiento = 0;
+	void* buffer;
+	t_list* valores = list_create();
+	int tamanio;
+
+	buffer = recibir_buffer(&size, socket_cliente);
+	//memory leaks
+	if (buffer == NULL) {
+        // Manejar el error de recepción del paquete
+        list_destroy(valores);
+        return NULL;
+    }
+
+	while(desplazamiento < size){
+		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+		desplazamiento+=sizeof(int);
+		char* valor = malloc(tamanio);
+		memcpy(valor, buffer+desplazamiento, tamanio);
+		desplazamiento+=tamanio;
+		list_add(valores, valor);
+	}
+	free(buffer);
+	return valores;
+}
+
+void enviar_paquete(t_paquete* paquete, int socket_cliente){
+	int bytes = paquete->buffer->size + sizeof(int) + sizeof(op_code);
+	void* a_enviar = serializar_paquete(paquete, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	free(a_enviar);
+}
+
+void agregar_string_a_paquete(t_paquete *paquete, char* palabra)
+{
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(char*));
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &palabra, sizeof(char*));
+	paquete->buffer->size += (sizeof(char*));
+}
+
+
+
+
+uint32_t leer_entero(char *buffer, int *desplazamiento) {
+    //uint32_t* ret= malloc(sizeof(uint32_t));
+    uint32_t ret;
+    memcpy(&ret, buffer + (*desplazamiento), sizeof(uint32_t));
+    (*desplazamiento) += sizeof(uint32_t);
+    return ret;
+}
 
 

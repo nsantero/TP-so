@@ -19,6 +19,49 @@ void cargar_configuracion(char* archivo_configuracion)
 	
 }
 
+t_instruccion recv_instruccion(int memoria_fd){
+
+	t_list *paquete = recibir_paquete(memoria_fd);
+
+	// Obtener el path del paquete
+	char *instruccion_cadena = (char *)list_get(paquete, 0);
+
+	log_info(logger, "Recibi la instruccion: %s", instruccion_cadena ); 
+
+	char **palabras = string_split(instruccion_cadena , " ");
+    
+    t_instruccion instruccion;
+
+	instruccion.instruccion = malloc(sizeof(char) * (strlen(palabras[0]) + 1));
+    strcpy(instruccion.instruccion, palabras[0]);
+
+	instruccion.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
+    strcpy(instruccion.operando1, palabras[1]); 
+
+	instruccion.operando2 = malloc(sizeof(char) * (strlen(palabras[2]) + 1));
+    strcpy(instruccion.operando2, palabras[2]);
+
+        // Liberar memoria en caso de error
+        free(instruccion.instruccion);  
+        free(instruccion.operando1);
+        free(instruccion.operando2);
+        instruccion.instruccion = NULL;
+        instruccion.operando1 = NULL;
+        instruccion.operando2 = NULL;
+    
+
+    // Liberar memoria asignada a palabras
+    int i = 0;
+    while (palabras[i] != NULL) {
+        free(palabras[i]);
+        i++;
+    }
+    free(palabras);
+	free(paquete);
+
+    return instruccion;
+}
+
 int main(int argc, char* argv[]) {
     
     logger = log_create("./log/cpu.log", "CPU", true, LOG_LEVEL_INFO);
@@ -31,12 +74,37 @@ int main(int argc, char* argv[]) {
 	log_info(logger, "Me conecte a memoria!");
 
 	//envio mensaje
-    enviar_mensaje("Hola, soy CPU!", memoria_fd);
+    //enviar_mensaje("Hola, soy CPU!", memoria_fd);
 
+	//envio instruccion para probar
+
+	
+
+	
 	// levanto el servidor dispatch e interrupt
 	fd_cpu_dispatch = iniciar_servidor(logger,server_name_dispatch ,IP, config_valores.puerto_escucha_dispatch);
     fd_cpu_interrupt = iniciar_servidor(logger, server_name_interrupt ,IP, config_valores.puerto_escucha_interrupt);
 	log_info(logger, "Servidor listo para recibir al cliente");
+
+	t_paquete *paquete = crear_paquete(PEDIDO_INSTRUCCION);
+
+	// Agregar el path al paquete
+	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
+	
+
+	enviar_paquete(paquete, memoria_fd);
+	eliminar_paquete(paquete);
+
+/*
+	op_code codigo;
+	codigo = recibir_operacion(memoria_fd);
+
+    if((codigo)!=PEDIDO_INSTRUCCION){
+        log_error(logger,"el cop no corresponde a una instruccion");
+        return false;
+    }
+	*/
+    t_instruccion instruccion = recv_instruccion(memoria_fd);
 
 	// espero mensjaes de kernel
     while(server_escuchar(fd_cpu_interrupt, fd_cpu_dispatch));
@@ -45,6 +113,7 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
+
 
 
 static void procesar_conexion_interrupt(void* void_args) {

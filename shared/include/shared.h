@@ -27,7 +27,9 @@
 typedef enum
 {
     PAQUETE,
-    MENSAJE
+    MENSAJE,
+    PEDIDO_INSTRUCCION,
+    MOV_IN,
 
 } op_code;
 
@@ -59,5 +61,14 @@ int esperar_cliente(t_log* logger, const char* name, int socket_servidor);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
+//int recv_instruccion(int fd_modulo, char* path, int pc);
+void enviar_paquete(t_paquete* paquete, int socket_cliente);
+void crear_buffer(t_paquete* paquete);
+t_paquete* crear_paquete(op_code codigo_op);
+void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
+t_list* recibir_paquete(int socket_cliente);
+void agregar_entero_a_paquete(t_paquete *paquete, uint32_t x);
+uint32_t leer_entero(char *buffer, int *desplazamiento);
+void agregar_string_a_paquete(t_paquete *paquete, char* palabra);
 
 #endif

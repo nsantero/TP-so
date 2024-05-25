@@ -33,7 +33,9 @@ int main(int argc, char* argv[]) {
     logger = log_create("../kernel.log", "ENTRADASALIDA", true, LOG_LEVEL_INFO);
 	log_info(logger, "Se creo el log!");
 
-	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/entradasalida/entradasalida.config");
+	char* archivo_configuracion =  argv[1];
+
+	cargar_configuracion(archivo_configuracion);
 
 	// Conecto entradasalida con kernel y memoria
 	kernel_fd = crear_conexion(logger,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);

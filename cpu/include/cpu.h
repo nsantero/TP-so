@@ -26,6 +26,14 @@ typedef struct
    
 } cpu_config;
 
+typedef struct
+{
+	char* instruccion;
+    char* operando1; 		
+    char* operando2; 		
+    //tengo que agregar porque puede haber mas, creo que hasta 5 
+} t_instruccion;
+
 int memoria_fd;
 int fd_cpu_dispatch;
 int fd_cpu_interrupt;
@@ -37,5 +45,6 @@ char* server_name_interrupt = "CPU_INTERRUPT";
 void cargar_configuracion(char* archivo_configuracion);
 int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
 static void procesar_conexion_interrupt(void* void_args);
+t_instruccion recv_instruccion(int memoria_fd);
 static void procesar_conexion_dispatch(void* void_args);
 bool recibio_interrupcion = false;
