@@ -47,6 +47,22 @@ int main(int argc, char* argv[]) {
 	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
 	log_info(logger, "Servidor listo para recibir al cliente");
 
+
+	//hardcodeo prueba de creacion de proceso
+
+	t_paquete *paquete = crear_paquete(CREAR_PROCESO);
+
+	int pid = 1;
+
+	// Agregar el path al paquete
+	agregar_a_paquete(paquete,&pid,sizeof(int));
+	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
+	
+
+	enviar_paquete(paquete, memoria_fd);
+	eliminar_paquete(paquete);
+
+
 	// espero mensjaes de e/s
     while(server_escuchar(server_fd));
 
