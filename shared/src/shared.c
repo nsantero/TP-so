@@ -185,6 +185,18 @@ t_paquete* crear_paquete(op_code codigo_op){
 	return paquete;
 }
 
+int recibir_operacion(int socket_cliente)
+{
+	int cod_op;
+	if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0)
+		return cod_op;
+	else
+	{
+		close(socket_cliente);
+		return -1;
+	}
+}
+
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio){
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
 

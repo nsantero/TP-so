@@ -29,7 +29,16 @@ typedef enum
     PAQUETE,
     MENSAJE,
     PEDIDO_INSTRUCCION,
+    CREAR_PROCESO,
     MOV_IN,
+    SET,
+    SUM,
+    SUB,
+    MOV_OUT,
+    RESIZE,
+    JNZ,
+    COPY_STRING,
+    IO_GEN_SLEEP
 
 } op_code;
 

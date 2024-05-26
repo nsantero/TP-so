@@ -30,7 +30,10 @@ typedef struct
 {
 	char* instruccion;
     char* operando1; 		
-    char* operando2; 		
+    char* operando2; 
+    char* operando3; 
+    char* operando4; 
+    char* operando5; 		
     //tengo que agregar porque puede haber mas, creo que hasta 5 
 } t_instruccion;
 

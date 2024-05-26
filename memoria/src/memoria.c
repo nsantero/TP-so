@@ -25,7 +25,9 @@ int main(int argc, char *argv[])
     logger = log_create("./log/memoria.log", "MEMORIA", true, LOG_LEVEL_INFO);
 	log_info(logger, "Se creo el log!");
 
-	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/memoria/memoria.config"); 
+	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/memoria/memoria.config");
+
+    lista_procesos_activos = list_create(); 
 
 	int server_fd = iniciar_servidor(logger, server_name ,IP, config_valores.puerto_escucha);  //cambiar variable global
 	log_info(logger, "Servidor listo para recibir al cliente");
@@ -60,18 +62,33 @@ static void procesar_conexion(void *void_args) {
 
 			break;
             }
+        case CREAR_PROCESO: {
+            //  Recibo el pid y el nombre del archivo
+            int *pid;
+            char *nombre_archivo;
+            recv_inicio_proceso(cliente_socket,&pid,&nombre_archivo);
+            log_info(logger,"nombre archivo: %s", nombre_archivo);
+            t_proceso* proceso = malloc(sizeof(t_proceso));
+            proceso->pid = *pid;
+            proceso->archivos_instrucciones = nombre_archivo;
+
+            list_add(lista_procesos_activos,proceso);
+            /*
+            free(pid);
+            free(nombre_archivo);
+            */
+           break;
+        }
 		case PEDIDO_INSTRUCCION:{
             
-             char* path;
-            int pc = 0;
+            int *pid;
+            int *pc;
             usleep(config_valores.retardo_respuesta *1000);
-            recv_fetch_instruccion(cliente_socket, &path,&pc);
-            leer_instruccion_por_pc_y_enviar(path,pc, cliente_socket);
-            free(path); // Liberar memoria de la variable path
-            free(pc); // Liberar memoria de la variable pc
-            //
-        
-            //
+            recv_fetch_instruccion(cliente_socket, &pid,&pc);
+            leer_instruccion_por_pc_y_enviar(*pid,*pc, cliente_socket);
+            free(pid); 
+            free(pc); 
+            
             break;
             } 
 
@@ -103,34 +120,61 @@ int server_escuchar(int fd_memoria) {
 	return 0;
 }
 
+int recv_inicio_proceso(int cliente_socket,int **pid, char **nombre_archivo){
 
+    t_list *paquete = recibir_paquete(cliente_socket);
+	
+	*pid = (int *)list_get(paquete, 0);
 
-int recv_fetch_instruccion(int fd_modulo, char **path, int **pc)
+    *nombre_archivo = (char *)list_get(paquete, 1);
+
+	log_info(logger,"me llego el archivo: %s",*nombre_archivo);
+
+	list_destroy(paquete);
+	return 0;
+
+}
+
+int recv_fetch_instruccion(int fd_modulo, int **pid, int **pc)
 {
 	t_list *paquete = recibir_paquete(fd_modulo);
 
 	// Obtener el path del paquete
-	*path = (char *)list_get(paquete, 0);
+	*pid = (int *)list_get(paquete, 0);
 
-	log_info(logger,"me llego el archivo: %s",*path);
+	log_info(logger,"me llego el pid: %d",**pid);
 
 	
-	//*pc = (int *)1;
+	*pc = (int *)list_get(paquete, 1);
 
 	list_destroy(paquete);
 	return 0;
 }
 
-char *armar_path_instruccion(char *path_consola) {
+char *armar_path_instruccion(int pid) {
     char *path_completo = string_new();
     string_append(&path_completo, config_valores.path_instrucciones);
     string_append(&path_completo, "/");
-    string_append(&path_completo, path_consola);
+    
+    char* archivo_instruccion;
+
+    bool encontrado = false; 
+    for(int i = 0; list_size(lista_procesos_activos) > i && encontrado == false ;i++){
+        t_proceso* proceso = list_get(lista_procesos_activos,i);
+        if(proceso->pid == pid){
+            encontrado = true;
+            archivo_instruccion = proceso->archivos_instrucciones;
+
+        }
+    }
+
+    string_append(&path_completo, archivo_instruccion);
     return path_completo;
 }
 
-void leer_instruccion_por_pc_y_enviar(char *path_consola, int pc, int fd) {
-    char *path_completa_instruccion = armar_path_instruccion(path_consola);
+void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) {
+    log_info(logger,"Recibi: %d",pid);
+    char *path_completa_instruccion = armar_path_instruccion(pid);
 
     FILE *archivo = fopen(path_completa_instruccion, "r");
     if (archivo == NULL) {
@@ -144,8 +188,9 @@ void leer_instruccion_por_pc_y_enviar(char *path_consola, int pc, int fd) {
 
     while (fgets(instruccion_leida, sizeof(instruccion_leida), archivo) != NULL) {
         if (current_pc == pc) {
-            log_info(logger,"Instrucción %d: %s", pc, instruccion_leida);
+            //log_info(logger,"Instrucción %d: %s", pc, instruccion_leida);
             char* instruccion = instruccion_leida;
+            
 
 
             t_paquete *paquete = crear_paquete(PEDIDO_INSTRUCCION);
@@ -156,7 +201,7 @@ void leer_instruccion_por_pc_y_enviar(char *path_consola, int pc, int fd) {
             // Liberar memoria asignada para la estructura Instruccion
 
 
-            free(instruccion);
+            //free(instruccion);
             
             
             break;

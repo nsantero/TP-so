@@ -19,6 +19,7 @@ void cargar_configuracion(char* archivo_configuracion)
 	
 }
 
+
 t_instruccion recv_instruccion(int memoria_fd){
 
 	t_list *paquete = recibir_paquete(memoria_fd);
@@ -30,25 +31,48 @@ t_instruccion recv_instruccion(int memoria_fd){
 
 	char **palabras = string_split(instruccion_cadena , " ");
     
+    //int tamanio_array = (sizeof(palabras) / sizeof(palabras[0]));
+
+    int tamanio_array = 0;
+    while ((palabras)[tamanio_array] != NULL) {
+        tamanio_array++;
+    }
+
+
     t_instruccion instruccion;
 
-	instruccion.instruccion = malloc(sizeof(char) * (strlen(palabras[0]) + 1));
-    strcpy(instruccion.instruccion, palabras[0]);
+	instruccion.instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
+    strcpy(instruccion.instruccion, palabras[0]); 
 
 	instruccion.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
     strcpy(instruccion.operando1, palabras[1]); 
 
-	instruccion.operando2 = malloc(sizeof(char) * (strlen(palabras[2]) + 1));
-    strcpy(instruccion.operando2, palabras[2]);
+    if(tamanio_array > 2){
 
-        // Liberar memoria en caso de error
-        free(instruccion.instruccion);  
-        free(instruccion.operando1);
-        free(instruccion.operando2);
-        instruccion.instruccion = NULL;
-        instruccion.operando1 = NULL;
-        instruccion.operando2 = NULL;
-    
+        instruccion.operando2 = malloc(sizeof(char) * (strlen(palabras[2]) + 1));
+        strcpy(instruccion.operando2, palabras[2]);
+    }
+
+    if(tamanio_array > 3){
+
+        instruccion.operando3 = malloc(sizeof(char) * (strlen(palabras[3]) + 1));
+        strcpy(instruccion.operando3, palabras[3]);
+    }
+
+    if(tamanio_array > 4){
+
+        instruccion.operando4 = malloc(sizeof(char) * (strlen(palabras[4]) + 1));
+        strcpy(instruccion.operando4, palabras[4]);
+    }
+
+    if(tamanio_array > 5){
+
+        instruccion.operando5 = malloc(sizeof(char) * (strlen(palabras[5]) + 1));
+        strcpy(instruccion.operando5, palabras[5]);
+    }
+	
+
+        /*
 
     // Liberar memoria asignada a palabras
     int i = 0;
@@ -58,6 +82,7 @@ t_instruccion recv_instruccion(int memoria_fd){
     }
     free(palabras);
 	free(paquete);
+    */
 
     return instruccion;
 }
@@ -73,37 +98,34 @@ int main(int argc, char* argv[]) {
 	memoria_fd = crear_conexion(logger,"CPU",config_valores.ip_memoria, config_valores.puerto_memoria);
 	log_info(logger, "Me conecte a memoria!");
 
-	//envio mensaje
-    //enviar_mensaje("Hola, soy CPU!", memoria_fd);
-
-	//envio instruccion para probar
-
-	
-
+    enviar_mensaje("Hola, soy CPU!", memoria_fd);
 	
 	// levanto el servidor dispatch e interrupt
 	fd_cpu_dispatch = iniciar_servidor(logger,server_name_dispatch ,IP, config_valores.puerto_escucha_dispatch);
     fd_cpu_interrupt = iniciar_servidor(logger, server_name_interrupt ,IP, config_valores.puerto_escucha_interrupt);
 	log_info(logger, "Servidor listo para recibir al cliente");
 
-	t_paquete *paquete = crear_paquete(PEDIDO_INSTRUCCION);
+	//Hardcodeo prueba de pedido de instruccion
+    
+    t_paquete *paquete = crear_paquete(PEDIDO_INSTRUCCION);
 
-	// Agregar el path al paquete
-	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
+	int pid = 1;
+    int pc = 1;
+
+	// Agregar el pc y pid al paquete
+	agregar_a_paquete(paquete,&pid,sizeof(int));
+	agregar_a_paquete(paquete,&pc,sizeof(int));
 	
 
 	enviar_paquete(paquete, memoria_fd);
 	eliminar_paquete(paquete);
 
-/*
-	op_code codigo;
-	codigo = recibir_operacion(memoria_fd);
-
-    if((codigo)!=PEDIDO_INSTRUCCION){
-        log_error(logger,"el cop no corresponde a una instruccion");
+    op_code cop = recibir_operacion(memoria_fd);
+    if(cop!=PEDIDO_INSTRUCCION){
+        log_error(logger,"el cop no corresponde a una instruccion %d",cop);
         return false;
     }
-	*/
+
     t_instruccion instruccion = recv_instruccion(memoria_fd);
 
 	// espero mensjaes de kernel
@@ -154,6 +176,12 @@ static void procesar_conexion_dispatch(void* void_args) {
 				char* mensaje = recibir_mensaje(cliente_socket_dispatch);
 				log_info(logger, "Recibi el mensaje: %s , soy dispatch", mensaje);
                 break;
+            
+            case PEDIDO_INSTRUCCION: {
+
+
+                break;
+            }
 		    
             default: {
                 log_error(logger, "Código de operación no reconocido en Dispatch: %d", cop);
