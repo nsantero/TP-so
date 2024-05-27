@@ -24,7 +24,7 @@ int leer_grado_multiprogramación() {
 }
 
 bool permitePasarAREady() {
-    leer_grado_multiprogramacion() > 0;
+    leer_grado_multiprogramacion() > list_size(lista_READY);
 }
 
 
