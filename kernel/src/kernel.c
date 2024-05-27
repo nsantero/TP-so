@@ -4,20 +4,7 @@
 #include <commons/collections/list.h> //implementación de listas enlazadas que se pueden usar para la cola de procesos
 #include <pthread.h>
 #include <kernel.h>
-
-
-//Implementación de PCB
-
-typedef enum {NEW, READY, RUNNING, BLOCKED, EXIT} Estado;
-
-typedef struct {
-    int PID; //id del proceso
-    int pc; //direccionarte a la proxima instruccion 
-    int quantum; // duración del quantum 
-    CPU_Registers* cpuRegisters;
-	char Estado; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
-} PCB;
-
+#include <shared.h>
 
 //Inicialización de un nuevo PCB
 
@@ -30,8 +17,13 @@ PCB* crearPCB() {
     nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
-//	nuevoPCB -> cpuRegisters = crearRegistrosCPU; //voy a la funcion de creacion de registros de la CPUreturn nuevoPCB;
-	free(PCB);
+	nuevoPCB -> estado = NEW;
+	list_add(lista_NEW, 0);
+
+	// Logueo la creación del PCB
+	char mensaje[100];
+	sprintf(mensaje, "Se creo el PCB del nuevo proceso, PID");
+	log_info(logger, mensaje);
 	}
 
 int pidActual = 0;
@@ -39,8 +31,6 @@ int generarPID() {
     pidActual += 1;
     return pidActual;
 }
-//como declaro los registros de cpu ¿?
-
 
 //INICIALIZAR PLANIFICADORES
 
@@ -121,6 +111,29 @@ int main(int argc, char* argv[]) {
 	//levanto servidor
 	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
 	log_info(logger, "Servidor listo para recibir al cliente");
+
+	t_paquete *paquete = crear_paquete(CREAR_PROCESO);
+
+	PCB t_pcb;
+
+	// Agregar el path al paquete
+	agregar_a_paquete(paquete,&t_pcb.PID,sizeof(int));
+	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
+	
+	// pasar PID y txt a memoria
+	enviar_paquete(paquete, memoria_fd);
+	eliminar_paquete(paquete);
+
+	t_paquete *paquete = crear_paquete(DATOS_DEL_PROCESO);
+
+	agregar_a_paquete(paquete, &t_pcb.PID, sizeof(int));
+	agregar_a_paquete(paquete, &t_pcb.pc, sizeof(int));
+
+
+	//Paso el PID y PC a la CPU
+	
+	enviar_paquete(paquete, cpu_dispatch_fd);
+	eliminar_paquete(paquete);
 
 	// espero mensjaes de e/s
     while(server_escuchar(server_fd));

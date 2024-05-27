@@ -2,21 +2,12 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <kernel.h>
-#include <semaphore.h>
 #include "../src/kernel.c"
-#include <queue.h>
-
-
-// Estructura del proceso
-
-typedef struct proceso {
-    PCB pcb_info;
-    char *descripcion;
-}Proceso;
+#include "../src/semaforos.c"
 
 //Hilos
 
-int main(void) {
+int hilos(void) {
 
     pthread_create(&hilo_largo_plazo, NULL, largo_plazo, NULL);
     pthread_create(&hilo_corto_plazo, NULL, corto_plazo, NULL);
@@ -25,36 +16,6 @@ int main(void) {
     pthread_join(hilo_corto_plazo, NULL);
 
     return 0;
-}
-
-// Semaforos
-// Informativo: sem_init(semaforo que inicializo, indica si el sem debe ser compartido entre procesos (0 cuando no), valor inicial del semaforo)
-
-void inicializar_sem_planificadores()
-{
-	sem_corto_plazo = malloc(sizeof(sem_t));
-	sem_init(sem_corto_plazo, 0, 0);
-
-	sem_largo_plazo = malloc(sizeof(sem_t));
-	sem_init(sem_largo_plazo, 0, 0);
-
-	sem_grado_multiprogramacion = malloc(sizeof(sem_t));
-	sem_init(sem_grado_multiprogramacion, 0, leer_grado_multiprogramación());
-
-	mutex_detener_planificador = malloc(sizeof(sem_t));
-	sem_init(mutex_detener_planificador, 0, 1);
-
-    sem_procesos_new = malloc (sizeof(sem_t));
-    sem_init(sem_procesos_new, 0, 1);
-
-    sem_procesos_ready = malloc (sizeof(sem_t));
-    sem_init(sem_procesos_ready, 0, 1);
-
-    sem_procesos_running = malloc (sizeof(sem_t));
-    sem_init(sem_procesos_running, 0, 1);
-
-    sem_proceso_ejecutando = malloc (sizeof(sem_t));
-    sem_init(sem_proceso_ejecutando, 0, 0);
 }
 
 int leer_grado_multiprogramación() {
@@ -72,10 +33,6 @@ bool permitePasarAREady() {
 // Informativo: sem_wait bloquea el hilo si el semaforo se encuentra en 0 o menor a 0. Si el valor del
 //semaforo es 1, decrementa el valor (-1) y ejecuta el hilo.
 
-void crearProceso {
-    Proceso;
-    list_add (lista_NEW, 0); // agregar al final de la lista 
-}
 
 void* largo_plazo(void* arg) {
     if (list_size(lista_NEW) != 0)  {
@@ -124,24 +81,27 @@ void planificar_fifo() {
     list_add (lista_RUNNING, 0);
     sem_post (sem_procesos_running);
     PCB* Estado = "RUNNING";
-    ejecutar_proceso(pcb); //falta implementar esta funcion ( ¿se la pasa a CPU ?)
-    // signal (mutex)
+    sem_wait(sem_proceso_ejecutando);
+    ejecutar_proceso(&t_pcb.PID);
     sem_post(sem_proceso_ejecutando);
-    free(pcb); //libero memoria
 
 }
 
-/* IDEA PARA LAS INTERRUPCIONES 
+PCB t_pcb;
+void ejecutar_proceso() {
 
-interrupt_proceso { 
-        if (quantumUsado > quantum) {
-        sem_wait(sem_procesos_blocked);
-        PCB* Estado = "BLOCKED";
-        list_add (lista_BLOCKED, 0);
-        sem_wait(sem_procesos_blocked);
-        }
-    // enviar a la cpu el status del contexto de ejecución
-    send (cpu) PCB; // a chequear */
+    t_paquete *paquete = crear_paquete(EJECUTAR_PROCESO);
+
+	agregar_a_paquete(paquete, &t_pcb.PID, sizeof(int));
+
+
+	//Paso el PID a CPU para que identifique el proceso a ejecutar
+	
+	enviar_paquete(paquete, cpu_dispatch_fd);
+	eliminar_paquete(paquete);
+}
+
+/*
 
 // implementación RR
 void planificar_round_robin() {
@@ -163,3 +123,4 @@ if (tiempo_ejecucion < pcb -> quantum) {
     list_add(cola_de_procesos, pcb);
 }
 }
+*/
