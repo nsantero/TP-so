@@ -9,7 +9,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
-#include "../../shared/include/shared.h"
+#include "../../shared/src/shared.h"
 
 
 typedef struct
