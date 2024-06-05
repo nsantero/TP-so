@@ -4,8 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/../shared/src",
-                "/home/utnso/tp-2024-1c-File-System-Fanatics/.git"
+                "${workspaceFolder}/../shared/src"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
