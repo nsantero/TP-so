@@ -36,7 +36,6 @@ int leer_grado_multiprogramación() {
     return config_valores.grado_multiprogramacion ;
 }
 
-/*
 
 int iniciar_comunicacion(int argc, char* argv[]) {
 
@@ -153,7 +152,7 @@ void ejecutar_proceso() {
 	//enviar_paquete(paquete, cpu_dispatch_fd);
 	//eliminar_paquete(paquete);
 }
-*/
+
 
 int main(int argc, char *argv[]) {
     

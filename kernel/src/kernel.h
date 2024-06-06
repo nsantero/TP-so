@@ -29,7 +29,6 @@ char* server_name = "kernel";
 void cargar_configuracion(char* archivo_configuracion);
 
 
-/*
 
 static void procesar_conexion(void *void_args);
 int server_escuchar(int fd_memoria);
@@ -78,16 +77,15 @@ int pid_counter = 1; //contador del pid, lo inicializo en 1
 int quantum = 0; 
 char* algoritmo_planificacion = NULL;
 
-t_list* cola_de_procesos = NULL;
+extern t_list* cola_de_procesos;
 
 // LISTAS DE ESTADOS
 
-t_list* lista_NEW = NULL;
-t_list* lista_READY = NULL;
-t_list* lista_EXIT = NULL;
-t_list* lista_BLOCKED = NULL;
-t_list* lista_RUNNING = NULL;
+extern t_list* lista_NEW;
+extern t_list* lista_READY;
+extern t_list* lista_EXIT;
+extern t_list* lista_BLOCKED;
+extern t_list* lista_RUNNING;
 
-*/
 
 #endif

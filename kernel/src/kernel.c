@@ -1,8 +1,11 @@
 #include <utils.h>
+#include <semaforos.h>
+#include <kernel.h>
+#include <planificadores.h>
 
 //Generar PID
 
-/*
+
 int pidActual = 0;
 
 int generarPID() {
@@ -80,15 +83,16 @@ void inicializar_planificadores() {
 
     config_destroy(config);
 
-    // inicializamos lista de estados
 
-    lista_NEW = list_create();
-	lista_READY = list_create();
-	lista_EXIT = list_create();
-	lista_BLOCKED = list_create();
-    lista_RUNNING = list_create();
 }
 
+// inicializamos lista de estados
+
+    t_list* lista_NEW;
+	t_list* lista_READY;
+	t_list* lista_EXIT;
+	t_list* lista_BLOCKED;
+    t_list* lista_RUNNING;
 //Hilos
 
 void* largo_plazo(void* arg) {
