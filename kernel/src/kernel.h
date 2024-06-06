@@ -2,7 +2,6 @@
 #define KERNEL_H
 
 #include <utils.h>
-
 typedef struct
 {		
     char* puerto_escucha; 
@@ -28,12 +27,14 @@ int server_fd;
 char* server_name = "kernel";
 
 void cargar_configuracion(char* archivo_configuracion);
+
+
+/*
+
 static void procesar_conexion(void *void_args);
 int server_escuchar(int fd_memoria);
 
-int leer_grado_multiprogramación() {
-    return config_valores.grado_multiprogramacion ;
-}
+
 
 // PCB
 typedef enum {
@@ -87,6 +88,6 @@ t_list* lista_EXIT = NULL;
 t_list* lista_BLOCKED = NULL;
 t_list* lista_RUNNING = NULL;
 
-
+*/
 
 #endif

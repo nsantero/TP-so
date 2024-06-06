@@ -1,6 +1,14 @@
 #include <utils.h>
 #include <kernel.h>
 
+char *linea;
+    char *path_script = NULL;
+    char *path_proceso = NULL;
+    char *pid = NULL;
+    char *valor_multiprogramacion = NULL;
+    char *archivo_configuracion = "/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config";
+
+
 void cargar_configuracion(char* archivo_configuracion)
 {
 	t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
@@ -9,18 +17,26 @@ void cargar_configuracion(char* archivo_configuracion)
 		exit(-1);
 	}
 
-	config_valores.puerto_escucha = config_get_string_value(config,"PUERTO_ESCUCHA");
-	config_valores.ip_memoria = config_get_string_value(config,"IP_MEMORIA");
-	config_valores.puerto_memoria= config_get_string_value(config,"PUERTO_MEMORIA");
-	config_valores.ip_cpu = config_get_string_value(config,"IP_CPU"); 
-	config_valores.puerto_cpu_dispatch = config_get_string_value(config,"PUERTO_CPU_DISPATCH");
-    config_valores.puerto_cpu_interrupt = config_get_string_value(config,"PUERTO_CPU_INTERRUPT");
-    config_valores.algoritmo_planificacion = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
-    config_valores.quantum = config_get_int_value(config,"QUANTUM");
-    config_valores.recursos =  config_get_array_value(config, "RECURSOS");
-	config_valores.instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+    config_valores.puerto_escucha = strdup(config_get_string_value(config, "PUERTO_ESCUCHA"));
+    config_valores.ip_memoria = strdup(config_get_string_value(config, "IP_MEMORIA"));
+    config_valores.puerto_memoria = strdup(config_get_string_value(config, "PUERTO_MEMORIA"));
+    config_valores.ip_cpu = strdup(config_get_string_value(config, "IP_CPU"));
+    config_valores.puerto_cpu_dispatch = strdup(config_get_string_value(config, "PUERTO_CPU_DISPATCH"));
+    config_valores.puerto_cpu_interrupt = strdup(config_get_string_value(config, "PUERTO_CPU_INTERRUPT"));
+    config_valores.algoritmo_planificacion = strdup(config_get_string_value(config, "ALGORITMO_PLANIFICACION"));
+    config_valores.quantum = config_get_int_value(config, "QUANTUM");
+    config_valores.recursos = config_get_array_value(config, "RECURSOS");
+    config_valores.instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
     config_valores.grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
+
 }
+
+
+int leer_grado_multiprogramación() {
+    return config_valores.grado_multiprogramacion ;
+}
+
+/*
 
 int iniciar_comunicacion(int argc, char* argv[]) {
 
@@ -137,15 +153,11 @@ void ejecutar_proceso() {
 	//enviar_paquete(paquete, cpu_dispatch_fd);
 	//eliminar_paquete(paquete);
 }
-
+*/
 
 int main(int argc, char *argv[]) {
-    char *linea;
-    char *path_script = NULL;
-    char *path_proceso = NULL;
-    char *pid = NULL;
-    char *valor_multiprogramacion = NULL;
-    char *archivo_configuracion = "/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config";
+    
+
     cargar_configuracion(archivo_configuracion);
 
     while (1)
@@ -165,7 +177,7 @@ int main(int argc, char *argv[]) {
             printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
             free(path_script);
             free(linea);
-            printf("grado de multiprogramacion: ", leer_grado_multiprogramación());
+            printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
         }
 
         if (!strncmp(linea, "INICIAR_PROCESO ", 16))

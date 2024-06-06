@@ -1,15 +1,15 @@
 #include <utils.h>
-#include <kernel.h>
 
 //Generar PID
 
+/*
 int pidActual = 0;
 
 int generarPID() {
     pidActual += 1;
     return pidActual;
 }
-/*
+
 void inicializar_sem_planificadores()
 {
 	sem_corto_plazo = malloc(sizeof(sem_t));
@@ -36,7 +36,7 @@ void inicializar_sem_planificadores()
     sem_proceso_ejecutando = malloc (sizeof(sem_t));
     sem_init(sem_proceso_ejecutando, 0, 0);
 }
-*/
+
 //Inicialización de un nuevo PCB
 
 PCB* crearPCB() {
@@ -90,7 +90,7 @@ void inicializar_planificadores() {
 }
 
 //Hilos
-/*
+
 void* largo_plazo(void* arg) {
     if (list_size(lista_NEW) != 0)  {
 
@@ -188,5 +188,3 @@ if (tiempo_ejecucion < pcb -> quantum) {
     list_add(cola_de_procesos, pcb);
 }
 */
-
-

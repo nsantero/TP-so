@@ -3,7 +3,7 @@
 
 #include <utils.h>
 
-
+/*
 //HILOS
 extern pthread_t hilo_largo_plazo;
 extern pthread_t hilo_corto_plazo;
@@ -19,16 +19,12 @@ extern sem_t *sem_proceso_ejecutando;
 
 
 void inicializar_sem_planificadores();
-
 void planificador_largo_plazo();
-
 void planificador_corto_plazo();
-
 void planificar_fifo();
-
 void planificar_round_robin();
-
 void planificar_virtual_round_robin();
 
+*/
 
 #endif
