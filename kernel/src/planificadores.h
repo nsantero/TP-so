@@ -1,13 +1,8 @@
 #ifndef PLANIFICADORES_H
 #define PLANIFICADORES_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <commons/config.h>
-#include <commons/collections/list.h> //implementación de listas enlazadas que se pueden usar para la cola de procesos
-#include <pthread.h>
-#include <commons/log.h>
-#include "semaphore.h"
+#include <utils.h>
+
 
 //HILOS
 extern pthread_t hilo_largo_plazo;

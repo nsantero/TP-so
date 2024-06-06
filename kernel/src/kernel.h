@@ -1,24 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include "utils.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <string.h>
-#include <commons/collections/list.h>
-#include <assert.h>
-#include <pthread.h>
-
-// PCB
-typedef enum {
-    NEW,
-    READY,
-    RUNNING,
-    BLOCKED,
-    EXIT
-} Estado;
+#include <utils.h>
 
 typedef struct
 {		
@@ -48,6 +31,19 @@ void cargar_configuracion(char* archivo_configuracion);
 static void procesar_conexion(void *void_args);
 int server_escuchar(int fd_memoria);
 
+int leer_grado_multiprogramación() {
+    return config_valores.grado_multiprogramacion ;
+}
+
+// PCB
+typedef enum {
+    NEW,
+    READY,
+    RUNNING,
+    BLOCKED,
+    EXIT
+} Estado;
+
 typedef struct {
     char PC [5];
     char AX [2];
@@ -71,6 +67,12 @@ typedef struct {
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
 
+PCB t_pcb;
+
+int obtener_pid(void) {
+    t_pcb.PID;
+}
+
 int pid_counter = 1; //contador del pid, lo inicializo en 1
 int quantum = 0; 
 char* algoritmo_planificacion = NULL;
@@ -84,5 +86,7 @@ t_list* lista_READY = NULL;
 t_list* lista_EXIT = NULL;
 t_list* lista_BLOCKED = NULL;
 t_list* lista_RUNNING = NULL;
+
+
 
 #endif
