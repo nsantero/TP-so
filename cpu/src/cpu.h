@@ -11,7 +11,7 @@
 #include <commons/collections/list.h>
 #include <assert.h>
 #include <pthread.h>
-#include "../../shared/include/shared.h"
+#include <shared.h>
 
 #include "utils.h"
 

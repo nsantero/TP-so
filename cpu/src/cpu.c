@@ -1,4 +1,4 @@
-#include "../include/cpu.h"
+#include <cpu.h>
 
 void cargar_configuracion(char* archivo_configuracion)
 {

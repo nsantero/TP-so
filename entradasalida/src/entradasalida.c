@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/entradasalida.h"
+#include <entradasalida.h>
 
 
 void cargar_configuracion(char* archivo_configuracion)

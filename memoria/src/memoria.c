@@ -1,4 +1,4 @@
-#include "../include/memoria.h"
+#include <memoria.h>
 
 void cargar_configuracion(char* archivo_configuracion)
 {

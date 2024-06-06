@@ -1,5 +1,4 @@
-#include "../include/utils.h"
-
+#include <utils.h>
 
 char* leer_string(char *buffer, int *desplazamiento) {
     uint32_t tamanio = leer_entero(buffer, &desplazamiento);

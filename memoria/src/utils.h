@@ -5,9 +5,6 @@
 #include <commons/config.h>
 #include <shared.h>
 
-
-
-
 char* leer_string(char *buffer, int *desplazamiento);
 
 
