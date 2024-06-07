@@ -18,22 +18,29 @@ typedef struct
    
 } kernel_config;
 
-kernel_config config_valores;
-t_log* logger;
-int memoria_fd;
-int cpu_dispatch_fd;
-int cpu_interrupt_fd;
-int server_fd;
-char* server_name = "kernel";
+extern kernel_config config_valores;
+extern t_log* logger;
+extern int memoria_fd;
+extern int cpu_dispatch_fd;
+extern int cpu_interrupt_fd;
+extern int server_fd;
+extern char* server_name;
 
 void cargar_configuracion(char* archivo_configuracion);
 
-
-
 static void procesar_conexion(void *void_args);
+
+int leer_grado_multiprogramación();
+
+void planificar_round_robin();
+
 int server_escuchar(int fd_memoria);
 
+void corto_plazo(void* arg);
 
+bool permitePasarAREady();
+
+int obtener_pid(void); 
 
 // PCB
 typedef enum {
@@ -58,7 +65,6 @@ typedef struct {
     char DI [5];
 } CPU_Registers;
 
-
 typedef struct {
     int PID; //id del proceso
     int pc; //direccionamiento
@@ -67,16 +73,11 @@ typedef struct {
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
 
-PCB t_pcb;
+extern PCB t_pcb;
 
-int obtener_pid(void) {
-    t_pcb.PID;
-}
-
-int pid_counter = 1; //contador del pid, lo inicializo en 1
-int quantum = 0; 
-char* algoritmo_planificacion = NULL;
-
+extern int pid_counter ; //contador del pid, lo inicializo en 1
+extern int quantum ; 
+extern char* algoritmo_planificacion;
 extern t_list* cola_de_procesos;
 
 // LISTAS DE ESTADOS

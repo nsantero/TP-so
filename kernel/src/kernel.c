@@ -3,8 +3,25 @@
 #include <kernel.h>
 #include <planificadores.h>
 
+
 //Generar PID
 
+kernel_config config_valores;
+t_log* logger;
+int memoria_fd;
+int cpu_dispatch_fd;
+int cpu_interrupt_fd;
+int server_fd;
+char* server_name = "kernel";
+
+PCB t_pcb;
+int pid_counter = 1;
+int quantum = 0;
+char* algoritmo_planificacion = NULL;
+
+int obtener_pid(void) {
+    t_pcb.PID;
+}
 
 int pidActual = 0;
 
@@ -113,7 +130,7 @@ void* largo_plazo(void* arg) {
 // PLANIFICADOR CORTO PLAZO
 // Evaluo que tipo de planificador se debe implementar
 
-void* corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
+void corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
 
     if (list_size (lista_READY) != 0) {
 
@@ -139,10 +156,6 @@ int hilos(void) {
 }
 
 
-
-bool permitePasarAREady() {
-    return (leer_grado_multiprogramacion() > list_size(lista_READY));
-}
 
 
 // PLANIFICADOR LARGO PLAZO 
@@ -170,7 +183,8 @@ void planificar_fifo() {
     sem_post(sem_proceso_ejecutando);
 
 }
-
+void planificar_round_robin() {
+   } 
 
 /* implementación RR
 void planificar_round_robin() {
