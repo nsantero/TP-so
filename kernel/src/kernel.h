@@ -79,7 +79,7 @@ extern int pid_counter ; //contador del pid, lo inicializo en 1
 extern int quantum ; 
 extern char* algoritmo_planificacion;
 extern t_list* cola_de_procesos;
-
+PCB* crearPCB();
 // LISTAS DE ESTADOS
 
 extern t_list* lista_NEW;

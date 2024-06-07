@@ -1,7 +1,7 @@
 #include <utils.h>
 #include <kernel.h>
 
-char *linea;
+    char *linea;
     char *path_script = NULL;
     char *path_proceso = NULL;
     char *pid = NULL;
@@ -9,6 +9,38 @@ char *linea;
     char *archivo_configuracion = "/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config";
 
 
+int pidActual = 0;
+
+int generarPID() {
+    pidActual += 1;
+    return pidActual;
+}
+
+
+PCB* crearPCB() {
+    printf("Creando PCB...");
+    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
+	 if (nuevoPCB == NULL) {
+        // Manejar error de asignación de memoria
+        return NULL;
+    }
+
+    nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
+    nuevoPCB -> pc = 0; // contador en 0
+    nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
+	nuevoPCB -> estado = NEW;
+    
+	//list_add(lista_NEW, 0);
+    printf("Se creó el PCB del nuevo proceso, PID %d", nuevoPCB->PID);
+	// Logueo la creación del PCB
+    char mensaje[100];
+    printf(mensaje, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB->PID);
+    log_info(logger, "%s", mensaje);
+    
+    return nuevoPCB;
+}
+
+PCB t_pcb;
 void cargar_configuracion(char* archivo_configuracion)
 {
 	t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
@@ -161,6 +193,7 @@ bool permitePasarAREady() {
 }
 
 
+
 int main(int argc, char *argv[]) {
     
 
@@ -178,21 +211,20 @@ int main(int argc, char *argv[]) {
         
         if (!strncmp(linea, "EJECUTAR_SCRIPT ", 16))
         { // ejecutar script de comandos
-            free(path_script);
-            path_script = strdup(linea + strlen("EJECUTAR_SCRIPT "));
-            printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
-            free(path_script);
-            free(linea);
-            printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
-            PCB* recibido = crearPCB();
-            printf ("Se creo un nuevo proceso: %d\n", recibido->PID);
+            //path_script = strdup(linea + strlen("EJECUTAR_SCRIPT "));
+            //printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
+            //printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
+            PCB* recibido = malloc(sizeof(PCB)); //reserva de memoria
+            recibido = crearPCB();
+            printf("Se creo un nuevo proceso: %d\n", recibido->PID);
             // planificador largo plazo (previamente leyendo el archivo de configuracion con el plani que tiene que utilizar)
             // printf ("Planificando el proceso: %d\n", PID);                
             // cpu el PCB (PID y PC) -- PAQUETES
             // memoria el PCB (Pseudocodigo, PID) -- PAQUETES
             // signal
             // 
-
+            //free(path_script);
+            free(linea);
         }
 
         if (!strncmp(linea, "INICIAR_PROCESO ", 16))

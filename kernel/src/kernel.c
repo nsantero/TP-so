@@ -14,21 +14,10 @@ int cpu_interrupt_fd;
 int server_fd;
 char* server_name = "kernel";
 
-PCB t_pcb;
+
 int pid_counter = 1;
 int quantum = 0;
 char* algoritmo_planificacion = NULL;
-
-int obtener_pid(void) {
-    t_pcb.PID;
-}
-
-int pidActual = 0;
-
-int generarPID() {
-    pidActual += 1;
-    return pidActual;
-}
 
 void inicializar_sem_planificadores()
 {
@@ -59,28 +48,6 @@ void inicializar_sem_planificadores()
 
 //Inicialización de un nuevo PCB
 
-PCB* crearPCB() {
-    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
-	 if (nuevoPCB == NULL) {
-        // Manejar error de asignación de memoria
-        return NULL;
-    }
-    nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
-    nuevoPCB -> pc = 0; // contador en 0
-    nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
-	nuevoPCB -> estado = NEW;
-	list_add(lista_NEW, 0);
-
-	// Logueo la creación del PCB
-    char mensaje[100];
-    int pid = obtener_pid(); // Aquí deberías obtener el PID del proceso
-    sprintf(mensaje, "Se creó el PCB del nuevo proceso, PID %d", pid);
-    log_info(logger, "%s", mensaje);
-
-    return nuevoPCB;
-}
-
-PCB t_pcb;
 
 //INICIALIZAR PLANIFICADORES
 
