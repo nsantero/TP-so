@@ -76,9 +76,12 @@ PCB* crearPCB() {
     int pid = obtener_pid(); // Aquí deberías obtener el PID del proceso
     sprintf(mensaje, "Se creó el PCB del nuevo proceso, PID %d", pid);
     log_info(logger, "%s", mensaje);
+
+    return nuevoPCB;
 }
 
 PCB t_pcb;
+
 //INICIALIZAR PLANIFICADORES
 
 void inicializar_planificadores() {

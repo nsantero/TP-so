@@ -140,15 +140,15 @@ int server_escuchar(int fd_memoria) {
 
 void ejecutar_proceso() {
 
-    //t_paquete *paquete = crear_paquete(EJECUTAR_PROCESO);
+    t_paquete *paquete = crear_paquete(EJECUTAR_PROCESO);
 
-	//agregar_a_paquete(paquete, &t_pcb.PID, sizeof(int));
-
+	agregar_a_paquete(paquete, &t_pcb.PID, sizeof(int));
+    agregar_a_paquete(paquete, &t_pcb.pc, sizeof(int));
 
 	//Paso el PID a CPU para que identifique el proceso a ejecutar
 	
-	//enviar_paquete(paquete, cpu_dispatch_fd);
-	//eliminar_paquete(paquete);
+	enviar_paquete(paquete, cpu_dispatch_fd);
+	eliminar_paquete(paquete);
 }
 
 int leer_grado_multiprogramación() {
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
             add_history(linea);
         }
 // PASO 1 - Se ejecutarán los scripts indicados en las pruebas 
-
+        
         if (!strncmp(linea, "EJECUTAR_SCRIPT ", 16))
         { // ejecutar script de comandos
             free(path_script);
@@ -184,6 +184,15 @@ int main(int argc, char *argv[]) {
             free(path_script);
             free(linea);
             printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
+            PCB* recibido = crearPCB();
+            printf ("Se creo un nuevo proceso: %d\n", recibido->PID);
+            // planificador largo plazo (previamente leyendo el archivo de configuracion con el plani que tiene que utilizar)
+            // printf ("Planificando el proceso: %d\n", PID);                
+            // cpu el PCB (PID y PC) -- PAQUETES
+            // memoria el PCB (Pseudocodigo, PID) -- PAQUETES
+            // signal
+            // 
+
         }
 
         if (!strncmp(linea, "INICIAR_PROCESO ", 16))
