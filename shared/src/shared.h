@@ -38,7 +38,8 @@ typedef enum
     RESIZE,
     JNZ,
     COPY_STRING,
-    IO_GEN_SLEEP
+    IO_GEN_SLEEP,
+    EJECUTAR_PROCESO
 
 } op_code;
 

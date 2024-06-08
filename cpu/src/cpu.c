@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
 	enviar_paquete(paquete, memoria_fd);
 	eliminar_paquete(paquete);
-
+    // wait (sem_pid_recibido)
     op_code cop = recibir_operacion(memoria_fd);
     if(cop!=PEDIDO_INSTRUCCION){
         log_error(logger,"el cop no corresponde a una instruccion %d",cop);
