@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <entradasalida.h>
+#include "../include/entradasalida.h"
 
 
 void cargar_configuracion(char* archivo_configuracion)
@@ -12,7 +12,9 @@ void cargar_configuracion(char* archivo_configuracion)
 		exit(-1);
 	}
 
+	config_valores.nombre_interfaz = config_get_string_value(config,"NOMBRE_INTERFAZ");
 	config_valores.tipo_interfaz = config_get_string_value(config,"TIPO_INTERFAZ");
+	config_valores.esta_conectada = config_get_bool_value(config,"ESTADO INTERFAZ");
 	config_valores.tiempo_unidad_trabajo = config_get_int_value(config,"TIEMPO_UNIDAD_TRABAJO");
 	config_valores.ip_kernel= config_get_string_value(config,"IP_KERNEL");
 	config_valores.puerto_kernel = config_get_string_value(config,"PUERTO_KERNEL"); 
@@ -23,19 +25,11 @@ void cargar_configuracion(char* archivo_configuracion)
     config_valores.block_count = config_get_int_value(config,"BLOCK_COUNT");
     config_valores.retraso_compactacion = config_get_int_value(config, "RETRASO_COMPACTACION");
 
-
 }
 
+void ejecutar_interfaz(){
 
-int main(int argc, char* argv[]) {
-
-
-    logger = log_create("../kernel.log", "ENTRADASALIDA", true, LOG_LEVEL_INFO);
-	log_info(logger, "Se creo el log!");
-
-	char* archivo_configuracion =  argv[1];
-
-	cargar_configuracion(archivo_configuracion);
+	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/entradasalida/entradasalida.config");
 
 	// Conecto entradasalida con kernel y memoria
 	kernel_fd = crear_conexion(logger,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);
@@ -43,9 +37,36 @@ int main(int argc, char* argv[]) {
     memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
 	log_info(logger, "Me conecte a memoria");
 
+	config_valores.esta_conectada = true;
+
+	char* tipoInterfaz = config_valores.tipo_interfaz;
+
+	if(tipoInterfaz == "GENERICA"){
+		void* unidades_trabajo = recibir_buffer(sizeof(int), kernel_fd);
+		t_list* paquete_sleep = crear_paquete(IO_GEN_SLEEP);
+		paquete_sleep->t_buffer = unidades_trabajo;
+
+	}
+		else if (tipoInterfaz == "STDIN"){
+			
+			IO_STDIN_READ();
+		}
+			else if (tipoInterfaz == "STDOUT"){
+		
+				}
+				else{//Es del tipo DialFS
+}
+
+int main(int argc, char* argv[]) {
+
+    logger = log_create("../kernel.log", "ENTRADASALIDA", true, LOG_LEVEL_INFO);
+	log_info(logger, "Se creo el log!");
+
+    ejecutar_interfaz();
+
 	// envio mensajes
-	enviar_mensaje("soy e/s", memoria_fd);
-    enviar_mensaje("soy e/s", kernel_fd);
+	//enviar_mensaje("soy e/s", memoria_fd);
+    //enviar_mensaje("soy e/s", kernel_fd);
 
 
     return EXIT_SUCCESS;

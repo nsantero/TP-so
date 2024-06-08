@@ -15,7 +15,9 @@
 
 typedef struct
 {		
+    char* nombre_interfaz;
     char* tipo_interfaz;
+    bool esta_conectada;
     int tiempo_unidad_trabajo;
     char* ip_kernel;
     char* puerto_kernel;
