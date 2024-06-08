@@ -18,6 +18,13 @@ typedef struct
    
 } kernel_config;
 
+extern char *linea;
+extern char *path_script;
+extern char *path_proceso;
+extern char *pid;
+extern char *valor_multiprogramacion;
+extern char *archivo_configuracion;
+
 extern kernel_config config_valores;
 extern t_log* logger;
 extern int memoria_fd;

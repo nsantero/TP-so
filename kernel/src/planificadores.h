@@ -15,5 +15,6 @@ void planificador_corto_plazo();
 void planificar_fifo();
 void planificar_round_robin();
 void planificar_virtual_round_robin();
+void planificar();
 
 #endif

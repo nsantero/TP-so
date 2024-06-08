@@ -39,7 +39,8 @@ typedef enum
     JNZ,
     COPY_STRING,
     IO_GEN_SLEEP,
-    EJECUTAR_PROCESO
+    EJECUTAR_PROCESO,
+    DATOS_DEL_PROCESO
 
 } op_code;
 

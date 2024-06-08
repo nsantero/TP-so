@@ -22,13 +22,14 @@ PCB* crearPCB() {
 	 if (nuevoPCB == NULL) {
         // Manejar error de asignación de memoria
         return NULL;
-    }
+     }
 
     nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
-    //list_add(lista_NEW, nuevoPCB->PID);
+    list_add(lista_NEW, nuevoPCB->PID);
+    printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
 	// Logueo la creación del PCB
     //char mensaje[100];
     printf("Se creó el PCB del nuevo proceso y se agrego a la lista, PID %d \n", nuevoPCB->PID);
@@ -88,32 +89,9 @@ int iniciar_comunicacion(int argc, char* argv[]) {
 	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
 	log_info(logger, "Servidor listo para recibir al cliente");
 
-	t_paquete *paquete = crear_paquete(CREAR_PROCESO);
 
-	//Agregar el path al paquete
-	agregar_a_paquete(paquete,&t_pcb.PID,sizeof(int));
-	agregar_a_paquete(paquete, "instruccion.txt", strlen("instruccion.txt") + 1);
-	
-	// pasar PID y txt a memoria
-	enviar_paquete(paquete, memoria_fd);
-	eliminar_paquete(paquete);
-
-	//t_paquete *paquete = crear_paquete(DATOS_DEL_PROCESO);
-
-	agregar_a_paquete(paquete, &t_pcb.PID, sizeof(int));
-	agregar_a_paquete(paquete, &t_pcb.pc, sizeof(int));
-
-
-	//Paso el PID y PC a la CPU
-	
-	enviar_paquete(paquete, cpu_dispatch_fd);
-	eliminar_paquete(paquete);
-
-	// espero mensjaes de e/s
     while(server_escuchar(server_fd));
-
-
-
+	
     return EXIT_SUCCESS;
 }
 
@@ -189,7 +167,54 @@ bool permitePasarAREady() {
     return ((leer_grado_multiprogramación()) > (list_size(lista_READY)));
 }
 
+// LARGO PLAZO PASA DE NEW A READY
+void planificar_largo_plazo(PCB* proceso_recibido, char* path_recibido) {
+    if (list_size(lista_NEW) < leer_grado_multiprogramación()  ) {
+    printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
+    list_remove_element(lista_NEW, proceso_recibido->PID);
+    list_add(lista_READY, proceso_recibido->PID);
+    printf("Se movio a ready el proceso %d\n", proceso_recibido->PID);
+    paquete_crear_proceso(proceso_recibido->PID, path_recibido, proceso_recibido->pc );
+    printf("Se envio el paquete a memoria y cpu %d\n", proceso_recibido->PID);
+    }
+    else {
+        printf("No se puede pasar el proceso a ready");
+    }
 
+
+}
+
+void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
+    t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
+
+	//Agregar el path al paquete
+	agregar_a_paquete(paquete_memoria,&PID_paquete,sizeof(int));
+	agregar_a_paquete(paquete_memoria, path_paquete, strlen(path_paquete) + 1);
+	
+	// pasar PID y txt a memoria
+	enviar_paquete(paquete_memoria, memoria_fd);
+	eliminar_paquete(paquete_memoria);
+
+	t_paquete *paquete_cpu = crear_paquete(DATOS_DEL_PROCESO);
+
+	agregar_a_paquete(paquete_cpu, &PID_paquete, sizeof(int));
+	agregar_a_paquete(paquete_cpu, &pc_paquete, sizeof(int));
+
+
+	//Paso el PID y PC a la CPU
+	
+	enviar_paquete(paquete_cpu, cpu_dispatch_fd);
+	eliminar_paquete(paquete_cpu);
+
+	//levanto servidor
+	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
+	//log_info(logger, "Servidor listo para recibir al cliente");
+
+    printf("Se envio el paquete a cpu y memoria \n");
+    while(server_escuchar(server_fd));
+	
+
+}
 
 int main(int argc, char *argv[]) {
     
@@ -206,13 +231,15 @@ int main(int argc, char *argv[]) {
         }
 // PASO 1 - Se ejecutarán los scripts indicados en las pruebas 
         
-        if (!strncmp(linea, "EJES ", 5))
+        if (!strncmp(linea, "EJES ", 5)) // EJECUTAR_SCRIPT
         { // ejecutar script de comandos
             path_script = strdup(linea + strlen("EJECUTAR_SCRIPT "));
             printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
-            printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
+            
             PCB* recibido = crearPCB();
             printf("Se creo un nuevo proceso: %d\n", recibido->PID);
+            planificar_largo_plazo(recibido, path_script);
+            printf("Se planifico largo plazo: %d\n", recibido->PID);
             // planificador largo plazo (previamente leyendo el archivo de configuracion con el plani que tiene que utilizar)
             // printf ("Planificando el proceso: %d\n", PID);                
             // cpu el PCB (PID y PC) -- PAQUETES

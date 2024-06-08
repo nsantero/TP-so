@@ -39,7 +39,7 @@ int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto)
 	}
 
 	freeaddrinfo(server_info);
-    log_info(logger, ANSI_COLOR_GREEN "Escuchando en %s", nombre);
+  //  log_info(logger, ANSI_COLOR_GREEN "Escuchando en %s", nombre);
 	log_info(logger, "Servidor iniciado");
 
 	return socket_servidor;
@@ -111,7 +111,7 @@ int esperar_cliente(t_log* logger, const char* name, int socket_servidor) {
 
     int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-    log_info(logger,ANSI_COLOR_GREEN "Cliente conectado a %s", name);
+//    log_info(logger,ANSI_COLOR_GREEN "Cliente conectado a %s", name);
 
     return socket_cliente;
 }

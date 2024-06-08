@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	// espero a kernel y cpu
 	while(server_escuchar(server_fd));
 	
-	
+
 
     return 0;
 }
@@ -71,7 +71,7 @@ static void procesar_conexion(void *void_args) {
             t_proceso* proceso = malloc(sizeof(t_proceso));
             proceso->pid = *pid;
             proceso->archivos_instrucciones = nombre_archivo;
-
+            
             list_add(lista_procesos_activos,proceso);
             /*
             free(pid);
