@@ -42,6 +42,7 @@ bool permitePasarAREady();
 
 int obtener_pid(void); 
 
+void inicializarListas();
 // PCB
 typedef enum {
     NEW,
@@ -82,11 +83,10 @@ extern t_list* cola_de_procesos;
 PCB* crearPCB();
 // LISTAS DE ESTADOS
 
-extern t_list* lista_NEW;
-extern t_list* lista_READY;
-extern t_list* lista_EXIT;
-extern t_list* lista_BLOCKED;
-extern t_list* lista_RUNNING;
-
+    extern t_list* lista_NEW;
+    extern t_list* lista_READY; 
+    extern t_list* lista_EXIT;
+    extern t_list* lista_BLOCKED;
+    extern t_list* lista_RUNNING;
 
 #endif

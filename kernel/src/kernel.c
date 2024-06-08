@@ -4,6 +4,21 @@
 #include <planificadores.h>
 
 
+//
+
+t_list* lista_NEW;
+t_list* lista_READY;
+t_list* lista_BLOCKED;
+t_list* lista_EXIT;
+t_list* lista_RUNNING;
+
+void inicializarListas() {
+    lista_NEW = list_create();
+    lista_READY = list_create(); 
+    lista_EXIT = list_create();
+    lista_BLOCKED = list_create();
+    lista_RUNNING = list_create();
+}
 //Generar PID
 
 kernel_config config_valores;
@@ -73,13 +88,7 @@ void inicializar_planificadores() {
 
 }
 
-// inicializamos lista de estados
 
-    t_list* lista_NEW;
-	t_list* lista_READY;
-	t_list* lista_EXIT;
-	t_list* lista_BLOCKED;
-    t_list* lista_RUNNING;
 //Hilos
 
 void* largo_plazo(void* arg) {

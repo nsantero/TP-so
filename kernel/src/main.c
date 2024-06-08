@@ -16,9 +16,8 @@ int generarPID() {
     return pidActual;
 }
 
-
 PCB* crearPCB() {
-    printf("Creando PCB...");
+    printf("Creando PCB... \n");
     PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
 	 if (nuevoPCB == NULL) {
         // Manejar error de asignación de memoria
@@ -29,13 +28,11 @@ PCB* crearPCB() {
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
-    
-	//list_add(lista_NEW, 0);
-    printf("Se creó el PCB del nuevo proceso, PID %d", nuevoPCB->PID);
+    //list_add(lista_NEW, nuevoPCB->PID);
 	// Logueo la creación del PCB
-    char mensaje[100];
-    printf(mensaje, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB->PID);
-    log_info(logger, "%s", mensaje);
+    //char mensaje[100];
+    printf("Se creó el PCB del nuevo proceso y se agrego a la lista, PID %d \n", nuevoPCB->PID);
+    //log_info(logger, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
     
     return nuevoPCB;
 }
@@ -198,7 +195,7 @@ int main(int argc, char *argv[]) {
     
 
     cargar_configuracion(archivo_configuracion);
-
+    inicializarListas();
     while (1)
     {
         linea = readline(">");
@@ -209,13 +206,12 @@ int main(int argc, char *argv[]) {
         }
 // PASO 1 - Se ejecutarán los scripts indicados en las pruebas 
         
-        if (!strncmp(linea, "EJECUTAR_SCRIPT ", 16))
+        if (!strncmp(linea, "EJES ", 5))
         { // ejecutar script de comandos
-            //path_script = strdup(linea + strlen("EJECUTAR_SCRIPT "));
-            //printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
-            //printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
-            PCB* recibido = malloc(sizeof(PCB)); //reserva de memoria
-            recibido = crearPCB();
+            path_script = strdup(linea + strlen("EJECUTAR_SCRIPT "));
+            printf("Se esta ejecutando el script del siguiente path: %s\n", path_script);
+            printf("grado de multiprogramacion: %d\n", leer_grado_multiprogramación());
+            PCB* recibido = crearPCB();
             printf("Se creo un nuevo proceso: %d\n", recibido->PID);
             // planificador largo plazo (previamente leyendo el archivo de configuracion con el plani que tiene que utilizar)
             // printf ("Planificando el proceso: %d\n", PID);                
