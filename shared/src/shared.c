@@ -20,8 +20,8 @@ int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto)
 	}
 
 	socket_servidor = socket(server_info->ai_family,
-	                    server_info->ai_socktype,
-	                    server_info->ai_protocol);
+	                    	 server_info->ai_socktype,
+	                    	 server_info->ai_protocol);
 
 	if(socket_servidor == -1){
 		close(socket_servidor);

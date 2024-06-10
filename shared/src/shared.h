@@ -39,6 +39,8 @@ typedef enum
     JNZ,
     COPY_STRING,
     IO_GEN_SLEEP,
+    IO_STDIN_READ,
+    IO_STDOUT_WRITE,
     EJECUTAR_PROCESO,
     DATOS_DEL_PROCESO
 

@@ -89,7 +89,7 @@ t_instruccion recv_instruccion(int memoria_fd){
 
 int main(int argc, char* argv[]) {
     
-    logger = log_create("./log/cpu.log", "CPU", true, LOG_LEVEL_INFO);
+    logger = log_create("../cpu/src/cpu.log", "CPU", true, LOG_LEVEL_INFO);
 	log_info(logger, "Se creo el log!");
 
 	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/cpu/cpu.config");

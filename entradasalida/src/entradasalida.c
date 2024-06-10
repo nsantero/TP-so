@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/entradasalida.h"
+#include <entradasalida.h>
 
 
 void cargar_configuracion(char* archivo_configuracion)
@@ -12,9 +12,8 @@ void cargar_configuracion(char* archivo_configuracion)
 		exit(-1);
 	}
 
-	config_valores.nombre_interfaz = config_get_string_value(config,"NOMBRE_INTERFAZ");
+	// Revisar esto -> config_valores.nombre_interfaz = config_get_string_value(config,"NOMBRE_INTERFAZ");
 	config_valores.tipo_interfaz = config_get_string_value(config,"TIPO_INTERFAZ");
-	config_valores.esta_conectada = config_get_bool_value(config,"ESTADO INTERFAZ");
 	config_valores.tiempo_unidad_trabajo = config_get_int_value(config,"TIEMPO_UNIDAD_TRABAJO");
 	config_valores.ip_kernel= config_get_string_value(config,"IP_KERNEL");
 	config_valores.puerto_kernel = config_get_string_value(config,"PUERTO_KERNEL"); 
@@ -37,13 +36,14 @@ void EJECUTAR_INTERFAZ_GENERICA(){
 }
 
 void EJECUTAR_INTERFAZ_STDIN(){
-	t_list* paquete_kernel = recibir_paquete(kernel_fd);
-	printf("Ingrese el texto deseado: ");
 	char* texto = NULL;
 	size_t texto_lenght;
 	ssize_t read;
+	t_list* paquete_kernel = recibir_paquete(kernel_fd);
+	printf("Ingrese el texto deseado: ");
 	read = getline(&texto,&texto_lenght, stdin);
-	t_buffer* buffer_entrada = crear_buffer_aislado(texto,read);
+	t_list* paquete_buffer = crear_paquete(IO_STDIN_READ);
+	//t_buffer* buffer_entrada = crear_buffer_aislado(texto,read);
 
 		if (buffer_entrada != NULL) {
         	printf("Buffer creado con éxito.\n");
@@ -54,14 +54,13 @@ void EJECUTAR_INTERFAZ_STDIN(){
     			}
 
 	enviar_paquete(paquete_kernel, memoria_fd); //le mando a memoria el paquete con las direcciones fisica de memoria
-	enviar_buffer(buffer_entrada, memoria_fd); //le mando a memora el buffer con el texto ingresado
+	enviar_buffer(buffer_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
 	free(buffer_entrada->stream);
 	free(buffer_entrada);
     free(texto);
 }
 
 void EJECUTAR_INTERFAZ_STDOUT(){
-
 }
 
 void EJECUTAR_INTERFAZ_DialFS(){
@@ -99,7 +98,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// envio mensajes
-	enviar_mensaje("soy e/s", memoria_fd);
+	//enviar_mensaje("soy e/s", memoria_fd);
     //enviar_mensaje("soy e/s", kernel_fd);
 
     return EXIT_SUCCESS;

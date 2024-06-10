@@ -17,12 +17,10 @@ void cargar_configuracion(char* archivo_configuracion)
 	
 }
 
-
-
 int main(int argc, char *argv[])
 {
 
-    logger = log_create("./log/memoria.log", "MEMORIA", true, LOG_LEVEL_INFO);
+    logger = log_create("../memoria/src/memoria.log", "MEMORIA", true, LOG_LEVEL_INFO);
 	log_info(logger, "Se creo el log!");
 
 	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/memoria/memoria.config");
@@ -66,7 +64,7 @@ static void procesar_conexion(void *void_args) {
             //  Recibo el pid y el nombre del archivo
             int *pid;
             char *nombre_archivo;
-            recv_inicio_proceso(cliente_socket,&pid,&nombre_archivo);
+            //recv_inicio_proceso(cliente_socket,&pid,&nombre_archivo);
             log_info(logger,"nombre archivo: %s", nombre_archivo);
             t_proceso* proceso = malloc(sizeof(t_proceso));
             proceso->pid = *pid;
@@ -85,7 +83,7 @@ static void procesar_conexion(void *void_args) {
             int *pc;
             usleep(config_valores.retardo_respuesta *1000);
             recv_fetch_instruccion(cliente_socket, &pid,&pc);
-            leer_instruccion_por_pc_y_enviar(*pid,*pc, cliente_socket);
+            //leer_instruccion_por_pc_y_enviar(*pid,*pc, cliente_socket);
             free(pid); 
             free(pc); 
             
@@ -151,7 +149,7 @@ int recv_fetch_instruccion(int fd_modulo, int **pid, int **pc)
 	return 0;
 }
 
-char *armar_path_instruccion(int pid) {
+/*char *armar_path_instruccion(int pid) {
     char *path_completo = string_new();
     string_append(&path_completo, config_valores.path_instrucciones);
     string_append(&path_completo, "/");
@@ -210,4 +208,4 @@ void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) {
     }
     fclose(archivo);
     free(path_completa_instruccion);
-}
+}*/
