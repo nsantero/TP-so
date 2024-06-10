@@ -2,6 +2,7 @@
 #define KERNEL_H
 
 #include <utils.h>
+#include <conexiones.h>
 
 
 void inicializarListas();
@@ -20,7 +21,6 @@ extern int quantum ;
 extern char* algoritmo_planificacion;
 extern int pidActual;
 extern int generarPID();
-extern PCB* crearPCB();
 extern int obtener_pid(void); 
 
 typedef enum {
@@ -66,5 +66,6 @@ extern char *archivo_configuracion;
 // Funciones para planificar
 
 extern int leer_grado_multiprogramación();
+
 
 #endif

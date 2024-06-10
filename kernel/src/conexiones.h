@@ -1,4 +1,4 @@
-#include <kernel.h>
+#include <utils.h>
 
 typedef struct
 {		
@@ -13,7 +13,7 @@ typedef struct
     char** recursos;
     char** instancias_recursos;
     int grado_multiprogramacion;
-   
+
 } kernel_config;
 
 extern kernel_config config_valores;
@@ -22,10 +22,8 @@ extern int memoria_fd;
 extern int cpu_dispatch_fd;
 extern int cpu_interrupt_fd;
 extern int server_fd;
-extern char* server_name;
+extern char* server_name = "kernel";
 
-void cargar_configuracion(char* archivo_configuracion);
-
+extern void cargar_configuracion(char* archivo_configuracion);
 static void procesar_conexion(void *void_args);
-
-int server_escuchar(int fd_memoria);
+extern int server_escuchar(int fd_memoria);

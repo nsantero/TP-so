@@ -1,5 +1,6 @@
 #include <utils.h>
 #include <kernel.h>
+#include <conexiones.h>
 
 
 int main(int argc, char *argv[]) {

@@ -5,6 +5,7 @@
 #include <semaphore.h>
 #include <kernel.h>
 #include <semaforos.h>
+#include <conexiones.h>
 
 
 //HILOS

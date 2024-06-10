@@ -3,6 +3,7 @@
 
 #include <semaphore.h>
 #include <utils.h>
+#include <conexiones.h>
 
 //SEMAFOROS
 sem_t *sem_grado_multiprogramacion;

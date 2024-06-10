@@ -1,6 +1,5 @@
 #include <planificadores.h>
 
-
 //INICIALIZAR PLANIFICADORES
 
 void inicializar_planificadores() {
