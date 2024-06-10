@@ -614,3 +614,21 @@
 [INFO] 03:32:26:999 KERNEL/(11669:11669): Me conecte a memoria
 [INFO] 03:32:26:999 KERNEL/(11669:11669): Servidor iniciado
 [INFO] 03:32:27:004 KERNEL/(11669:11669): Servidor listo para recibir al cliente
+[INFO] 18:05:13:467 KERNEL/(3400:3400): Se creo el log!
+[INFO] 18:05:13:471 KERNEL/(3400:3400): [32mMe conecte en 127.0.0.1:8006 (a CPU_DISPATCH)
+
+[INFO] 18:05:13:472 KERNEL/(3400:3400): [32mMe conecte en 127.0.0.1:8007 (a CPU_INTERRUPT)
+
+[INFO] 18:05:13:473 KERNEL/(3400:3400): Me conecte a cpu (interrupt)
+[INFO] 18:05:13:473 KERNEL/(3400:3400): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 18:05:13:474 KERNEL/(3400:3400): Me conecte a memoria
+[INFO] 18:05:13:474 KERNEL/(3400:3400): Servidor iniciado
+[INFO] 18:05:13:474 KERNEL/(3400:3400): Servidor listo para recibir al cliente
+[INFO] 18:07:00:129 ENTRADASALIDA/(3654:3654): Se creo el log!
+[INFO] 18:07:00:133 ENTRADASALIDA/(3654:3654): [32mMe conecte en 127.0.0.1:8003 (a KERNEL)
+
+[INFO] 18:07:00:134 ENTRADASALIDA/(3654:3654): Me conecte a kernel
+[INFO] 18:07:00:136 ENTRADASALIDA/(3654:3654): [32mMe conecte en 127.0.0.1:8002 (a MEMORIA)
+
+[INFO] 18:07:00:136 ENTRADASALIDA/(3654:3654): Me conecte a memoria

@@ -249,14 +249,12 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente){
 }
 
 void agregar_string_a_paquete(t_paquete *paquete, char* palabra)
-{
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(char*));
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &palabra, sizeof(char*));
-	paquete->buffer->size += (sizeof(char*));
+{	
+	 size_t palabra_lenght = strlen(palabra) + 1;
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + palabra_lenght);
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &palabra, palabra_lenght);
+	paquete->buffer->size += (palabra_lenght);
 }
-
-
-
 
 uint32_t leer_entero(char *buffer, int *desplazamiento) {
     //uint32_t* ret= malloc(sizeof(uint32_t));

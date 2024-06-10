@@ -32,32 +32,36 @@ void EJECUTAR_INTERFAZ_GENERICA(){
 	paquete_sleep->buffer = unidades_trabajo;
 	enviar_paquete(paquete_sleep, kernel_fd);//le mando a kernel el paquete con la instruccion IO_GEN_SLEEP con las unidades
 	free(unidades_trabajo);
+	free(paquete_sleep->buffer->stream);
 	free(paquete_sleep->buffer);
+	free(paquete_sleep);
+}
+
+char* leer_texto_ingresado() {
+    char *texto = NULL;
+    size_t lenght = 0;
+    printf("Ingrese el texto deseado: ");
+    getline(&texto, &lenght, stdin);
+    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
+    return texto;
 }
 
 void EJECUTAR_INTERFAZ_STDIN(){
-	char* texto = NULL;
-	size_t texto_lenght;
-	ssize_t read;
-	t_list* paquete_kernel = recibir_paquete(kernel_fd);
-	printf("Ingrese el texto deseado: ");
-	read = getline(&texto,&texto_lenght, stdin);
-	t_list* paquete_buffer = crear_paquete(IO_STDIN_READ);
-	//t_buffer* buffer_entrada = crear_buffer_aislado(texto,read);
+	char* texto_leido = NULL;
 
-		if (buffer_entrada != NULL) {
-        	printf("Buffer creado con éxito.\n");
-        	printf("Tamaño del buffer: %d\n", buffer_entrada->size);
-        	printf("Stream del buffer: %s\n", (char*)buffer_entrada->stream);
-    			} else {
-        			printf("Error al crear el buffer.\n");
-    			}
+	t_list* paquete_kernel = recibir_paquete(kernel_fd);
+	t_paquete* paquete_entrada = crear_paquete(IO_STDIN_READ);
+
+	texto_leido = leer_texto_ingresado();
+	agregar_string_a_paquete(paquete_entrada,texto_leido); 
 
 	enviar_paquete(paquete_kernel, memoria_fd); //le mando a memoria el paquete con las direcciones fisica de memoria
-	enviar_buffer(buffer_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
-	free(buffer_entrada->stream);
-	free(buffer_entrada);
-    free(texto);
+	enviar_paquete(paquete_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
+	free(paquete_entrada->buffer->stream);
+	free(paquete_entrada->buffer);
+	free(paquete_entrada);
+	free(paquete_kernel);
+    free(texto_leido);
 }
 
 void EJECUTAR_INTERFAZ_STDOUT(){
