@@ -3,6 +3,8 @@
 
 #include <utils.h>
 #include <semaphore.h>
+#include <kernel.h>
+#include <semaforos.h>
 
 
 //HILOS
@@ -16,5 +18,6 @@ void planificar_fifo();
 void planificar_round_robin();
 void planificar_virtual_round_robin();
 void planificar();
+void inicializar_planificadores()
 
 #endif

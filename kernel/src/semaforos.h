@@ -13,5 +13,11 @@ sem_t *sem_procesos_ready;
 sem_t *sem_procesos_running;
 sem_t *sem_proceso_ejecutando;
 
+// FUNCIONES
+
+void inicializar_sem_planificadores();
+
+
+
 #endif 
 

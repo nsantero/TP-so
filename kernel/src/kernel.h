@@ -2,55 +2,27 @@
 #define KERNEL_H
 
 #include <utils.h>
-typedef struct
-{		
-    char* puerto_escucha; 
-    char* ip_memoria;
-    char* puerto_memoria; 
-    char* ip_cpu;
-    char* puerto_cpu_dispatch; 		
-    char* puerto_cpu_interrupt; 				
-    char* algoritmo_planificacion; 	
-    int quantum;
-    char** recursos;
-    char** instancias_recursos;
-    int grado_multiprogramacion;
-   
-} kernel_config;
 
-extern char *linea;
-extern char *path_script;
-extern char *path_proceso;
-extern char *pid;
-extern char *valor_multiprogramacion;
-extern char *archivo_configuracion;
-
-extern kernel_config config_valores;
-extern t_log* logger;
-extern int memoria_fd;
-extern int cpu_dispatch_fd;
-extern int cpu_interrupt_fd;
-extern int server_fd;
-extern char* server_name;
-
-void cargar_configuracion(char* archivo_configuracion);
-
-static void procesar_conexion(void *void_args);
-
-int leer_grado_multiprogramación();
-
-void planificar_round_robin();
-
-int server_escuchar(int fd_memoria);
-
-void corto_plazo(void* arg);
-
-bool permitePasarAREady();
-
-int obtener_pid(void); 
 
 void inicializarListas();
+// LISTAS DE ESTADOS
+
+    extern t_list* lista_NEW;
+    extern t_list* lista_READY; 
+    extern t_list* lista_EXIT;
+    extern t_list* lista_BLOCKED;
+    extern t_list* lista_RUNNING;
+
 // PCB
+
+extern int pid_counter ; //contador del pid, lo inicializo en 1
+extern int quantum ; 
+extern char* algoritmo_planificacion;
+extern int pidActual;
+extern int generarPID();
+extern PCB* crearPCB();
+extern int obtener_pid(void); 
+
 typedef enum {
     NEW,
     READY,
@@ -83,17 +55,16 @@ typedef struct {
 
 extern PCB t_pcb;
 
-extern int pid_counter ; //contador del pid, lo inicializo en 1
-extern int quantum ; 
-extern char* algoritmo_planificacion;
-extern t_list* cola_de_procesos;
-PCB* crearPCB();
-// LISTAS DE ESTADOS
+// CONSOLA
+extern char *linea;
+extern char *path_script;
+extern char *path_proceso;
+extern char *pid;
+extern char *valor_multiprogramacion;
+extern char *archivo_configuracion;
 
-    extern t_list* lista_NEW;
-    extern t_list* lista_READY; 
-    extern t_list* lista_EXIT;
-    extern t_list* lista_BLOCKED;
-    extern t_list* lista_RUNNING;
+// Funciones para planificar
+
+extern int leer_grado_multiprogramación();
 
 #endif
