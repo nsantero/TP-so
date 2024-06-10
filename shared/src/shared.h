@@ -75,6 +75,7 @@ void eliminar_paquete(t_paquete* paquete);
 //int recv_instruccion(int fd_modulo, char* path, int pc);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void crear_buffer(t_paquete* paquete);
+t_buffer* crear_buffer_aislado(void* data, int data_size);
 t_paquete* crear_paquete(op_code codigo_op);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 t_list* recibir_paquete(int socket_cliente);

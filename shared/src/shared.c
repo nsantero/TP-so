@@ -175,6 +175,14 @@ void crear_buffer(t_paquete* paquete){
 	paquete->buffer->stream = NULL;
 }
 
+t_buffer* crear_buffer_aislado(void* data, int data_size){ //
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->stream = malloc(data_size);
+    memcpy(buffer->stream, data, data_size);
+    buffer->size = data_size;
+	return buffer;
+}
+
 t_paquete* crear_paquete(op_code codigo_op){
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 	paquete->codigo_operacion = codigo_op;
