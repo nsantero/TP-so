@@ -2,7 +2,6 @@
 #define KERNEL_H
 
 #include <utils.h>
-#include <conexiones.h>
 
 
 void inicializarListas();
@@ -21,7 +20,7 @@ extern int quantum ;
 extern char* algoritmo_planificacion;
 extern int pidActual;
 extern int generarPID();
-extern int obtener_pid(void); 
+extern int obtener_pid(void);
 
 typedef enum {
     NEW,
@@ -53,7 +52,7 @@ typedef struct {
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
 } PCB;
 
-extern PCB t_pcb;
+PCB* crearPCB();
 
 // CONSOLA
 extern char *linea;

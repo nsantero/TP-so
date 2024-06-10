@@ -535,3 +535,35 @@
 [INFO] 23:19:09:392 KERNEL/(18121:18121): [32mEscuchando en kernel
 [INFO] 23:19:09:392 KERNEL/(18121:18121): Servidor iniciado
 [INFO] 23:19:09:392 KERNEL/(18121:18121): Servidor listo para recibir al cliente
+[INFO] 02:09:30:438 KERNEL/(11087:11087): Se creo el log!
+[ERROR] 02:09:30:457 KERNEL/(11087:11087): Error al conectarme (a CPU_DISPATCH)
+
+[INFO] 02:09:30:464 KERNEL/(11087:11087): Me conecte a cpu (dispatch)
+[ERROR] 02:09:30:466 KERNEL/(11087:11087): Error al conectarme (a CPU_INTERRUPT)
+
+[INFO] 02:09:30:472 KERNEL/(11087:11087): Me conecte a cpu (interrupt)
+[ERROR] 02:09:30:473 KERNEL/(11087:11087): Error al conectarme (a MEMORIA)
+
+[INFO] 02:09:30:473 KERNEL/(11087:11087): Me conecte a memoria
+[INFO] 02:09:30:473 KERNEL/(11087:11087): Servidor iniciado
+[INFO] 02:09:30:473 KERNEL/(11087:11087): Servidor listo para recibir al cliente
+[INFO] 02:13:48:715 KERNEL/(11434:11434): Se creo el log!
+[ERROR] 02:13:48:716 KERNEL/(11434:11434): Error al conectarme (a CPU_DISPATCH)
+
+[INFO] 02:13:48:716 KERNEL/(11434:11434): Me conecte a cpu (dispatch)
+[ERROR] 02:13:48:716 KERNEL/(11434:11434): Error al conectarme (a CPU_INTERRUPT)
+
+[INFO] 02:13:48:717 KERNEL/(11434:11434): Me conecte a cpu (interrupt)
+[ERROR] 02:13:48:717 KERNEL/(11434:11434): Error al conectarme (a MEMORIA)
+
+[INFO] 02:13:48:717 KERNEL/(11434:11434): Me conecte a memoria
+[INFO] 02:16:30:269 KERNEL/(11590:11590): Se creo el log!
+[ERROR] 02:16:30:271 KERNEL/(11590:11590): Error al conectarme (a CPU_DISPATCH)
+
+[INFO] 02:16:30:272 KERNEL/(11590:11590): Me conecte a cpu (dispatch)
+[ERROR] 02:16:30:273 KERNEL/(11590:11590): Error al conectarme (a CPU_INTERRUPT)
+
+[INFO] 02:16:30:273 KERNEL/(11590:11590): Me conecte a cpu (interrupt)
+[ERROR] 02:16:30:273 KERNEL/(11590:11590): Error al conectarme (a MEMORIA)
+
+[INFO] 02:16:30:274 KERNEL/(11590:11590): Me conecte a memoria

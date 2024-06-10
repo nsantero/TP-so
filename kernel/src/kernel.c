@@ -2,6 +2,7 @@
 #include <semaforos.h>
 #include <kernel.h>
 #include <planificadores.h>
+#include <conexiones.h>
 
 // LISTA DE ESTADOS
 
@@ -111,13 +112,13 @@ void planificar_corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
 
     if(strcmp(algoritmo_planificacion, "FIFO") == 0) {
         planificar_fifo();
-    } else if (strcmp(algoritmo_planificacion, "RR") == 0) {
-        planificar_round_robin();
-    } else if (strcmp(algoritmo_planificacion, "VRR") == 0 ) {
-        printf ("Algoritmo de planificacion no conocido: %s\n", algoritmo_planificacion);
+    } //else if (strcmp(algoritmo_planificacion, "RR") == 0) {
+        //planificar_round_robin();
+    //} else if (strcmp(algoritmo_planificacion, "VRR") == 0 ) {
+    //    printf ("Algoritmo de planificacion no conocido: %s\n", algoritmo_planificacion);
     }
     }
-}
+
 
 void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
@@ -142,12 +143,13 @@ void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
 	eliminar_paquete(paquete_cpu);
 
 	//levanto servidor
+    /*
 	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
 	//log_info(logger, "Servidor listo para recibir al cliente");
 
     printf("Se envio el paquete a cpu y memoria \n");
     while(server_escuchar(server_fd));
-	
+	*/
 
 }
 

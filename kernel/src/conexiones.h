@@ -1,6 +1,7 @@
 #include <utils.h>
 
 typedef struct
+
 {		
     char* puerto_escucha; 
     char* ip_memoria;
@@ -22,7 +23,7 @@ extern int memoria_fd;
 extern int cpu_dispatch_fd;
 extern int cpu_interrupt_fd;
 extern int server_fd;
-extern char* server_name = "kernel";
+extern char* server_name;
 
 extern void cargar_configuracion(char* archivo_configuracion);
 static void procesar_conexion(void *void_args);

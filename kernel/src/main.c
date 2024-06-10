@@ -2,9 +2,29 @@
 #include <kernel.h>
 #include <conexiones.h>
 
-
 int main(int argc, char *argv[]) {
     
+
+   logger = log_create("../kernel.log", "KERNEL", true, LOG_LEVEL_INFO);
+	log_info(logger, "Se creo el log!");
+
+	cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config");
+
+	// Conecto kernel con cpu y memoria
+	cpu_dispatch_fd = crear_conexion(logger,"CPU_DISPATCH",config_valores.ip_cpu,config_valores.puerto_cpu_dispatch);
+	log_info(logger, "Me conecte a cpu (dispatch)");
+    cpu_interrupt_fd = crear_conexion(logger,"CPU_INTERRUPT",config_valores.ip_cpu,config_valores.puerto_cpu_interrupt);
+	log_info(logger, "Me conecte a cpu (interrupt)");
+    memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
+	log_info(logger, "Me conecte a memoria");
+
+	// envio mensajes
+	enviar_mensaje("soy Kernel", memoria_fd);
+    enviar_mensaje("soy Kernel", cpu_dispatch_fd);
+
+	//levanto servidor
+	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
+	log_info(logger, "Servidor listo para recibir al cliente");
 
     cargar_configuracion(archivo_configuracion);
     inicializarListas();
@@ -97,5 +117,11 @@ int main(int argc, char *argv[]) {
         // printf("%s\n", linea);
         // free(linea);
     }
+    	// espero mensjaes de e/s
+    //while(server_escuchar(server_fd));
+
+
+
+    //return EXIT_SUCCESS;
     return 0;
 }

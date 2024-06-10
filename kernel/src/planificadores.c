@@ -1,4 +1,6 @@
 #include <planificadores.h>
+#include <conexiones.h>
+#include <semaforos.h>
 
 //INICIALIZAR PLANIFICADORES
 
@@ -20,10 +22,10 @@ void inicializar_planificadores() {
     }
 
     config_destroy(config);
+*/
+}
 
-}*/
-
-int hilosPlanificadores(void) {
+/*int hilosPlanificadores(void) {
 
     pthread_create(&hilo_largo_plazo, NULL, planificador_largo_plazo, NULL);
     pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);
@@ -33,6 +35,7 @@ int hilosPlanificadores(void) {
 
     return 0;
 }
+*/
 
 void planificar_fifo() {
     if (list_is_empty(lista_READY)) { // QUEUE *cola_ready
@@ -41,21 +44,19 @@ void planificar_fifo() {
     }
     // variable global con mutex donde definamos que pueda ejecutar wait(mutex)
     // LISTA RUNNING
-    sem_wait(sem_proceso_ejecutando);
-    sem_wait (sem_procesos_ready); 
+    sem_wait(&sem_proceso_ejecutando);
+    sem_wait(&sem_procesos_ready); 
     list_remove(lista_READY, 0);
-    sem_post (sem_procesos_ready); 
-    sem_wait (sem_procesos_running);
+    sem_post (&sem_procesos_ready); 
+    sem_wait (&sem_procesos_running);
     list_add (lista_RUNNING, 0);
-    sem_post (sem_procesos_running);
-    t_pcb.estado  = RUNNING;
-    sem_wait(sem_proceso_ejecutando);
-    ejecutar_proceso(&t_pcb.PID);
-    sem_post(sem_proceso_ejecutando);
+    sem_post (&sem_procesos_running);
+    //t_pcb.estado  = RUNNING;
+    sem_wait(&sem_proceso_ejecutando);
+    //ejecutar_proceso(&t_pcb.PID);
+    sem_post(&sem_proceso_ejecutando);
 
 }
-void planificar_round_robin() {
-   } 
 
 /* implementación RR
 void planificar_round_robin() {
