@@ -26,16 +26,13 @@ void cargar_configuracion(char* archivo_configuracion)
 
 }
 
-void EJECUTAR_INTERFAZ_GENERICA(){
-	void* unidades_trabajo = recibir_buffer(sizeof(int), kernel_fd);
-	t_paquete* paquete_sleep = crear_paquete(IO_GEN_SLEEP);
-	paquete_sleep->buffer = unidades_trabajo;
-	enviar_paquete(paquete_sleep, kernel_fd);//le mando a kernel el paquete con la instruccion IO_GEN_SLEEP con las unidades
-	free(unidades_trabajo);
-	free(paquete_sleep->buffer->stream);
-	free(paquete_sleep->buffer);
-	free(paquete_sleep);
+
+void crearInterfaces(){
+
+   generarNuevaInterfazGenerica("interfazGenerica"/*TODO, deshardcodear esto*/,"/home/utnso/tp-2024-1c-Aprobado/entradasalida/configGenerica.config");
+   
 }
+
 
 char* leer_texto_ingresado() {
     char *texto = NULL;
@@ -89,7 +86,7 @@ int main(int argc, char* argv[]) {
 	char* tipoInterfaz = config_valores.tipo_interfaz;
 
 	if(tipoInterfaz == "GENERICA"){
-		EJECUTAR_INTERFAZ_GENERICA();
+		
 	}
 		else if (tipoInterfaz == "STDIN"){
 			EJECUTAR_INTERFAZ_STDIN();
