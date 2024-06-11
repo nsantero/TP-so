@@ -8,10 +8,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+extern Interfaz interfaz_generica;
 extern t_list * cola_procesos_ig;
-
 extern pthread_mutex_t mutex_cola_ig;
-
 extern sem_t sem_hay_en_cola;
 
 typedef struct
@@ -36,5 +35,7 @@ Interfaz generarNuevaInterfazGenerica(char* nombre,char* pathConfiguracion);
  */
 
 void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz);
+
+void* manejo_interfaz_generica();
 
 #endif

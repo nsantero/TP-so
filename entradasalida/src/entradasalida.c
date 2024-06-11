@@ -81,7 +81,13 @@ int main(int argc, char* argv[]) {
     memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
 	log_info(logger, "Me conecte a memoria");
 
-	config_valores.esta_conectada = true;
+	interfaz_generica = generarNuevaInterfazGenerica("Int1","PATH");//TODO PATH
+
+	pthread_t hilo_interfaz_generica;
+	pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
+
+	pthread_join(hilo_interfaz_generica,NULL);
+	//TODO agregar otros hilos
 
 	char* tipoInterfaz = config_valores.tipo_interfaz;
 

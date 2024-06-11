@@ -12,6 +12,7 @@
 #include <commons/collections/list.h>
 #include <assert.h>
 #include <pthread.h>
+#include <interfazGenerica.h>
 
 typedef struct
 {		
