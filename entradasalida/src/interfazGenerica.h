@@ -11,7 +11,7 @@
 extern Interfaz interfaz_generica;
 extern t_list * cola_procesos_ig;
 extern pthread_mutex_t mutex_cola_ig;
-extern sem_t sem_hay_en_cola;
+extern sem_t sem_hay_en_cola_ig;
 
 typedef struct
 {

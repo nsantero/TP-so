@@ -13,6 +13,8 @@
 #include <assert.h>
 #include <pthread.h>
 #include <interfazGenerica.h>
+#include <interfazSTDIN.h>
+#include <interfazSTDOUT.h>
 
 typedef struct
 {		
