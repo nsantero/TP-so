@@ -43,26 +43,9 @@ char* leer_texto_ingresado() {
     return texto;
 }
 
-void EJECUTAR_INTERFAZ_STDIN(){
-	char* texto_leido = NULL;
 
-	t_list* paquete_kernel = recibir_paquete(kernel_fd);
-	t_paquete* paquete_entrada = crear_paquete(IO_STDIN_READ);
 
-	texto_leido = leer_texto_ingresado();
-	agregar_string_a_paquete(paquete_entrada,texto_leido); 
 
-	enviar_paquete(paquete_kernel, memoria_fd); //le mando a memoria el paquete con las direcciones fisica de memoria
-	enviar_paquete(paquete_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
-	free(paquete_entrada->buffer->stream);
-	free(paquete_entrada->buffer);
-	free(paquete_entrada);
-	free(paquete_kernel);
-    free(texto_leido);
-}
-
-void EJECUTAR_INTERFAZ_STDOUT(){
-}
 
 void EJECUTAR_INTERFAZ_DialFS(){
 
@@ -82,13 +65,36 @@ int main(int argc, char* argv[]) {
 	log_info(logger, "Me conecte a memoria");
 
 	interfaz_generica = generarNuevaInterfazGenerica("Int1","PATH");//TODO PATH
+	
 
 	pthread_t hilo_interfaz_generica;
 	pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
 
-	pthread_join(hilo_interfaz_generica,NULL);
-	//TODO agregar otros hilos
+	interfaz_STDIN = generarNuevaInterfazSTDIN("Int2","PATH");//TODO PATH
 
+	pthread_t hilo_interfaz_STDIN;
+	pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
+
+	interfaz_STDOUT = generarNuevaInterfazSTDOUT("Int3","PATH");//TODO PATH
+
+	pthread_t hilo_interfaz_STDOUT;
+	pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
+
+
+
+
+
+	pthread_join(hilo_interfaz_generica,NULL);
+	pthread_join(hilo_interfaz_STDIN,NULL);
+	pthread_join(hilo_interfaz_STDOUT,NULL);
+	//TODO agregar otros hilos
+	
+	
+	
+	
+	
+	
+	
 	char* tipoInterfaz = config_valores.tipo_interfaz;
 
 	if(tipoInterfaz == "GENERICA"){
