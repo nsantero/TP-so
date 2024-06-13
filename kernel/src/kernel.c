@@ -3,6 +3,7 @@
 #include <kernel.h>
 #include <planificadores.h>
 #include <conexiones.h>
+#include <configs.h>
 
 // LISTA DE ESTADOS
 
@@ -71,7 +72,11 @@ PCB* crearPCB() {
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
-    list_add(lista_NEW, nuevoPCB->PID);
+    pthread_mutex_lock(&mutexListaNew);
+    list_add(lista_NEW, nuevoPCB);
+    sem_post(&semListaNew);
+    pthread_mutex_unlock(&mutexListaNew);
+    
     printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
 	// Logueo la creación del PCB
     //char mensaje[100];
@@ -82,10 +87,10 @@ PCB* crearPCB() {
 }
 
 int leer_grado_multiprogramación() {
-    return config_valores.grado_multiprogramacion ;
+    return configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
-
+/*
 // LARGO PLAZO PASA DE NEW A READY
 void planificar_largo_plazo(PCB* proceso_recibido, char* path_recibido) {
     if (list_size(lista_NEW) < leer_grado_multiprogramación()  ) {
@@ -119,7 +124,7 @@ void planificar_corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
     }
     }
 
-
+*/
 void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
 

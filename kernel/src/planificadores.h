@@ -10,6 +10,12 @@
 //pthread_t hilo_largo_plazo;
 //pthread_t hilo_corto_plazo;
 
+int totalProcesosEnSistema();
+void* planificadorNew();
+void* planificadorReady();
+void cambiarAReady(t_list* cola);
+void cambiarARunning(t_list* cola);
+
 extern void inicializar_sem_planificadores();
 extern void planificador_largo_plazo();
 extern void planificador_corto_plazo();

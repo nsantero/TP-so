@@ -1,35 +1,11 @@
 #include <conexiones.h>
+#include <configs.h>
 
-kernel_config config_valores;
-t_log* logger;
 int memoria_fd;
 int cpu_dispatch_fd;
 int cpu_interrupt_fd;
 int server_fd;
 char* server_name = "kernel";
-
-void cargar_configuracion(char* archivo_configuracion)
-{
-	t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
-
-	if (config == NULL) {
-		perror("Archivo de configuracion no encontrado");
-		exit(-1);
-	}
-
-	config_valores.puerto_escucha = config_get_string_value(config,"PUERTO_ESCUCHA");
-	config_valores.ip_memoria = config_get_string_value(config,"IP_MEMORIA");
-	config_valores.puerto_memoria= config_get_string_value(config,"PUERTO_MEMORIA");
-	config_valores.ip_cpu = config_get_string_value(config,"IP_CPU"); 
-	config_valores.puerto_cpu_dispatch = config_get_string_value(config,"PUERTO_CPU_DISPATCH");
-    config_valores.puerto_cpu_interrupt = config_get_string_value(config,"PUERTO_CPU_INTERRUPT");
-    config_valores.algoritmo_planificacion = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
-    config_valores.quantum = config_get_int_value(config,"QUANTUM");
-    config_valores.recursos =  config_get_array_value(config, "RECURSOS");
-	config_valores.instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
-    config_valores.grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
-}
-
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
@@ -40,14 +16,14 @@ static void procesar_conexion(void *void_args) {
 
 	while (cliente_socket != -1) {
 		if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-			log_info(logger, ANSI_COLOR_BLUE"El cliente se desconecto de %s server", server_name);
+			log_info(loggerKernel, ANSI_COLOR_BLUE"El cliente se desconecto de %s server", server_name);
 			return;
 		}
 		switch (cop) {
 		case MENSAJE:{
 
 			char* mensaje = recibir_mensaje(cliente_socket);
-            log_info(logger, ANSI_COLOR_YELLOW"Me llegó el mensaje: %s", mensaje);
+            log_info(loggerKernel, ANSI_COLOR_YELLOW"Me llegó el mensaje: %s", mensaje);
 
             free(mensaje); // Liberar la memoria del mensaje recibido
 
@@ -69,7 +45,7 @@ static void procesar_conexion(void *void_args) {
 
 int server_escuchar(int fd_memoria) {
 
-	int cliente_socket = esperar_cliente(logger, server_name, fd_memoria);
+	int cliente_socket = esperar_cliente(loggerKernel, server_name, fd_memoria);
 
 	if (cliente_socket != -1) {
 		pthread_t hilo;

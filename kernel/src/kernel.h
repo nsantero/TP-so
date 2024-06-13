@@ -54,13 +54,6 @@ typedef struct {
 
 PCB* crearPCB();
 
-// CONSOLA
-extern char *linea;
-extern char *path_script;
-extern char *path_proceso;
-extern char *pid;
-extern char *valor_multiprogramacion;
-extern char *archivo_configuracion;
 
 // Funciones para planificar
 
