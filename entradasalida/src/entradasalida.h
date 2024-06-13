@@ -39,3 +39,7 @@ int kernel_fd;
 int memoria_fd;
 
 void cargar_configuracion(char* archivo_configuracion);
+
+char* leer_texto_ingresado();
+
+uint32_t recibir_direccion_fisica();

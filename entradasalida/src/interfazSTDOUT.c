@@ -52,5 +52,22 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,char* pathConfiguracion){
 
 void EJECUTAR_INTERFAZ_STDOUT(){
 	
-    
+    uint32_t direccion_ingresada = recibir_direccion_fisica();
+    t_paquete* paquete_direccion = crear_paquete(IO_STDOUT_WRITE);
+    agregar_entero_a_paquete(paquete_direccion, direccion_ingresada);
+
+    enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion fisica ingresada
+
+    t_list* paquete_memoria = recibir_paquete(memoria_fd);//Recibo el contenido de la direccion por parte de memoria
+
+    char* contenido_memoria = string_new();
+
+    contenido_memoria = paquete_memoria->head;
+
+    printf("El contenido encontrado en la direccion de memoria %u", direccion_ingresada, " es %s", contenido_memoria);
+
+    free(paquete_direccion->buffer);
+    free(paquete_direccion);
+    free(paquete_memoria);
+    free(contenido_memoria);
 }

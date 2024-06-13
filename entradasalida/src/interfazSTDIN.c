@@ -16,7 +16,7 @@ void* manejo_interfaz_STDIN(){
     while(1){
         sem_wait(&sem_hay_en_cola_STDIN);
         pthread_mutex_lock(&mutex_cola_STDIN);
-        peticion_STDIN = list_remove(cola_procesos_ig,0);
+        peticion_STDIN = list_remove(cola_procesos_STDIN,0);
         pthread_mutex_unlock(&mutex_cola_STDIN);
 
         EJECUTAR_INTERFAZ_STDIN();

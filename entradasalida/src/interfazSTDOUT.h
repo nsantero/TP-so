@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <tiposInterfaces.h>
 #include <commons/config.h>
+#include <entradasalida.h>
 #include <pthread.h>
 #include <semaphore.h>
 

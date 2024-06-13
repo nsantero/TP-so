@@ -43,7 +43,16 @@ char* leer_texto_ingresado() {
     return texto;
 }
 
+uint32_t recibir_direccion_fisica(){
 
+	unsigned long direccion_fisica;
+    printf("Ingrese una direccion de memoria en hexadecimal (ej: 0x7fff5fbffabc): ");
+    scanf("%lx", &direccion_fisica);
+
+    // Convierto la dirección ingresada en un puntero a un entero
+    uint32_t direccion_memoria = (uint32_t)direccion_fisica;
+	return direccion_memoria;
+}
 
 
 
