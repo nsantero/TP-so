@@ -13,6 +13,8 @@
 int totalProcesosEnSistema();
 void* planificadorNew();
 void* planificadorReady();
+void comportamientoFIFO();
+void* manejadorDeQuantum(void *quantum);
 void cambiarAReady(t_list* cola);
 void cambiarARunning(t_list* cola);
 

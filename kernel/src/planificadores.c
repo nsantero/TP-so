@@ -43,11 +43,42 @@ void* planificadorReady(){
         pthread_mutex_lock(&mutexListaReady);
         pthread_mutex_lock(&mutexListaRunning);
         if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {
-            cambiarARunning(lista_READY);
+            if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "FIFO")){
+                comportamientoFIFO();
+            }
+            if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR")){
+                comportamientoRR();
+            }
         }
         pthread_mutex_unlock(&mutexListaRunning);
         pthread_mutex_unlock(&mutexListaReady);
     }
+    return NULL;
+}
+
+void comportamientoFIFO(){
+    cambiarARunning(lista_READY);
+    //MANDAR A CPU
+}
+
+void comportamientoRR(){
+    pthread_t hiloQuantum;
+
+    cambiarARunning(lista_READY);
+
+    PCB* pcbRunnign=list_get(lista_RUNNING, 0);
+
+    pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
+    //MANDAR A CPU
+    pthread_join(hiloQuantum, NULL);
+    //MANDAR INTERRUPT A CPU
+}
+
+void *manejadorDeQuantum(void* quantum){
+    int quantumProceso = *((int*) quantum);
+    log_info(loggerKernel, "el valor obetenido es: %d", quantumProceso);
+    usleep(quantumProceso/1000);
+
     return NULL;
 }
 
