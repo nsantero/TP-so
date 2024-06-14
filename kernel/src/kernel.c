@@ -3,6 +3,7 @@
 #include <kernel.h>
 #include <planificadores.h>
 #include <conexiones.h>
+#include <configs.h>
 
 // LISTA DE ESTADOS
 
@@ -26,30 +27,8 @@ int pid_counter = 1;
 int quantum = 0;
 char* algoritmo_planificacion = NULL;
 
-/*void* largo_plazo(void* arg) {
-    if (list_size(lista_NEW) != 0)  {
-
-        sem_wait(sem_grado_multiprogramacion); // me fijo que el grado de multiprogramacion este ok
-        sem_wait(sem_procesos_new);
-        sem_wait(sem_procesos_ready);
-        list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
-        list_add(lista_READY, 0); 
-        t_pcb.estado = READY; // lo agrega al comienzo de la lista, cambiarlo en base a queue
-        sem_post(sem_procesos_new);
-        sem_post(sem_procesos_ready);
-    }
-    pthread_exit(NULL);
-}
-*/
-
 // PCB 
-
-    char *linea;
-    char *path_script = NULL;
-    char *path_proceso = NULL;
     char *pid = NULL;
-    char *valor_multiprogramacion = NULL;
-    char *archivo_configuracion = "/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config";
 
 
 int pidActual = 0;
@@ -71,7 +50,11 @@ PCB* crearPCB() {
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
-    list_add(lista_NEW, nuevoPCB->PID);
+    pthread_mutex_lock(&mutexListaNew);
+    list_add(lista_NEW, nuevoPCB);
+    sem_post(&semListaNew);
+    pthread_mutex_unlock(&mutexListaNew);
+    
     printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
 	// Logueo la creación del PCB
     //char mensaje[100];
@@ -82,10 +65,26 @@ PCB* crearPCB() {
 }
 
 int leer_grado_multiprogramación() {
-    return config_valores.grado_multiprogramacion ;
+    return configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
+/*void* largo_plazo(void* arg) {
+    if (list_size(lista_NEW) != 0)  {
 
+        sem_wait(sem_grado_multiprogramacion); // me fijo que el grado de multiprogramacion este ok
+        sem_wait(sem_procesos_new);
+        sem_wait(sem_procesos_ready);
+        list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
+        list_add(lista_READY, 0); 
+        t_pcb.estado = READY; // lo agrega al comienzo de la lista, cambiarlo en base a queue
+        sem_post(sem_procesos_new);
+        sem_post(sem_procesos_ready);
+    }
+    pthread_exit(NULL);
+}
+*/
+
+/*
 // LARGO PLAZO PASA DE NEW A READY
 void planificar_largo_plazo(PCB* proceso_recibido, char* path_recibido) {
     if (list_size(lista_NEW) < leer_grado_multiprogramación()  ) {
@@ -119,7 +118,7 @@ void planificar_corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
     }
     }
 
-
+*/
 void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
 
