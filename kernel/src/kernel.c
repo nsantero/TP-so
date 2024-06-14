@@ -24,7 +24,7 @@ void inicializarListas() {
 //Generar PID
 
 int pid_counter = 1;
-int quantum = 0;
+int quantum = 2;
 char* algoritmo_planificacion = NULL;
 
 // PCB 
