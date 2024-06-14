@@ -27,30 +27,8 @@ int pid_counter = 1;
 int quantum = 0;
 char* algoritmo_planificacion = NULL;
 
-/*void* largo_plazo(void* arg) {
-    if (list_size(lista_NEW) != 0)  {
-
-        sem_wait(sem_grado_multiprogramacion); // me fijo que el grado de multiprogramacion este ok
-        sem_wait(sem_procesos_new);
-        sem_wait(sem_procesos_ready);
-        list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
-        list_add(lista_READY, 0); 
-        t_pcb.estado = READY; // lo agrega al comienzo de la lista, cambiarlo en base a queue
-        sem_post(sem_procesos_new);
-        sem_post(sem_procesos_ready);
-    }
-    pthread_exit(NULL);
-}
-*/
-
 // PCB 
-
-    char *linea;
-    char *path_script = NULL;
-    char *path_proceso = NULL;
     char *pid = NULL;
-    char *valor_multiprogramacion = NULL;
-    char *archivo_configuracion = "/home/utnso/tp-2024-1c-File-System-Fanatics/kernel/kernel.config";
 
 
 int pidActual = 0;
@@ -89,6 +67,22 @@ PCB* crearPCB() {
 int leer_grado_multiprogramación() {
     return configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
+
+/*void* largo_plazo(void* arg) {
+    if (list_size(lista_NEW) != 0)  {
+
+        sem_wait(sem_grado_multiprogramacion); // me fijo que el grado de multiprogramacion este ok
+        sem_wait(sem_procesos_new);
+        sem_wait(sem_procesos_ready);
+        list_remove(lista_NEW, 0); // el 0 indica que se elimina el primer elemento de la lista(como el proceso a analizar es el primero, va estar bien quitarlo de NEW)
+        list_add(lista_READY, 0); 
+        t_pcb.estado = READY; // lo agrega al comienzo de la lista, cambiarlo en base a queue
+        sem_post(sem_procesos_new);
+        sem_post(sem_procesos_ready);
+    }
+    pthread_exit(NULL);
+}
+*/
 
 /*
 // LARGO PLAZO PASA DE NEW A READY
