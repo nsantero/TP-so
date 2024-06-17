@@ -43,7 +43,10 @@ typedef enum
     IO_STDOUT_WRITE,
     EJECUTAR_PROCESO,
     DATOS_DEL_PROCESO,
-    DESBLOQUEAR_PROCESO_POR_IO
+    DESBLOQUEAR_PROCESO_POR_IO,
+
+    PAUSAR_EJECUCION,
+    INTERRUMPIR_PROCESO_ACTUAL
 
 } op_code;
 
@@ -85,5 +88,7 @@ t_list* recibir_paquete(int socket_cliente);
 void agregar_entero_a_paquete(t_paquete *paquete, uint32_t x);
 uint32_t leer_entero(char *buffer, int *desplazamiento);
 void agregar_string_a_paquete(t_paquete *paquete, char* palabra);
+int recibir_operacion(int socket_cliente);
+
 
 #endif
