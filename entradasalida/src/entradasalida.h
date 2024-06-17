@@ -15,6 +15,7 @@
 #include <interfazGenerica.h>
 #include <interfazSTDIN.h>
 #include <interfazSTDOUT.h>
+#include <interfazDialFS.h>
 
 typedef struct
 {		
