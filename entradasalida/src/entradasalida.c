@@ -73,16 +73,19 @@ int main(int argc, char* argv[]) {
     memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
 	log_info(logger, "Me conecte a memoria");
 
+
+
 	interfaz_generica = generarNuevaInterfazGenerica("Int1","PATH");//TODO PATH
 	
-
 	pthread_t hilo_interfaz_generica;
 	pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
+
 
 	interfaz_STDIN = generarNuevaInterfazSTDIN("Int2","PATH");//TODO PATH
 
 	pthread_t hilo_interfaz_STDIN;
 	pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
+
 
 	interfaz_STDOUT = generarNuevaInterfazSTDOUT("Int3","PATH");//TODO PATH
 
@@ -90,12 +93,17 @@ int main(int argc, char* argv[]) {
 	pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
 
 
+	interfaz_DialFS = generarNuevaInterfazDialFS("Int4","PATH");//TODO path
+
+	pthread_t hilo_interfaz_DialFS;
+	pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
 
 
 
 	pthread_join(hilo_interfaz_generica,NULL);
 	pthread_join(hilo_interfaz_STDIN,NULL);
 	pthread_join(hilo_interfaz_STDOUT,NULL);
+	pthread_join(hilo_interfaz_DialFS,NULL);
 	//TODO agregar otros hilos
 	
 	
