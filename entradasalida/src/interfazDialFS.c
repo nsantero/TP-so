@@ -103,9 +103,16 @@ void inicializar_bloques_dat(Interfaz interfaz){
     remove(path_bloques);
     
     FILE* bloquesDat= txt_open_for_append(path_bloques);
+
+    size_t size =interfaz.blockCount*interfaz.blockSize;
+    char buffer[size];
+    memset(buffer,0,size);
+    fwrite(buffer,1,size,bloquesDat);
+    fflush(bloquesDat);
+
     txt_close_file(bloquesDat);
 
-    bloques = config_create(path_bloques);
+    
     //TODO no se como hacer q tenga el tamaño q tiene q tener, si llenarlo de ceros o q
     //tmb puedo hacer con config un set bloque x o algo asi no se y q lo lleve el bitmap.dat
 
@@ -123,26 +130,14 @@ void inicializar_bitmap_dat(Interfaz interfaz){
     remove(path_bitmap);
     
     FILE* bitmapDat= txt_open_for_append(path_bitmap);
+
+    size_t size =interfaz.blockCount/8;
+    char buffer[size];
+    memset(buffer,0,size);
+    fwrite(buffer,1,size,bitmapDat);
+    fflush(bitmapDat);
+
     txt_close_file(bitmapDat);
-
-    //TODO lo mismo, no se como llenarlo
-    //ahi con lo de abajo queda pero desordenado
-    //no se si esta correcto
-    //no se si esta bien hacerlo con lo de config
-    // esto esta definitivamente no como lo pensaron ellos
-    char* bloque;
-    
-    bitmap = config_create(path_bitmap);
-
-    for(int i=0;i<interfaz.blockCount;i++){
-        bloque=string_from_format("BLOQUE_NRO%d",i);
-        config_set_value(bitmap,bloque,"0");
-        
-    }
-    config_save(bitmap);
-    
-
-    free(bloque);
     
 
 }
