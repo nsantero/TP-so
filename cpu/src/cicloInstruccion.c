@@ -1,4 +1,9 @@
 #include <cicloInstruccion.h>
+#include <cpu.h>
+#include <utils.h>
+
+void recv_instruccion(int memoria_fd);
+
 
 void fetch(){
 
@@ -8,18 +13,28 @@ void fetch(){
     recv_instruccion(memoria_fd);
 }
 
+// Comento la otra opción porque estoy teniendo problemas con el switch
+void decode_execute() {
+    if (strcmp(instruccionActual.instruccion, "SUM") == 0) {
+        // Código para manejar la instrucción SUM
+    } else if (strcmp(instruccionActual.instruccion, "SUB") == 0) {
+        // Código para manejar la instrucción SUB
+    } 
+}
+/*
 void decode_excecute(){
 
     switch (instruccionActual.instruccion)
     {
     case "SUM":
-        /* code */
+        // code 
         break;
     
     default:
         break;
     }
 }
+*/
 
 void checkInterrupt(){
 }
@@ -85,7 +100,12 @@ void recv_instruccion(int memoria_fd){
 	free(paquete);
     
 }
-
+/*
+void modificarPCB(PCB* proceso, int new_pid, int new_pc) {
+    proceso->PID = new_pid;
+    proceso->pc = new_pc;
+}*/
+/*
 void recibir_proceso(int socket_fd) {
     // Crear buffer para recibir datos
     int PID;
@@ -100,11 +120,11 @@ void recibir_proceso(int socket_fd) {
     recv(socket_fd, &pc, sizeof(int), 0);
 
     // Crear PCB
-    PCB* proceso = crearPCB(path);
-    proceso->PID = PID;
-    proceso->pc = pc;
+    PCB* proceso = obtener_pcb_por_pid(PID);
+    modificarPCB(proceso, PID, pc);
 
     // Ejecutar el proceso
     fetch();
     decode_execute();
 }
+*/

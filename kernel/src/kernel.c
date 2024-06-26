@@ -23,47 +23,8 @@ void inicializarListas() {
 
 //Generar PID
 
-int pid_counter = 1;
 int quantum = 2;
 char* algoritmo_planificacion = NULL;
-
-// PCB 
-    char *pid = NULL;
-
-
-int pidActual = 0;
-
-int generarPID() {
-    pidActual += 1;
-    return pidActual;
-}
-
-PCB* crearPCB(char* path) {
-    printf("Creando PCB... \n");
-    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
-	 if (nuevoPCB == NULL) {
-        // Manejar error de asignación de memoria
-        return NULL;
-     }
-
-    nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
-    nuevoPCB -> pc = 0; // contador en 0
-    nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
-	nuevoPCB -> estado = NEW;
-    nuevoPCB->  path = strdup(path); // guardo el path 
-    pthread_mutex_lock(&mutexListaNew);
-    list_add(lista_NEW, nuevoPCB);
-    sem_post(&semListaNew);
-    pthread_mutex_unlock(&mutexListaNew);
-    
-    printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
-	// Logueo la creación del PCB
-    //char mensaje[100];
-    printf("Se creó el PCB del nuevo proceso y se agrego a la lista, PID %d \n", nuevoPCB->PID);
-    //log_info(logger, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
-    
-    return nuevoPCB;
-}
 
 int leer_grado_multiprogramación() {
     return configuracionKernel.GRADO_MULTIPROGRAMACION;
@@ -71,9 +32,6 @@ int leer_grado_multiprogramación() {
 
 #include <stdio.h>
 #include <stdlib.h>
-
-// Definiciones de las funciones crear_paquete, agregar_a_paquete, enviar_paquete, eliminar_paquete
-// Definiciones de los IDs de paquetes CREAR_PROCESO y DATOS_DEL_PROCESO
 
 void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete) {
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
@@ -162,11 +120,6 @@ void planificar_corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
     }
 
 */
-
-
-
-
-
 
 
 

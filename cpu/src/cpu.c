@@ -1,5 +1,6 @@
 #include <utils.h>
 #include <cicloInstruccion.h>
+#include <cpu.h>
 
 void* escuchar_dispatch(void* arg);
 void cargar_configuracion(char* archivo_configuracion)
@@ -15,7 +16,7 @@ void cargar_configuracion(char* archivo_configuracion)
 	config_valores.puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
 	config_valores.puerto_escucha_dispatch = config_get_string_value(config,    "PUERTO_ESCUCHA_DISPATCH");
 	config_valores.puerto_escucha_interrupt = config_get_string_value(config,    "PUERTO_ESCUCHA_INTERRUPT");
-	config_valores.cant_enradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
+	config_valores.cant_entradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
 	config_valores.algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
 	
 	config_destroy(config);
@@ -60,7 +61,43 @@ void* escuchar_dispatch(void* arg) {
     return NULL;
 }
 
+int memoria_fd;
+int fd_cpu_dispatch;
+int fd_cpu_interrupt;
+cpu_config config_valores;
+t_log* logger;
+char* server_name_dispatch = "CPU_DISPATCH";
+char* server_name_interrupt = "CPU_INTERRUPT";
 
+PCB pcbActual;
+t_list* listaPCBS;
+t_instruccion instruccionActual;
+int interrumpir=0;
+op_code codigo_op_hilo_interrupt_cpu;
+
+
+void* escucharInterrupciones(){
+
+    codigo_op_hilo_interrupt_cpu = recibir_operacion(fd_cpu_interrupt);
+
+    switch (codigo_op_hilo_interrupt_cpu)
+    {
+    case PAUSAR_EJECUCION:
+        /**
+         * Aca hay un tema q para mi se puede solucionar
+         * con semaforos, pero lo quiero preguntar el sabado
+         * TODO
+        */
+        break;
+    case INTERRUMPIR_PROCESO_ACTUAL:
+        interrumpir=1;
+        break;
+    
+    default:
+        break;
+    }
+    return NULL;
+}
 
 /*
 

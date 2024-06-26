@@ -4,18 +4,19 @@ include settings.mk
 CC=gcc
 
 # Set prerrequisites
-SRCS_C += $(shell find src/ -iname "*.c")
-SRCS_H += $(shell find src/ -iname "*.h")
+SRCS_C += $(shell find src/ -iname "*.c") $(shell find ../kernel/src/ -iname "pcb.c")
+SRCS_H += $(shell find src/ -iname "*.h") $(shell find ../kernel/src/ -iname "pcb.h")
 DEPS = $(foreach STL,$(STATIC_LIBPATHS),$(STL:%=%/bin/lib$(notdir $(STL)).a))
 
 # Set header paths to (-I)nclude
-IDIRS += $(addsuffix /src,$(STATIC_LIBPATHS) .)
+IDIRS += $(addsuffix /src,$(STATIC_LIBPATHS) .) ../kernel/src
 
 # Set library paths to (-L)ook
 LIBDIRS = $(addsuffix /bin,$(STATIC_LIBPATHS))
 
 # Set intermediate objects
 OBJS = $(patsubst src/%.c,obj/%.o,$(SRCS_C))
+OBJS += $(patsubst ../kernel/src/%.c,obj/%.o,$(shell find ../kernel/src/ -iname "pcb.c"))
 
 # Set binary targets
 BIN = bin/$(shell cd . && pwd | xargs basename)
@@ -39,6 +40,9 @@ $(BIN): $(OBJS) | $(dir $(BIN))
 	$(CC) $(CFLAGS) -o "$@" $^ $(IDIRS:%=-I%) $(LIBDIRS:%=-L%) $(LIBS:%=-l%)
 
 obj/%.o: src/%.c $(SRCS_H) $(DEPS) | $(dir $(OBJS))
+	$(CC) $(CFLAGS) -c -o "$@" $< $(IDIRS:%=-I%)
+
+obj/%.o: ../kernel/src/%.c $(SRCS_H) $(DEPS) | $(dir $(OBJS))
 	$(CC) $(CFLAGS) -c -o "$@" $< $(IDIRS:%=-I%)
 
 .SECONDEXPANSION:
