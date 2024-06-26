@@ -1,3 +1,6 @@
+#ifndef CONSOLA_H
+#define CONSOLA_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,3 +10,6 @@
 #include <mostrarProcesos.h>
 
 void *manejadorDeConsola();
+
+#endif // CONSOLA_H
+

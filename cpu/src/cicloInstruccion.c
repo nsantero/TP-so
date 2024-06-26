@@ -19,19 +19,10 @@ void decode_excecute(){
     default:
         break;
     }
-
-
-
 }
 
 void checkInterrupt(){
-
-    
-
 }
-
-
-
 
 void recv_instruccion(int memoria_fd){
 
@@ -50,9 +41,6 @@ void recv_instruccion(int memoria_fd){
     while ((palabras)[tamanio_array] != NULL) {
         tamanio_array++;
     }
-
-
-    
 
 	instruccionActual.instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
     strcpy(instruccionActual.instruccion, palabras[0]); 
@@ -95,7 +83,28 @@ void recv_instruccion(int memoria_fd){
     } */
     free(palabras);
 	free(paquete);
-   
-
     
+}
+
+void recibir_proceso(int socket_fd) {
+    // Crear buffer para recibir datos
+    int PID;
+    char path[256];
+    int pc;
+
+    // Recibir PID
+    recv(socket_fd, &PID, sizeof(int), 0);
+    // Recibir path
+    recv(socket_fd, path, sizeof(path), 0);
+    // Recibir PC
+    recv(socket_fd, &pc, sizeof(int), 0);
+
+    // Crear PCB
+    PCB* proceso = crearPCB(path);
+    proceso->PID = PID;
+    proceso->pc = pc;
+
+    // Ejecutar el proceso
+    fetch();
+    decode_execute();
 }

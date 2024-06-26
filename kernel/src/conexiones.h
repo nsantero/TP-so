@@ -1,3 +1,6 @@
+#ifndef CONEXIONES_H
+#define CONEXIONES_H
+
 #include <utils.h>
 
 extern int memoria_fd;
@@ -8,3 +11,5 @@ extern char* server_name;
 
 static void procesar_conexion(void *void_args);
 extern int server_escuchar(int fd_memoria);
+
+#endif // CONEXIONES_H

@@ -1,3 +1,6 @@
+#ifndef CONEXIONES_H
+#define CONEXIONES_H
+
 #include <conexiones.h>
 #include <configs.h>
 

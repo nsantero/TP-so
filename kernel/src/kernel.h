@@ -31,17 +31,17 @@ typedef enum {
 } Estado;
 
 typedef struct {
-    char PC [5];
-    char AX [2];
-    char BX [2];
-    char CX [2];
-    char DX [2];
-    char EAX [5];
-    char EBX [5];
-    char ECX [5];
-    char EDX [5];
-    char SI [5];
-    char DI [5];
+    uint32_t PC;
+    uint8_t AX;
+    uint8_t BX;
+    uint8_t CX;
+    uint8_t DX;
+    uint32_t EAX;
+    uint32_t EBX;
+    uint32_t ECX;
+    uint32_t EDX;
+    uint32_t SI;
+    uint32_t DI;
 } CPU_Registers;
 
 typedef struct {
@@ -50,14 +50,17 @@ typedef struct {
     int quantum;
     Estado estado; // duración del quantum 
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+    char path;
 } PCB;
 
-PCB* crearPCB();
-
+PCB* crearPCB()
 
 // Funciones para planificar
 
 extern int leer_grado_multiprogramación();
 
+// envios a cpu
+
+void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete);
 
 #endif

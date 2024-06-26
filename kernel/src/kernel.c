@@ -38,7 +38,7 @@ int generarPID() {
     return pidActual;
 }
 
-PCB* crearPCB() {
+PCB* crearPCB(char* path) {
     printf("Creando PCB... \n");
     PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
 	 if (nuevoPCB == NULL) {
@@ -50,6 +50,7 @@ PCB* crearPCB() {
     nuevoPCB -> pc = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
+    nuevoPCB->  path = strdup(path); // guardo el path 
     pthread_mutex_lock(&mutexListaNew);
     list_add(lista_NEW, nuevoPCB);
     sem_post(&semListaNew);
@@ -66,6 +67,48 @@ PCB* crearPCB() {
 
 int leer_grado_multiprogramación() {
     return configuracionKernel.GRADO_MULTIPROGRAMACION;
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definiciones de las funciones crear_paquete, agregar_a_paquete, enviar_paquete, eliminar_paquete
+// Definiciones de los IDs de paquetes CREAR_PROCESO y DATOS_DEL_PROCESO
+
+void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete) {
+    t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
+
+    // Agregar el path al paquete
+    agregar_a_paquete(paquete_memoria, &PID_paquete, sizeof(int));
+    agregar_a_paquete(paquete_memoria, path_paquete, strlen(path_paquete) + 1);
+    
+    // Pasar PID y txt a memoria
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+    t_paquete *paquete_cpu = crear_paquete(DATOS_DEL_PROCESO);
+
+    agregar_a_paquete(paquete_cpu, &PID_paquete, sizeof(int));
+    agregar_a_paquete(paquete_cpu, &pc_paquete, sizeof(int));
+
+    // Leer las instrucciones desde el archivo
+    FILE *file = fopen(path_paquete, "r");
+    if (file == NULL) {
+        perror("No se pudo abrir el archivo de instrucciones");
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        // Eliminar el salto de línea
+        line[strcspn(line, "\n")] = 0;
+        agregar_a_paquete(paquete_cpu, line, strlen(line) + 1);
+    }
+    fclose(file);
+
+    // Paso el PID y PC a la CPU
+    enviar_paquete(paquete_cpu, cpu_dispatch_fd);
+    eliminar_paquete(paquete_cpu);
 }
 
 /*void* largo_plazo(void* arg) {
@@ -119,38 +162,6 @@ void planificar_corto_plazo(void* arg) { // READY - RUNNING - BLOCKED
     }
 
 */
-void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete){
-    t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
-
-	//Agregar el path al paquete
-	agregar_a_paquete(paquete_memoria,&PID_paquete,sizeof(int));
-	agregar_a_paquete(paquete_memoria, path_paquete, strlen(path_paquete) + 1);
-	
-	// pasar PID y txt a memoria
-	enviar_paquete(paquete_memoria, memoria_fd);
-	eliminar_paquete(paquete_memoria);
-
-	t_paquete *paquete_cpu = crear_paquete(DATOS_DEL_PROCESO);
-
-	agregar_a_paquete(paquete_cpu, &PID_paquete, sizeof(int));
-	agregar_a_paquete(paquete_cpu, &pc_paquete, sizeof(int));
-
-
-	//Paso el PID y PC a la CPU
-	
-	enviar_paquete(paquete_cpu, cpu_dispatch_fd);
-	eliminar_paquete(paquete_cpu);
-
-	//levanto servidor
-    /*
-	server_fd = iniciar_servidor(logger,server_name ,IP, config_valores.puerto_escucha);
-	//log_info(logger, "Servidor listo para recibir al cliente");
-
-    printf("Se envio el paquete a cpu y memoria \n");
-    while(server_escuchar(server_fd));
-	*/
-
-}
 
 
 

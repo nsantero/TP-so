@@ -1,4 +1,7 @@
 #include <utils.h>
+#include <cicloInstruccion.h>
+
+void* escuchar_dispatch(void* arg);
 void cargar_configuracion(char* archivo_configuracion)
 {
 	t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
@@ -43,22 +46,21 @@ int main(int argc, char* argv[]) {
     pthread_create(&hiloEscuchaKernelSocketInterrupt,NULL,escucharInterrupciones,NULL);
 
     pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
-
-
     //hilo de ejecucion 
-    
-    
-	
-
-	
-    
-
-    
-
-	
-
     return 0;
 }
+
+void* escuchar_dispatch(void* arg) {
+    while (1) {
+        int socket_cliente = esperar_cliente(logger, "CPU Dispatch", fd_cpu_dispatch);
+        if (socket_cliente != -1) {
+            recibir_proceso(socket_cliente);
+        }
+    }
+    return NULL;
+}
+
+
 
 /*
 

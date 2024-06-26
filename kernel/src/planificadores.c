@@ -57,8 +57,8 @@ void* planificadorReady(){
 }
 
 void comportamientoFIFO(){
-    cambiarARunning(lista_READY);
-    //MANDAR A CPU
+    PCB* proceso = cambiarARunning(lista_READY);
+    paquete_crear_proceso(proceso->PID, proceso->path, proceso->pc);  // Enviar el proceso a la CPU
 }
 
 void comportamientoRR(){
