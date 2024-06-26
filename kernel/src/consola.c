@@ -1,12 +1,5 @@
 #include <consola.h>
 
-int main() {
-    pthread_t hiloConsola;
-    pthread_create(&hiloConsola, NULL, manejadorDeConsola, NULL);
-    pthread_join(hiloConsola, NULL);
-    return 0;
-}
-
 void* manejadorDeConsola(){
 
     char *linea=NULL;
@@ -25,7 +18,7 @@ void* manejadorDeConsola(){
             segundoArgumento = strtok(NULL, " ");
             if(segundoArgumento){
                 //ejecutarScript(path);
-                ejecutarScript(segundoArgumento);
+                //ejecutarScript(segundoArgumento);
             }
             else{
                 printf("Error: Falta el argumento [PATH]\n");
@@ -34,7 +27,7 @@ void* manejadorDeConsola(){
         else if(!strcmp(comando, "INICIAR_PROCESO")){
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
-                iniciar_proceso(segundoArgumento);
+                //iniciar_proceso(segundoArgumento);
             } else {
                 printf("Error: Falta el argumento [PATH].\n");
             }
@@ -43,22 +36,22 @@ void* manejadorDeConsola(){
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
                 int pid = atoi(segundoArgumento);
-                finalizar_proceso(pid);
+                //finalizar_proceso(pid);
             } else {
                 printf("Error: Falta el argumento [PID].\n");
             }
         }
         else if (!strcmp(comando, "DETENER_PLANIFICACION")) {
-            detener_planificacion();
+            //detener_planificacion();
         }
         else if (!strcmp(comando, "INICIAR_PLANIFICACION")) {
-            iniciar_planificacion();
+            //iniciar_planificacion();
         }
         else if (!strcmp(comando, "MULTIPROGRAMACION")) {
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
                 int valor = atoi(segundoArgumento);
-                modificar_multiprogramacion(valor);
+                //modificar_multiprogramacion(valor);
             } else {
                 printf("Error: Falta el argumento [VALOR].\n");
             }

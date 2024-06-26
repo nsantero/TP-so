@@ -58,7 +58,9 @@ void* planificadorReady(){
 
 void comportamientoFIFO(){
     PCB* proceso = cambiarARunning(lista_READY);
+    if (proceso) {
     paquete_crear_proceso(proceso->PID, proceso->path, proceso->pc);  // Enviar el proceso a la CPU
+    }
 }
 
 void comportamientoRR(){
@@ -89,12 +91,14 @@ void cambiarAReady(t_list* cola){
 
     return;
 }
-void cambiarARunning(t_list* cola){
-    PCB *proceso = list_remove(cola, 0);
+PCB* cambiarARunning(t_list* lista_READY){
+    if (!list_is_empty(lista_READY)) {
+    PCB *proceso = list_remove(lista_READY, 0);
     proceso->estado = RUNNING;
     list_add(lista_RUNNING, proceso);
-    
-    return;
+    return proceso;
+    }
+    return NULL;
 }
 
 
@@ -113,7 +117,7 @@ void cambiarARunning(t_list* cola){
     }
     // tipo de planificador (FIFO o RR)
 
-/*    if (config_has_property(config, "ALGORITMO_PLANIFICACION")) {
+   if (config_has_property(config, "ALGORITMO_PLANIFICACION")) {
         algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
     } else {
         printf ("No se encontro el parametro 'ALGORITMO_PLANIFICACION' en el archivo de configuracion.\n");
@@ -157,7 +161,7 @@ void planificar_fifo() {
 
 }
 
-/* implementación RR
+ implementación RR
 void planificar_round_robin() {
     if (list_is_empty(Lista_de_procesos)) {
         printf ("No hay procesos en la Lista.\n");

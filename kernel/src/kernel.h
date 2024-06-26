@@ -3,7 +3,6 @@
 
 #include <utils.h>
 
-
 void inicializarListas();
 // LISTAS DE ESTADOS
 
@@ -21,6 +20,7 @@ extern char* algoritmo_planificacion;
 extern int pidActual;
 extern int generarPID();
 extern int obtener_pid(void);
+
 
 typedef enum {
     NEW,
@@ -50,10 +50,10 @@ typedef struct {
     int quantum;
     Estado estado; // duración del quantum 
     CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
-    char path;
+    char* path;
 } PCB;
 
-PCB* crearPCB()
+PCB* crearPCB();
 
 // Funciones para planificar
 
@@ -62,5 +62,6 @@ extern int leer_grado_multiprogramación();
 // envios a cpu
 
 void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete);
+PCB* cambiarARunning(t_list* lista_READY);
 
 #endif
