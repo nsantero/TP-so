@@ -4,6 +4,9 @@ t_config* configMemoria = NULL;
 t_log* loggerMemoria = NULL;
 memoria_config configuracionMemoria;
 
+tabla_paginas_proceso tablaDePaginasDeUnProceso;
+paginas_proceso paginasDeUnProceso;
+
 void cargar_configuracion()
 {
 	configMemoria = config_create("../memoria/memoria.config");
@@ -25,11 +28,27 @@ void crearListas(){
     lista_ProcesosActivos = list_create(); 
 }
 
+void esquemaPaginacion(){
+    
+
+}
+
 
 int main(int argc, char *argv[])
 {
+    
     iniciarLoggerMemoria();
 	cargar_configuracion();
+    memoria_tam = malloc(configuracionMemoria.TAM_MEMORIA);
+    //calcular cantidad de frames
+    //memoria.frames_libres= malloc()
+
+    //recibimoa archivo con n instrucciones
+    // cuanto ocupa el archivo en bytes
+    // dividir el size del archivo por el size de paginas
+    
+
+
 
     crearListas();
 

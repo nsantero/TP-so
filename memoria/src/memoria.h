@@ -13,6 +13,41 @@
 
 
 typedef struct
+{	   
+    void* espacioUsuario;
+    int memoria_tam;
+    char* pagina_tam;
+    int cantidad_frames;
+    char* frames_libres;
+
+} memoria;
+
+typedef struct
+{		
+    int numeroDePagina;
+    int numeroDeFrame; 	
+   
+} tabla_paginas_proceso;
+
+typedef struct
+{	
+    int pid; 	
+    t_list numeroDePagina;
+    
+} paginas_proceso;
+typedef struct {
+    int pagina;
+    int marco;
+} EntradaTablaPaginas;
+
+// Estructura del Proceso
+typedef struct {
+    int pid;
+    int cantidad_paginas;
+    EntradaTablaPaginas* tabla_paginas;
+} Proceso;
+
+typedef struct
 {		
     char* PUERTO_ESCUCHA; 
     int TAM_MEMORIA;
@@ -39,6 +74,8 @@ typedef struct
     char *var5;
 
 } t_instruccion;
+
+char* memoria_tam;
 
 extern memoria_config congifuracionMemoria;
 
@@ -68,6 +105,8 @@ t_instruccion armar_instruccion(char* instruccion_leida);
 
 t_list* lista_ProcesosActivos;
 
+t_list* lista_ProcesosActivos;
+t_list* numeroPagina;
 
 
 #endif
