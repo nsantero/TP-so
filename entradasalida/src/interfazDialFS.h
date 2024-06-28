@@ -18,7 +18,7 @@
 #include <commons/bitarray.h>
 
 
-char* path_carpeta_FS;
+
 extern Interfaz interfaz_DialFS;
 extern t_list * cola_procesos_DialFS;
 extern pthread_mutex_t mutex_cola_DialFS;;
