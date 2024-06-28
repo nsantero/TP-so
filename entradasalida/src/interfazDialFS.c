@@ -164,7 +164,6 @@ void crearNuevoFile(char* nombre){
     close(fd);
     free(path);
 }
-
 void borrarFile(char* nombre){
     
     off_t bloqueInicial;
@@ -180,8 +179,6 @@ void borrarFile(char* nombre){
     
     remove(path);
 }
-
-
 void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
     off_t bloqueInicial;
     int tamanioEnbytesActual;
@@ -217,9 +214,8 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
         }else{// caso, se debe reorganizar el FS para acomodar el archivo
             //TODO aca hay q hacer la funcion q reacomoda todo y deja este ultimo al final o no se como mierda se hace
             /**
-             * 
-             * 
-             * 
+             * compactar(); LA FUNCION ESTA ENCIMA DEBERIA TENER CUIDADO DE COMO DEJA AL ARCHIVO Q QUEREMOS ESCRIBIR
+             * DEBERIA QUEDAR AL FINAL
              * 
              * 
             */
@@ -266,7 +262,6 @@ int hayLugarDespuesDelArchivo(int cantBloques,off_t ultimoBloqueDelArchivo){
     return 1;
 
 }
-
 int existenBloquesDisponibles(int bloquesNecesarios){
 
     int fd=open(path_bitmap,O_RDWR);
@@ -301,7 +296,6 @@ int existenBloquesDisponibles(int bloquesNecesarios){
 
 
 }
-
 off_t buscarBloqueLibre(){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -337,7 +331,6 @@ char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes
     return path;
 }
 
-
 void liberarBloque(off_t offset){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -358,7 +351,6 @@ void liberarBloque(off_t offset){
     munmap(addr,sb.st_size);
     close(fd);
 }
-
 void ocuparBloque(off_t offset){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -379,7 +371,6 @@ void ocuparBloque(off_t offset){
     munmap(addr,sb.st_size);
     close(fd);
 }
-
 
 char* generarPathAArchivoFS(char* nombreArchivo){
 
