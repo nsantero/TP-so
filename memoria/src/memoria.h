@@ -11,16 +11,7 @@
 #include <commons/config.h>
 #include "../../shared/src/shared.h"
 
-
-typedef struct
-{	   
-    void* espacioUsuario;
-    int memoria_tam;
-    char* pagina_tam;
-    int cantidad_frames;
-    char* frames_libres;
-
-} memoria;
+// ESTURCTURAS
 
 typedef struct
 {		
@@ -28,25 +19,32 @@ typedef struct
     int numeroDeFrame; 	
    
 } tabla_paginas_proceso;
-
 typedef struct
 {	
     int pid; 	
-    t_list numeroDePagina;
+    t_list lista_de_paginas_proceso;
     
 } paginas_proceso;
-typedef struct {
-    int pagina;
-    int marco;
-} EntradaTablaPaginas;
 
 // Estructura del Proceso
 typedef struct {
+
     int pid;
     int cantidad_paginas;
-    EntradaTablaPaginas* tabla_paginas;
+    paginas_proceso* paginas;
+
 } Proceso;
 
+typedef struct
+{	   
+    void* memoria_espacio; 
+    int memoria_tam;
+    char* pagina_tam;
+    int cantidad_frames;
+    char* frames_libres;
+    t_list lista_frames;
+
+} memoria;
 typedef struct
 {		
     char* PUERTO_ESCUCHA; 
@@ -75,7 +73,8 @@ typedef struct
 
 } t_instruccion;
 
-char* memoria_tam;
+void* memoria_espacio;
+extern int cantidad_frames;
 
 extern memoria_config congifuracionMemoria;
 
@@ -105,8 +104,8 @@ t_instruccion armar_instruccion(char* instruccion_leida);
 
 t_list* lista_ProcesosActivos;
 
-t_list* lista_ProcesosActivos;
-t_list* numeroPagina;
+t_list* lista_frames;
 
+t_list* lista_de_paginas_proceso;
 
 #endif

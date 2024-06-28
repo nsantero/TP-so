@@ -26,12 +26,16 @@ void iniciarLoggerMemoria(){
 
 void crearListas(){
     lista_ProcesosActivos = list_create(); 
+    lista_frames = list_create(); 
+    lista_de_paginas_proceso = list_create(); 
 }
 
 void esquemaPaginacion(){
-    
-
 }
+
+int calculoDeFrames(int memoria_tam, int pagina_tam){
+    return memoria_tam/pagina_tam;
+ }   
 
 
 int main(int argc, char *argv[])
@@ -39,9 +43,10 @@ int main(int argc, char *argv[])
     
     iniciarLoggerMemoria();
 	cargar_configuracion();
-    memoria_tam = malloc(configuracionMemoria.TAM_MEMORIA);
-    //calcular cantidad de frames
-    //memoria.frames_libres= malloc()
+
+    cantidad_frames = calculoDeFrames(configuracionMemoria.TAM_MEMORIA,configuracionMemoria.TAM_PAGINA);
+
+    memoria_espacio = malloc(sizeof(configuracionMemoria.TAM_MEMORIA));
 
     //recibimoa archivo con n instrucciones
     // cuanto ocupa el archivo en bytes
