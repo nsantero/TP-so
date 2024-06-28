@@ -2,14 +2,11 @@
 #define MEMORIA_H
 
 #include "utils.h"
-#include <commons/log.h>
-#include <commons/config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/log.h>
 #include <commons/string.h>
-#include <commons/config.h>
 #include "../../shared/src/shared.h"
+#include "configs.h"
 
 // ESTURCTURAS
 
@@ -30,31 +27,23 @@ typedef struct
 typedef struct {
 
     int pid;
+    char * path;
     int cantidad_paginas;
-    paginas_proceso* paginas;
+    t_list instrucciones;
+    //paginas_proceso* paginas;
 
 } Proceso;
 
 typedef struct
 {	   
-    void* memoria_espacio; 
-    int memoria_tam;
-    char* pagina_tam;
+    void* espacioUsuario; 
+    int tam;
+    int pagina_tam;
     int cantidad_frames;
-    char* frames_libres;
+    int frames_libres;
     t_list lista_frames;
 
-} memoria;
-typedef struct
-{		
-    char* PUERTO_ESCUCHA; 
-    int TAM_MEMORIA;
-    int TAM_PAGINA; 
-    char* PATH_INSTRUCCIONES;
-    int RETARDO_RESPUESTA; 		
-   
-} memoria_config;
-
+} Memoria;
 typedef struct 
 {
     int pid;
@@ -76,15 +65,9 @@ typedef struct
 void* memoria_espacio;
 extern int cantidad_frames;
 
-extern memoria_config congifuracionMemoria;
-
-extern t_config* configMemoria;
-
-t_log* loggerMemoria;
+Memoria memoria;
 
 char* server_name;
-
-void cargar_configuracion();
 
 int server_escuchar(int fd_memoria);
 
