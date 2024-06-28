@@ -1,12 +1,13 @@
 #include <interfazDialFS.h>
 
+
 char* path_carpeta_FS = "/home/utnso/tp-2024-1c-File-System-Fanatics/entradasalida/FS/";
 
 char* path_bitmap;
-t_config* bitmap;
+
 
 char* path_bloques;
-t_config* bloques;
+
 // t configs son variables locales a DialFS, si es unico no necesita semaforo, 1 solo hilo
 
 Interfaz interfaz_DialFS;
@@ -71,20 +72,20 @@ void EJECUTAR_INTERFAZ_DialFS(Peticion_Interfaz_DialFS* peticion){
 
     switch (peticion->operacion)
     {
-    case CREATE:
+    case DFS_CREATE:
         crearNuevoFile(peticion->nombreArchivo);
         break;
-    case DELETE:
-        /* code */
+    case DFS_DELETE:
+        borrarFile(peticion->nombreArchivo);
         break;
-    case TRUNCATE:
-        /* code */
+    case DFS_TRUNCATE:
+        truncarArchivo(peticion->nombreArchivo,peticion->tamanio);
         break;
-    case WRITE:
-        /* code */
+    case DFS_WRITE:
+        escribirEnArchivo(peticion->nombreArchivo,peticion->direcion,peticion->tamanio,peticion->punteroArchivo);
         break;
-    case READ:
-        /* code */
+    case DFS_READ:
+        leerDelArchivo(peticion->nombreArchivo,peticion->direcion,peticion->tamanio,peticion->punteroArchivo);
         break;
         
     default:
@@ -138,13 +139,14 @@ void inicializar_bitmap_dat(Interfaz interfaz){
     fflush(bitmapDat);
 
     txt_close_file(bitmapDat);
+
     
 
 }
 
 
 void crearNuevoFile(char* nombre){
-
+    
     char* path=generarPathAArchivoFS(nombre);
     FILE*archivoNuevo=txt_open_for_append(path);
 
@@ -152,38 +154,108 @@ void crearNuevoFile(char* nombre){
 
     t_config* archivo=config_create(path);
 
-    char* bloqueInicial=buscarBloqueLibre();
-
-    config_set_value(archivo,"BLOQUE_INICIAL",bloqueInicial);
+    off_t bloqueInicialOffs=buscarBloqueLibre();
+    char bloqueInicialChar[20];
+    snprintf(bloqueInicialChar,20,"%ld",(long)bloqueInicialOffs);
+    config_set_value(archivo,"BLOQUE_INICIAL",bloqueInicialChar);
     config_set_value(archivo,"TAMANIO_ARCHIVO","0");
 
     config_save(archivo);
     config_destroy(archivo);
 
     //aca deberia poner el bloque q elije como ocupado en el bit map
-    
-    config_set_value(bitmap,string_from_format("BLOQUE_NRO%S",bloqueInicial),"1");
-    config_save(bitmap);
-    
 
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+
+
+    bitarray_set_bit(bitmapAddr,bloqueInicialOffs);
+
+    bitarray_destroy(bitmapAddr);
+
+
+    munmap(addr,sb.st_size);
+    close(fd);
     free(path);
 }
 
-char* buscarBloqueLibre(){
-    //devuelve el valor numerico como un char* ej :  return "15";
+void borrarFile(char* nombre){
 
-    //TODO aca deberia buscar en el bitmap donde hay un bloque libre para q meta el coso
+    char* path=generarPathAArchivoFS(nombre);
 
-    char* bloqueAComprar;
+    t_config* archivo=config_create(path);
+    off_t bloqueInicial = config_get_double_value(archivo,"BLOQUE_INICIAL");
+    int tamanioEnbytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
+    config_destroy(archivo);
 
-    for(int i=0;i<interfaz_DialFS.blockCount;i++){
-        bloqueAComprar=string_from_format("BLOQUE_NRO%d",i);
-        if(0==config_get_int_value(bitmap,bloqueAComprar)){
-            free(bloqueAComprar);
-            return string_from_format("%d",i);
-        }
+    int cantBloques=tamanioEnbytes/interfaz_DialFS.blockSize;
 
-    }   
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+
+    for(bloqueInicial;bloqueInicial<cantBloques;bloqueInicial++){
+        bitarray_clean_bit(bitmapAddr,bloqueInicial);
+    }
+    
+
+    bitarray_destroy(bitmapAddr);
+
+
+    munmap(addr,sb.st_size);
+    close(fd);
+
+
+    remove(path);
+}
+
+
+
+
+void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
+
+}
+void escribirEnArchivo(char* nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+
+}
+void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+
+}
+
+
+off_t buscarBloqueLibre(){
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+
+    off_t offset=0;
+
+    for (offset;offset<(sb.st_size*8);offset++){
+        if (!bitarray_test_bit(bitmapAddr,offset)){break;}
+    }
+
+
+
+
+    munmap(addr,sb.st_size);
+    close(fd);
+
+
+
+    return offset;
 }
 
 

@@ -8,6 +8,15 @@
 #include <semaphore.h>
 #include <commons/string.h>
 #include <commons/txt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <commons/bitarray.h>
+
 
 char* path_carpeta_FS;
 extern Interfaz interfaz_DialFS;
@@ -16,11 +25,11 @@ extern pthread_mutex_t mutex_cola_DialFS;;
 extern sem_t sem_hay_en_DialFS;
 
 typedef enum {
-    CREATE,
-    DELETE,
-    TRUNCATE,
-    WRITE,
-    READ
+    DFS_CREATE,
+    DFS_DELETE,
+    DFS_TRUNCATE,
+    DFS_WRITE,
+    DFS_READ
 }OperacionesDeDialFS;
 
 
