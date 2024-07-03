@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <netdb.h>
+#include <paquetes.h>
 # define IP	"127.0.0.1"
 
 #define ANSI_COLOR_GREEN   "\x1b[32m" // Código de escape para color verde
@@ -24,43 +25,9 @@
 #define ANSI_COLOR_LIME    "\x1b[92m"
 
 
-typedef enum
-{
-    PAQUETE,
-    MENSAJE,
-    PEDIDO_INSTRUCCION,
-    CREAR_PROCESO,
-    MOV_IN,
-    SET,
-    SUM,
-    SUB,
-    MOV_OUT,
-    RESIZE,
-    JNZ,
-    COPY_STRING,
-    IO_GEN_SLEEP,
-    IO_STDIN_READ,
-    IO_STDOUT_WRITE,
-    EJECUTAR_PROCESO,
-    DATOS_DEL_PROCESO,
-    DESBLOQUEAR_PROCESO_POR_IO,
 
-    PAUSAR_EJECUCION,
-    INTERRUMPIR_PROCESO_ACTUAL
 
-} op_code;
 
-typedef struct
-{
-    int size;
-    void *stream;
-} t_buffer;
-
-typedef struct
-{
-    op_code codigo_operacion;
-    t_buffer *buffer;
-} t_paquete;
 
 /**
 * @fn    decir_hola
@@ -71,26 +38,24 @@ typedef struct
 void decir_hola(char* quien);
 int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto);
 int iniciarServidorV2(t_log *logger, char* puerto);
-void* recibir_buffer(int* size, int socket_cliente);
-char* recibir_mensaje(int socket_cliente);
+
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto);
-void liberar_conexion(int socket_cliente);
 int esperar_cliente(t_log* logger, const char* name, int socket_servidor);
 int esperarClienteV2(t_log* logger, int socketServidor);
-void enviar_mensaje(char* mensaje, int socket_cliente);
-void* serializar_paquete(t_paquete* paquete, int bytes);
-void eliminar_paquete(t_paquete* paquete);
-//int recv_instruccion(int fd_modulo, char* path, int pc);
+
+void liberar_conexion(int socket_cliente);
+
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void crear_buffer(t_paquete* paquete);
-t_buffer* crear_buffer_aislado(void* data, int data_size);
-t_paquete* crear_paquete(op_code codigo_op);
-void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
-t_list* recibir_paquete(int socket_cliente);
-void agregar_entero_a_paquete(t_paquete *paquete, uint32_t x);
-uint32_t leer_entero(char *buffer, int *desplazamiento);
-void agregar_string_a_paquete(t_paquete *paquete, char* palabra);
+void enviar_mensaje(char* mensaje, int socket_cliente);
+
+void* recibir_buffer(int* size, int socket_cliente);
+char* recibir_mensaje(int socket_cliente);
 int recibir_operacion(int socket_cliente);
+
+//int recv_instruccion(int fd_modulo, char* path, int pc);
+t_list* recibir_paquete(int socket_cliente);
+
+
 
 
 #endif
