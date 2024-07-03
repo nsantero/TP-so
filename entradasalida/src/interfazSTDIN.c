@@ -56,6 +56,9 @@ void EJECUTAR_INTERFAZ_STDIN(){
 	t_list* paquete_kernel = recibir_paquete(kernel_fd);//creo que esto deberia ir en el main con como esta pensado ahora TODO
 	t_paquete* paquete_entrada = crear_paquete(IO_STDIN_READ);
 
+    //TODO aca el paquete tmb deberia tener la direccion logica de donde se quiere guardar 
+    //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico
+
 	texto_leido = leer_texto_ingresado();
 	agregar_string_a_paquete(paquete_entrada,texto_leido); 
 

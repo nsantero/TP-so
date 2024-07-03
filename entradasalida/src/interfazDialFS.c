@@ -9,6 +9,8 @@ t_list * cola_procesos_DialFS=NULL;
 pthread_mutex_t mutex_cola_DialFS = PTHREAD_MUTEX_INITIALIZER;
 sem_t sem_hay_en_DialFS;
 
+
+
 void inicializar_sem_cola_DialFS(){
     sem_init(&sem_hay_en_DialFS,0,0);
 }
@@ -188,10 +190,16 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
      //caso hay q achicar el archivo, se liberan los bloques
         
     if(cantbloquesActuales>cantBloquesNecesarios){ //si la cant de bloquesActuales es igual(no puede ser menor) no se debe liberar ningun bloque
+        
         for(cantbloquesActuales;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
-            liberarBloque(cantbloquesActuales);                
-        }   
-    }else if(cantbloquesActuales==cantBloquesNecesarios){}//caso, no se necesita achicar ni agrandar
+            liberarBloque(cantbloquesActuales);            
+        }  
+        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
+
+
+    }else if(cantbloquesActuales==cantBloquesNecesarios){
+        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
+    }//caso, no se necesita achicar ni agrandar
     else{//caso se debe agrandar el archivo
         
         int bloquesNuevosNecesarios=cantBloquesNecesarios-cantbloquesActuales;
@@ -208,9 +216,14 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
              * 
             */
         }else if(hayLugarDespuesDelArchivo(bloquesNuevosNecesarios,bloqueInicial+cantbloquesActuales)){//caso, hay lugar inmediatamentemente despues para argadarlo
+            
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
             }
+            cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
+
+
+
         }else{// caso, se debe reorganizar el FS para acomodar el archivo
             //TODO aca hay q hacer la funcion q reacomoda todo y deja este ultimo al final o no se como mierda se hace
             /**
@@ -219,6 +232,8 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
              * 
              * 
             */
+           compactarBloquesFSParaQEntreElArchivo(&bloqueInicial,tamanioEnbytesActual);
+
         }
 
     }
@@ -232,7 +247,7 @@ void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32
 
 }
 
-
+//TODO estas dos no tienen en cuenta q el ultimo byte del bitmap puede q tenga hasta 7 bits de mas, buscar bloque libre tmp
 int hayLugarDespuesDelArchivo(int cantBloques,off_t ultimoBloqueDelArchivo){
 
     int fd=open(path_bitmap,O_RDWR);
@@ -296,6 +311,12 @@ int existenBloquesDisponibles(int bloquesNecesarios){
 
 
 }
+
+/**
+ * busca el primer bloque vacio en el FS
+ * devuelve -1 si no hay lugar
+*/
+
 off_t buscarBloqueLibre(){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -304,11 +325,38 @@ off_t buscarBloqueLibre(){
     addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
 
     t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
-
+    int encontrado=0;
     off_t offset=0;
 
     for (offset;offset<(sb.st_size*8);offset++){
-        if (!bitarray_test_bit(bitmapAddr,offset)){break;}
+        if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
+    }
+
+    bitarray_destroy(bitmapAddr);
+
+
+    munmap(addr,sb.st_size);
+    close(fd);
+
+    if(encontrado){
+        return offset;
+    }else{
+        return -1;
+    }
+}
+off_t buscarBloqueLibreDesdeElFinal(){
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    int encontrado=0;
+    off_t offset=interfaz_DialFS.blockCount-1;
+
+    for (offset;offset>=0;offset--){
+        if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
     bitarray_destroy(bitmapAddr);
@@ -318,8 +366,13 @@ off_t buscarBloqueLibre(){
     close(fd);
 
 
+    if(encontrado){
+        return offset;
+    }else{
+        return -1;
+    }
 
-    return offset;
+
 }
 
 char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes){
@@ -330,6 +383,7 @@ char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes
     config_destroy(archivo);
     return path;
 }
+void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){}//TODO
 
 void liberarBloque(off_t offset){
     int fd=open(path_bitmap,O_RDWR);
@@ -370,6 +424,81 @@ void ocuparBloque(off_t offset){
 
     munmap(addr,sb.st_size);
     close(fd);
+}
+void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
+    
+    //asume q checkeaste las cosas en el bit map y q lo vas a modificar, solo copia
+
+    //abro el FS
+
+    int fdBl=open(path_bloques,O_RDWR);
+    struct stat sbBl;
+    fstat(fdBl,&sbBl);
+    char *addrBloques;
+    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+
+    //ejecuto tarea
+   
+    memcpy(addrBloques+(offsetBloqueDestino*interfaz_DialFS.blockSize),addrBloques+(offsetBloqueOriginal*interfaz_DialFS.blockSize),interfaz_DialFS.blockSize);
+
+    //cierro todo
+    munmap(addrBloques,sbBl.st_size);
+    close(fdBl);
+
+}
+
+void compactarBloquesFSParaQEntreElArchivo(off_t *offsetInicialDelArchivo,int tamanioEnbytesActual){ 
+    off_t offsetAux;
+//abro el bitmap
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+//abro el FS
+
+    int fdBl=open(path_bloques,O_RDWR);
+    struct stat sbBl;
+    fstat(fdBl,&sbBl);
+    char *addrBloques;
+    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+
+//ejecuto tarea LA PUTA MADRE, ACA PIERDO TODAS LAS REFERENCIAS NO SIRVE HAY Q HACERLO POR ARCHIVO :)))))))
+    //mueve todos los archivos anteriores y el mismo archivo al principio del archivo
+    /*for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){
+        if(bitarray_test_bit(bitmapAddr,i)){
+            offsetAux = buscarBloqueLibre();
+            moverBloque(i,offsetAux);
+            bitarray_set_bit(bitmapAddr,offsetAux);
+            bitarray_clean_bit(bitmapAddr,i);
+        }
+    }
+    //mueve todos los archivos posteriores al final del archivo
+    for(off_t i=interfaz_DialFS.blockCount-1;i>=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i--){
+            offsetAux = buscarBloqueLibreDesdeElFinal();
+            moverBloque(i,offsetAux);
+            bitarray_set_bit(bitmapAddr,offsetAux);
+            bitarray_clean_bit(bitmapAddr,i);
+    }*/
+
+
+
+
+
+
+
+//cierro todo
+    munmap(addrBloques,sbBl.st_size);
+    close(fdBl);
+
+    bitarray_destroy(bitmapAddr);
+
+
+    munmap(addr,sb.st_size);
+    close(fd);
+
 }
 
 char* generarPathAArchivoFS(char* nombreArchivo){
