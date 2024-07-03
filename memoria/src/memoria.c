@@ -19,18 +19,18 @@ int calculoDeFrames(int memoria_tam, int pagina_tam){
 void inicializarMemoria(){
     memoria.tam = configuracionMemoria.TAM_MEMORIA;
     memoria.pagina_tam = configuracionMemoria.TAM_PAGINA;
-    memoria.cantidad_frames = memoria.tam/memoria.pagina_tam;
+    memoria.cantidad_frames = calculoDeFrames(memoria.tam, memoria.pagina_tam);
     memoria.espacioUsuario = malloc(memoria.tam);
+    memoria.frames_libres = malloc(memoria.cantidad_frames * sizeof(int));
 
-    
 }
 
-void cargarInstruccionesDeProceso(int pid){
+void cargarInstruccionesDeProceso(int pid, char* path){
 
 }
 
 void destruirProcesoEnMemoria(int pid){
-    
+
 }
 
 
@@ -40,9 +40,9 @@ int main(int argc, char *argv[])
     iniciarLoggerMemoria();
 	armarConfigMemoria();
 
-    cantidad_frames = calculoDeFrames(configuracionMemoria.TAM_MEMORIA,configuracionMemoria.TAM_PAGINA);
+    //cantidad_frames = calculoDeFrames(configuracionMemoria.TAM_MEMORIA,configuracionMemoria.TAM_PAGINA);
 
-    memoria_espacio = malloc(sizeof(configuracionMemoria.TAM_MEMORIA));
+    //memoria_espacio = malloc(sizeof(configuracionMemoria.TAM_MEMORIA));
 
     //recibimoa archivo con n instrucciones
     // cuanto ocupa el archivo en bytes
@@ -53,11 +53,40 @@ int main(int argc, char *argv[])
 
     crearListas();
 
-	int server_fd = iniciar_servidor(loggerMemoria, server_name ,IP, configuracionMemoria.PUERTO_ESCUCHA );  //cambiar variable global
+	//int server_fd = iniciar_servidor(loggerMemoria, server_name ,IP, configuracionMemoria.PUERTO_ESCUCHA );  //cambiar variable global
+    int server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
 	log_info(loggerMemoria, "Servidor listo para recibir al cliente");
 
+    int socketCliente = esperarClienteV2(loggerMemoria, server_fd );
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+
+    int pid;
+    char *path;
+    int pathLenght;
+    void *stream = paquete->buffer->stream;
+
+    memcpy(&pid, stream, sizeof(int));
+    stream += sizeof(int);
+    memcpy(&pathLenght, stream, sizeof(int));
+    stream += sizeof(int);
+    path = malloc(pathLenght);
+    memcpy(path, stream, pathLenght);
+
+    printf("pid:%d\n", pid);
+    printf("path:%s", path);
+
 	// espero a kernel y cpu
-	while(server_escuchar(server_fd));
+	//while(server_escuchar(server_fd));
+
+    liberar_conexion(server_fd);
+    liberar_conexion(socketCliente);
 	
 
 
@@ -66,7 +95,7 @@ int main(int argc, char *argv[])
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
-static void procesar_conexion(void *void_args) {
+/*static void procesar_conexion(void *void_args) {
 	int *args = (int*) void_args;
 	int cliente_socket = *args;
 	op_code cop;
@@ -100,7 +129,6 @@ static void procesar_conexion(void *void_args) {
             /*
             free(pid);
             free(nombre_archivo);
-            */
            break;
         }
 		case PEDIDO_INSTRUCCION:{
@@ -128,9 +156,9 @@ static void procesar_conexion(void *void_args) {
 	return;
         }
     }
-}
+}*/
 
-int server_escuchar(int fd_memoria) {
+/*int server_escuchar(int fd_memoria) {
 	server_name = "Memoria";
 	int cliente_socket = esperar_cliente(loggerMemoria, server_name, fd_memoria);
 
@@ -142,7 +170,7 @@ int server_escuchar(int fd_memoria) {
 	}
 
 	return 0;
-}
+}*/
 
 int recv_inicio_proceso(int cliente_socket,int **pid, char **nombre_archivo){
 

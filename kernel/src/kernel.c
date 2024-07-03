@@ -55,6 +55,8 @@ PCB* crearPCB(char* path) {
     list_add(lista_NEW, nuevoPCB);
     sem_post(&semListaNew);
     pthread_mutex_unlock(&mutexListaNew);
+
+    paquete_memoria_crear_proceso(nuevoPCB->PID, path);
     
     printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
 	// Logueo la creación del PCB
@@ -75,7 +77,22 @@ int leer_grado_multiprogramación() {
 // Definiciones de las funciones crear_paquete, agregar_a_paquete, enviar_paquete, eliminar_paquete
 // Definiciones de los IDs de paquetes CREAR_PROCESO y DATOS_DEL_PROCESO
 
-void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete) {
+void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete){
+
+    t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
+
+    // Agregar el path al paquete
+    agregar_entero_a_paquete(paquete_memoria, PID_paquete);
+    agregar_entero_a_paquete(paquete_memoria, (strlen(path_paquete)+1));
+    agregar_string_a_paquete(paquete_memoria, path_paquete);
+    
+    // Pasar PID y txt a memoria
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+}
+
+/*void paquete_crear_proceso(int PID_paquete, char* path_paquete) {
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
 
     // Agregar el path al paquete
@@ -109,7 +126,7 @@ void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete) 
     // Paso el PID y PC a la CPU
     enviar_paquete(paquete_cpu, cpu_dispatch_fd);
     eliminar_paquete(paquete_cpu);
-}
+}*/
 
 /*void* largo_plazo(void* arg) {
     if (list_size(lista_NEW) != 0)  {

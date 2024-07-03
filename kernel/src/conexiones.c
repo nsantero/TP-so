@@ -9,7 +9,7 @@ char* server_name = "kernel";
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
-static void procesar_conexion(void *void_args) {
+/*static void procesar_conexion(void *void_args) {
 	int *args = (int*) void_args;
 	int cliente_socket = *args;
 	op_code cop;
@@ -41,9 +41,9 @@ static void procesar_conexion(void *void_args) {
 	return;
         }
     }
-}
+}*/
 
-int server_escuchar(int fd_memoria) {
+/*int server_escuchar(int fd_memoria) {
 
 	int cliente_socket = esperar_cliente(loggerKernel, server_name, fd_memoria);
 
@@ -55,5 +55,5 @@ int server_escuchar(int fd_memoria) {
 	}
 
 	return 0;
-}
+}*/
 

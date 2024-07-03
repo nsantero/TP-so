@@ -14,7 +14,7 @@ typedef struct
 extern memoria_config configuracionMemoria;
 extern t_config* configMemoria;
 
-t_log* loggerMemoria;
+extern t_log* loggerMemoria;
 
 void armarConfigMemoria();
 void iniciarLoggerMemoria();

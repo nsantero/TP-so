@@ -70,11 +70,13 @@ typedef struct
 
 void decir_hola(char* quien);
 int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto);
+int iniciarServidorV2(t_log *logger, char* puerto);
 void* recibir_buffer(int* size, int socket_cliente);
 char* recibir_mensaje(int socket_cliente);
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto);
 void liberar_conexion(int socket_cliente);
 int esperar_cliente(t_log* logger, const char* name, int socket_servidor);
+int esperarClienteV2(t_log* logger, int socketServidor);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);

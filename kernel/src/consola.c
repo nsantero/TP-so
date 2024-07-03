@@ -28,6 +28,7 @@ void* manejadorDeConsola(){
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
                 //iniciar_proceso(segundoArgumento);
+                crearPCB(segundoArgumento);
             } else {
                 printf("Error: Falta el argumento [PATH].\n");
             }
@@ -64,10 +65,10 @@ void* manejadorDeConsola(){
         free(linea);
     }
 
-void iniciar_proceso(char* path) {
+/*void iniciar_proceso(char* path) {
     PCB* proceso = crearPCB(path);
     paquete_crear_proceso(proceso->PID, path, proceso->pc);
-}
+}*/
 
 
     

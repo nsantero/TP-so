@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	log_info(loggerKernel, "Me conecte a memoria");
 
 	// envio mensajes
-	enviar_mensaje("soy Kernel", memoria_fd);
+	//enviar_mensaje("soy Kernel", memoria_fd);
     enviar_mensaje("soy Kernel", cpu_dispatch_fd);
 
 	//levanto servidor

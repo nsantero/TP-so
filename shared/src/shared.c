@@ -43,7 +43,56 @@ int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto)
 	log_info(logger, "Servidor iniciado");
 
 	return socket_servidor;
-} 
+}
+int iniciarServidorV2(t_log *logger, char* puerto)
+{
+
+    int socketServidor;
+
+	struct addrinfo hints, *serverInfo;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	int status = getaddrinfo(NULL, puerto, &hints, &serverInfo);
+	if(status){
+		fprintf(stderr, "Error en getaddrinfo: %s\n", gai_strerror(status)); // cargar al logger
+        exit(EXIT_FAILURE);
+	}
+
+	// Creamos el socket de escucha del servidor
+	socketServidor = socket(serverInfo->ai_family,
+	 						serverInfo->ai_socktype,
+	  						serverInfo->ai_protocol);
+
+	if(socketServidor  == -1){
+		close(socketServidor);
+		exit(EXIT_FAILURE);
+	}
+						
+	// Asociamos el socket a un puerto
+
+	if(bind(socketServidor, serverInfo->ai_addr,serverInfo->ai_addrlen) == -1){
+		close(socketServidor);
+		exit(EXIT_FAILURE);
+	}
+
+	// Escuchamos las conexiones entrantes
+
+	if(listen(socketServidor,SOMAXCONN) == -1){
+		close(socketServidor);
+		exit(EXIT_FAILURE);
+	}
+	
+	freeaddrinfo(serverInfo);
+
+	log_info(logger, "Servidor iniciado");
+
+	return socketServidor;
+
+}
 
 void* recibir_buffer(int* size, int socket_cliente){
 	void * buffer;
@@ -73,13 +122,13 @@ void enviar_mensaje(char* mensaje, int socket_cliente){
 	eliminar_paquete(paquete);
 }
 
-char* recibir_mensaje(int socket_cliente) {
+/*char* recibir_mensaje(int socket_cliente) {
     int size;
     char* buffer = (char*)recibir_buffer(&size, socket_cliente);
     if (buffer != NULL) {
         return buffer;
     }
-}
+}*/
 
 void* serializar_paquete(t_paquete* paquete, int bytes) {
 	int size_paquete = sizeof(int) + sizeof(int) + paquete->buffer->size;
@@ -103,6 +152,16 @@ void eliminar_paquete(t_paquete* paquete) {
     free(paquete->buffer->stream);
     free(paquete->buffer);
     free(paquete);
+}
+
+int esperarClienteV2(t_log* logger, int socketServidor){
+	int socketCliente = 0;
+
+	socketCliente = accept(socketServidor, NULL, NULL);
+
+	log_info(logger, "Se conecto un cliente");
+
+	return socketCliente;
 }
 
 int esperar_cliente(t_log* logger, const char* name, int socket_servidor) {
@@ -250,9 +309,9 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente){
 
 void agregar_string_a_paquete(t_paquete *paquete, char* palabra)
 {	
-	 size_t palabra_lenght = strlen(palabra) + 1;
+	size_t palabra_lenght = strlen(palabra) + 1;
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + palabra_lenght);
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &palabra, palabra_lenght);
+	memcpy(paquete->buffer->stream + paquete->buffer->size, palabra, palabra_lenght);
 	paquete->buffer->size += (palabra_lenght);
 }
 

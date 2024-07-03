@@ -40,8 +40,8 @@ typedef struct
     int tam;
     int pagina_tam;
     int cantidad_frames;
-    int frames_libres;
-    t_list lista_frames;
+    int* frames_libres;
+    //t_list lista_frames;
 
 } Memoria;
 typedef struct 
