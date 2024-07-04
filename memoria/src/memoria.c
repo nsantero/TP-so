@@ -1,7 +1,15 @@
 #include <memoria.h>
+#include <conexiones.h>
+#include <semaforos.h>
 
 tabla_paginas_proceso tablaDePaginasDeUnProceso;
 paginas_proceso paginasDeUnProceso;
+
+Memoria memoria;
+
+    t_list *lista_ProcesosActivos;
+    t_list *lista_frames;
+    t_list *lista_de_paginas_proceso;
 
 void crearListas(){
     lista_ProcesosActivos = list_create(); 
@@ -32,9 +40,6 @@ void cargarInstruccionesDeProceso(int pid, char* path){
 void destruirProcesoEnMemoria(int pid){
 
 }
-
-pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
-int server_fd =0;
 
 int main(int argc, char *argv[])
 {
@@ -69,62 +74,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-void* atenderPeticionesKernel(void* arg) {
-    while (1) {
-        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
-        pthread_t client_thread;
-        int* pclient = malloc(sizeof(int));
-        *pclient = socketCliente;
-        pthread_create(&client_thread, NULL, manejarClienteKernel, pclient);
-        pthread_detach(client_thread);
-    }
-    return NULL;
-}
 
-void* manejarClienteKernel(void *arg)
-{
-    int socketCliente = *((int*)arg);
-    free(arg);
-    while(1){
-        pthread_mutex_lock(&mutexSocketKernel);
-        t_paquete* paquete = malloc(sizeof(t_paquete));
-        paquete->buffer = malloc(sizeof(t_buffer));
-
-        
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-
-        switch(paquete->codigo_operacion){
-            case CREAR_PROCESO:
-            {
-                Proceso *proceso = malloc(sizeof(Proceso));
-
-                void *stream = paquete->buffer->stream;
-                int pathLenght;
-
-                memcpy(&proceso->pid, stream, sizeof(int));
-                stream += sizeof(int);
-                memcpy(&pathLenght, stream, sizeof(int));
-                stream += sizeof(int);
-                proceso->path = malloc(pathLenght);
-                memcpy(proceso->path, stream, pathLenght);
-                //crear lista con las instrucciones
-                //aniadir a lista de procesos
-                printf("se recibio proceso PID:%d\n", proceso->pid);
-                printf("se recibio proceso con path:%s\n", proceso->path);
-                break;
-            }
-            default:
-            {   
-                log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
-                break;
-            }
-        }
-        pthread_mutex_unlock(&mutexSocketKernel);
-    }  
-}
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
