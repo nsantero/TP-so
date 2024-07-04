@@ -47,7 +47,7 @@ PCB* crearPCB(char* path) {
      }
 
     nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
-    nuevoPCB -> pc = 0; // contador en 0
+    nuevoPCB -> cpuRegisters.PC = 0; // contador en 0
     nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
 	nuevoPCB -> estado = NEW;
     nuevoPCB->  path = strdup(path); // guardo el path 
@@ -82,8 +82,8 @@ void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete){
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
 
     // Agregar el path al paquete
-    agregar_entero_a_paquete(paquete_memoria, PID_paquete);
-    agregar_entero_a_paquete(paquete_memoria, (strlen(path_paquete)+1));
+    agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
+    agregar_entero_a_paquete32(paquete_memoria, (strlen(path_paquete)+1));
     agregar_string_a_paquete(paquete_memoria, path_paquete);
     
     // Pasar PID y txt a memoria

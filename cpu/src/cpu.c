@@ -1,5 +1,6 @@
 #include <utils.h>
 #include <cicloInstruccion.h>
+#include <cpu.h>
 
 void* escuchar_dispatch(void* arg);
 void cargar_configuracion(char* archivo_configuracion)
@@ -40,6 +41,10 @@ int main(int argc, char* argv[]) {
     fd_cpu_interrupt = iniciar_servidor(logger, server_name_interrupt ,IP, config_valores.puerto_escucha_interrupt);
 	log_info(logger, "Servidor listo para recibir al cliente");
 
+    Proceso proceso;
+
+    proceso = recibirProcesoAEjecutar(proceso);
+
 	//Hilo de escuchar interrupcion
 
     pthread_t hiloEscuchaKernelSocketInterrupt;
@@ -48,6 +53,46 @@ int main(int argc, char* argv[]) {
     pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
     //hilo de ejecucion 
     return 0;
+}
+
+Proceso recibirProcesoAEjecutar(Proceso proceso){
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    int socketCliente = esperarClienteV2(logger, fd_cpu_dispatch);
+    recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+
+    void *stream = paquete->buffer->stream;
+
+    memcpy(&proceso.PID, stream, sizeof(int));
+    stream += sizeof(int);
+    memcpy(&proceso.cpuRegisters.PC, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.AX, stream, sizeof(uint8_t));
+    stream += sizeof(uint8_t);
+    memcpy(&proceso.cpuRegisters.BX, stream, sizeof(uint8_t));
+    stream += sizeof(uint8_t);
+    memcpy(&proceso.cpuRegisters.CX, stream, sizeof(uint8_t));
+    stream += sizeof(uint8_t);
+    memcpy(&proceso.cpuRegisters.DX, stream, sizeof(uint8_t));
+    stream += sizeof(uint8_t);
+    memcpy(&proceso.cpuRegisters.EAX, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.EBX, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.ECX, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.EDX, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.SI, stream, sizeof(uint32_t));
+    stream += sizeof(uint32_t);
+    memcpy(&proceso.cpuRegisters.DI, stream, sizeof(uint32_t));
+
+    //destruir paquete
+    return;
 }
 
 void* escuchar_dispatch(void* arg) {

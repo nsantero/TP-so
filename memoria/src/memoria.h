@@ -47,6 +47,7 @@ typedef struct
 typedef struct 
 {
     int pid;
+    int pathLength;
     char* archivos_instrucciones;
 
 } t_proceso;

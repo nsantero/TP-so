@@ -34,11 +34,17 @@ void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio){
 	paquete->buffer->size += tamanio + sizeof(int);
 }
 
-void agregar_entero_a_paquete(t_paquete *paquete, uint32_t x)
+void agregar_entero_a_paquete32(t_paquete *paquete, uint32_t x)
 {
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint32_t));
 	memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint32_t));
 	paquete->buffer->size += sizeof(uint32_t);
+}
+void agregar_entero_a_paquete8(t_paquete *paquete, uint8_t x)
+{
+	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint8_t));
+	memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint8_t));
+	paquete->buffer->size += sizeof(uint8_t);
 }
 
 void agregar_string_a_paquete(t_paquete *paquete, char* palabra)

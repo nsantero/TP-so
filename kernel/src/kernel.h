@@ -46,12 +46,13 @@ typedef struct {
 
 typedef struct {
     int PID; //id del proceso
-    int pc; //direccionamiento
+    //int pc; //direccionamiento
     int quantum;
     Estado estado; // duración del quantum 
-    CPU_Registers* cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
+    CPU_Registers cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
     char* path;
 } PCB;
+
 
 PCB* crearPCB();
 

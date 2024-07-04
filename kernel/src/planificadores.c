@@ -59,8 +59,29 @@ void* planificadorReady(){
 void comportamientoFIFO(){
     PCB* proceso = cambiarARunning(lista_READY);
     if (proceso) {
+        paquete_CPU_ejecutar_proceso(proceso);
     //paquete_crear_proceso(proceso->PID, proceso->path, proceso->pc);  // Enviar el proceso a la CPU
     }
+}
+
+void paquete_CPU_ejecutar_proceso(PCB* proceso){
+    t_paquete *paquete_CPU = crear_paquete(CREAR_PROCESO);
+
+    agregar_entero_a_paquete32(paquete_CPU, proceso->PID);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.PC);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.AX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.BX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.CX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.DX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EAX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EBX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.ECX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EDX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.SI);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.DI);
+
+    enviar_paquete(paquete_CPU, cpu_dispatch_fd);
+    eliminar_paquete(paquete_CPU);
 }
 
 void comportamientoRR(){
