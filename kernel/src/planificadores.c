@@ -59,8 +59,7 @@ void* planificadorReady(){
 void comportamientoFIFO(){
     PCB* proceso = cambiarARunning(lista_READY);
     if (proceso) {
-        paquete_CPU_ejecutar_proceso(proceso);
-    //paquete_crear_proceso(proceso->PID, proceso->path, proceso->pc);  // Enviar el proceso a la CPU
+        //paquete_CPU_ejecutar_proceso(proceso);
     }
 }
 
@@ -92,7 +91,7 @@ void comportamientoRR(){
     PCB* pcbRunnign=list_get(lista_RUNNING, 0);
 
     pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
-    //MANDAR A CPU
+    //paquete_CPU_ejecutar_proceso(pcbRunnign);
     pthread_join(hiloQuantum, NULL);
     //MANDAR INTERRUPT A CPU
 }

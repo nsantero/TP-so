@@ -28,7 +28,7 @@ void mostrar_todas_las_listas() {
 }
 void imprimir_proceso(PCB* proceso) {
     char *estadoLabel[] = {"NEW", "READY", "Running", "BLOCKED", "EXIT"};
-    printf("PID: %d, PC: %d, Quantum: %d, Estado: %s\n", proceso->PID, proceso->pc, proceso->quantum, estadoLabel[proceso->estado]);
+    printf("PID: %d, PC: %d, Quantum: %d, Estado: %s\n", proceso->PID, proceso->cpuRegisters.PC, proceso->quantum, estadoLabel[proceso->estado]);
 
     return;
 }
