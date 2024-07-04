@@ -64,7 +64,7 @@ void EJECUTAR_INTERFAZ_STDOUT(){
 
     contenido_memoria = paquete_memoria->head;
 
-    printf("El contenido encontrado en la direccion de memoria %u", direccion_ingresada, " es %s", contenido_memoria);
+    printf("El contenido encontrado en la direccion de memoria %u es %s", direccion_ingresada, contenido_memoria);
 
     free(paquete_direccion->buffer);
     free(paquete_direccion);

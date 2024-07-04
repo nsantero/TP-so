@@ -32,6 +32,12 @@ typedef enum {
     DFS_READ
 }OperacionesDeDialFS;
 
+typedef struct 
+{
+    char* nodo_path;
+    off_t nodo_offsetBloqueInicial;
+    int nodo_tamanioEnBytes;
+}NodoFs;
 
 
 typedef struct 
