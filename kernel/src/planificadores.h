@@ -18,6 +18,7 @@ void* manejadorDeQuantum(void *quantum);
 void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
 void comportamientoRR();
+void paquete_CPU_ejecutar_proceso(PCB* proceso);
 
 extern void inicializar_sem_planificadores();
 extern void planificador_largo_plazo();

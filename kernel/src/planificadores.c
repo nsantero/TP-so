@@ -59,7 +59,7 @@ void* planificadorReady(){
 void comportamientoFIFO(){
     PCB* proceso = cambiarARunning(lista_READY);
     if (proceso) {
-        //paquete_CPU_ejecutar_proceso(proceso);
+        paquete_CPU_ejecutar_proceso(proceso);
     }
 }
 
@@ -102,6 +102,10 @@ void *manejadorDeQuantum(void* quantum){
     usleep(quantumProceso/1000);
 
     return NULL;
+}
+
+void comportamientoVRR(){
+    
 }
 
 void cambiarAReady(t_list* cola){

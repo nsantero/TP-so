@@ -28,7 +28,7 @@ typedef struct {
 
     int pid;
     char * path;
-    int cantidad_paginas;
+    //int cantidad_paginas;
     t_list instrucciones;
     //paginas_proceso* paginas;
 
@@ -86,10 +86,16 @@ void crearListas() ;
 
 t_instruccion armar_instruccion(char* instruccion_leida);
 
+void* atenderPeticionesKernel(void* arg);
+
+void* manejarClienteKernel(void *arg);
+
 t_list* lista_ProcesosActivos;
 
 t_list* lista_frames;
 
 t_list* lista_de_paginas_proceso;
+
+extern pthread_mutex_t mutexSocketKernel;
 
 #endif
