@@ -18,8 +18,7 @@ void inicializar_sem_cola_DialFS(){
 void* manejo_interfaz_DialFS(){
     Peticion_Interfaz_DialFS* peticion_DialFS;
 
-    inicializar_bloques_dat();
-    inicializar_bitmap_dat();
+    
 
     while(1){
         sem_wait(&sem_hay_en_DialFS);
@@ -60,7 +59,26 @@ Interfaz generarNuevaInterfazDialFS(char* nombre,char* pathConfiguracion){
     aDevolver.pathBaseDialfs=config_get_string_value(configuracion,"PATH_BASE_DIALFS");;
     aDevolver.retrasoCompactacion=config_get_int_value(configuracion,"RETRASO_COMPACTACION");
     
-   
+    DIR *dir=opendir(aDevolver.pathBaseDialfs);
+
+    int bloquesCheckeo=1;
+    int bitCheckeo=1;
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if(entry->d_name=="bloques.dat"){
+            bloquesCheckeo=0;
+        }else if(entry->d_name=="bitmap.dat"){
+            bitCheckeo=0;
+        }
+
+
+    }
+
+    close(dir);
+    if(bloquesCheckeo){inicializar_bloques_dat(aDevolver);}
+    if(bitCheckeo){inicializar_bitmap_dat(aDevolver);}
 
     return aDevolver;
 
@@ -94,15 +112,13 @@ void EJECUTAR_INTERFAZ_DialFS(Peticion_Interfaz_DialFS* peticion){
     // internamente cada caso, por q creo q hay un par q toca un registro
 }
 
-void inicializar_bloques_dat(){
+void inicializar_bloques_dat(Interfaz interfaz){
   
-    path_bloques =generarPathAArchivoFS("bloques.dat");
-    
-    remove(path_bloques);
+    path_bloques =string_from_format("%s%s",interfaz.pathBaseDialfs,"bloques.dat");
     
     FILE* bloquesDat= txt_open_for_append(path_bloques);
 
-    size_t size =interfaz_DialFS.blockCount*interfaz_DialFS.blockSize;
+    size_t size =interfaz.blockCount*interfaz.blockSize;
     char buffer[size];
     memset(buffer,0,size);
     fwrite(buffer,1,size,bloquesDat);
@@ -110,15 +126,13 @@ void inicializar_bloques_dat(){
 
     txt_close_file(bloquesDat);
 }
-void inicializar_bitmap_dat(){
+void inicializar_bitmap_dat(Interfaz interfaz){
     
-    path_bitmap=generarPathAArchivoFS("bitmap.dat");
-    
-    remove(path_bitmap);
+    path_bitmap=string_from_format("%s%s",interfaz.pathBaseDialfs,"bitmap.dat");
     
     FILE* bitmapDat= txt_open_for_append(path_bitmap);
 
-    size_t size =(interfaz_DialFS.blockCount/8)+1;
+    size_t size =(interfaz.blockCount/8)+1;
     char buffer[size];
     memset(buffer,0,size);
     fwrite(buffer,1,size,bitmapDat);
@@ -232,7 +246,7 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
              * 
              * 
             */
-           compactarBloquesFSParaQEntreElArchivo(&bloqueInicial,tamanioEnbytesActual);
+            compactarBloquesFSParaQEntreElArchivo(nombreArchivo,&bloqueInicial,tamanioEnbytesActual);
 
         }
 
@@ -378,12 +392,43 @@ off_t buscarBloqueLibreDesdeElFinal(){
 char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes){
     char* path= generarPathAArchivoFS(nombreArchivo);
     t_config* archivo=config_create(path);
+    if(offset!=NULL){obtenerInfoDeArchivoOffset(nombreArchivo,offset);}
+    if(tamanioEnBytes!=NULL){obtenerInfoDeArchivoTamanio(nombreArchivo,tamanioEnBytes);}
+    config_destroy(archivo);
+    return path;
+}
+void obtenerInfoDeArchivoOffset(char* nombreArchivo,off_t* offset){
+    char* path= generarPathAArchivoFS(nombreArchivo);
+    t_config* archivo=config_create(path);
     offset = config_get_long_value(archivo,"BLOQUE_INICIAL");
+    config_destroy(archivo);
+    return path;
+}
+void obtenerInfoDeArchivoTamanio(char* nombreArchivo,int* tamanioEnBytes){
+    char* path= generarPathAArchivoFS(nombreArchivo);
+    t_config* archivo=config_create(path);
     tamanioEnBytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
     config_destroy(archivo);
     return path;
 }
-void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){}//TODO
+void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){
+    char* path= generarPathAArchivoFS(nombreArchivo);
+    t_config* archivo=config_create(path);
+    if(offset!=NULL){
+        char offsetChar[20];
+        snprintf(offsetChar,20,"%ld",(long)offset);
+        config_set_value(archivo,"BLOQUE_INICIAL",offsetChar);
+    }
+    if(tamanioEnBytes!=NULL){
+        char* tamanioChar=string_from_format("%d",tamanioEnBytes);
+        config_set_value(archivo,"TAMANIO_ARCHIVO",tamanioChar);
+    }
+    config_save(archivo);
+    config_destroy(archivo);
+
+
+
+}//TODO
 
 void liberarBloque(off_t offset){
     int fd=open(path_bitmap,O_RDWR);
@@ -447,8 +492,10 @@ void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
 
 }
 
-void compactarBloquesFSParaQEntreElArchivo(off_t *offsetInicialDelArchivo,int tamanioEnbytesActual){ 
+void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetInicialDelArchivo,int tamanioEnbytesActual){ 
     off_t offsetAux;
+    char* nombreAMover;
+    int tamanioEnBytesDelArchivo;
 //abro el bitmap
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -467,21 +514,43 @@ void compactarBloquesFSParaQEntreElArchivo(off_t *offsetInicialDelArchivo,int ta
 
 //ejecuto tarea LA PUTA MADRE, ACA PIERDO TODAS LAS REFERENCIAS NO SIRVE HAY Q HACERLO POR ARCHIVO :)))))))
     //mueve todos los archivos anteriores y el mismo archivo al principio del archivo
-    /*for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){
+    for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){
         if(bitarray_test_bit(bitmapAddr,i)){
+
             offsetAux = buscarBloqueLibre();
-            moverBloque(i,offsetAux);
-            bitarray_set_bit(bitmapAddr,offsetAux);
-            bitarray_clean_bit(bitmapAddr,i);
+            //devuelve char* nombre
+            nombreAMover =buscarArchivoConBloqueInicial(i);                             //buscar A q archivo pertenece(funcion)
+            moverArchivo(nombreAMover,offsetAux);                                       //mover la cantidad de bloques q tenga ese archivo(funcion mover archivo estaria bn)           
+            obtenerInfoDeArchivoTamanio(nombreAMover,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
+            i=i+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
+           
         }
-    }
+    }//esto aca lee y mueve todos los archivos incluido el q quiere agrandar q estan al principio
+    
     //mueve todos los archivos posteriores al final del archivo
-    for(off_t i=interfaz_DialFS.blockCount-1;i>=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i--){
+    int ultimoBloqueAControlar=interfaz_DialFS.blockCount-1;
+    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar;i--){
+            
+        if(bitarray_test_bit(bitmapAddr,i)){
+            nombreAMover =buscarArchivoConBloqueInicial(i);       
+            obtenerInfoDeArchivoTamanio(nombreAMover,tamanioEnBytesDelArchivo);
+            i=i+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);   
+        }
+
+        if(i==ultimoBloqueAControlar){
             offsetAux = buscarBloqueLibreDesdeElFinal();
+            moverArchivo(nombreAMover,offsetAux);
+            ultimoBloqueAControlar=ultimoBloqueAControlar-((tamanioEnBytesDelArchivo/8)+1);
+        }
+
+
+
+           /* offsetAux = buscarBloqueLibreDesdeElFinal();
             moverBloque(i,offsetAux);
             bitarray_set_bit(bitmapAddr,offsetAux);
-            bitarray_clean_bit(bitmapAddr,i);
-    }*/
+            bitarray_clean_bit(bitmapAddr,i);*/
+            
+    }
 
 
 
@@ -498,6 +567,67 @@ void compactarBloquesFSParaQEntreElArchivo(off_t *offsetInicialDelArchivo,int ta
 
     munmap(addr,sb.st_size);
     close(fd);
+
+}
+
+char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
+    DIR *dir=opendir(interfaz_DialFS.pathBaseDialfs);
+    struct dirent *entry;
+    char *nombre;
+    off_t offsetAux;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        nombre=entry->d_name;
+        obtenerInfoDeArchivoOffset(nombre,&offsetAux);
+        if (offsetAux==offsetBloqueInicial){
+            return nombre;
+        }
+
+    }
+    close(dir);
+    return NULL;
+}
+void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    
+    
+    
+    
+    
+    int tamanioEnBytes;
+    off_t bloqueInicialOriginal;
+    obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialOriginal,&tamanioEnBytes);
+    int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;
+
+
+    cambiarInfoDeArchivo(nombreArchivo,-1,NULL);
+
+    if(bloqueInicialOriginal<nuevoBloqueInicialOFinal){//caso mueve para "atras"
+        for(int i=0;i<cantidadDeBloques;i++){
+            moverBloque(bloqueInicialOriginal+i,nuevoBloqueInicialOFinal+i);
+            bitarray_set_bit(bitmapAddr,nuevoBloqueInicialOFinal+i);
+            bitarray_clean_bit(bitmapAddr,bloqueInicialOriginal+i);
+        }
+        cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,NULL);
+    }else if(bloqueInicialOriginal>nuevoBloqueInicialOFinal){//caso mueve para "adelante"
+
+
+
+
+    }
+
+    cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,NULL);
+
+    bitarray_destroy(bitmapAddr);
+    munmap(addr,sb.st_size);
+    close(fd);
+
 
 }
 
