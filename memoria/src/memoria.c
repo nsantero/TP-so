@@ -4,18 +4,17 @@
 
 tabla_paginas_proceso tablaDePaginasDeUnProceso;
 paginas_proceso paginasDeUnProceso;
-
 Memoria memoria;
-
-    t_list *lista_ProcesosActivos;
-    t_list *lista_frames;
-    t_list *lista_de_paginas_proceso;
+t_list *lista_frames;
+t_list *lista_de_paginas_proceso;
+t_list *lista_ProcesosActivos=NULL;
 
 void crearListas(){
     lista_ProcesosActivos = list_create(); 
     lista_frames = list_create(); 
     lista_de_paginas_proceso = list_create(); 
 }
+
 
 void esquemaPaginacion(){
 }
@@ -44,30 +43,24 @@ void destruirProcesoEnMemoria(int pid){
 int main(int argc, char *argv[])
 {
     
+    printf("Memoria%d\n");
     iniciarLoggerMemoria();
 	armarConfigMemoria();
-
-    //cantidad_frames = calculoDeFrames(configuracionMemoria.TAM_MEMORIA,configuracionMemoria.TAM_PAGINA);
-
-    //memoria_espacio = malloc(sizeof(configuracionMemoria.TAM_MEMORIA));
-
-    //recibimoa archivo con n instrucciones
-    // cuanto ocupa el archivo en bytes
-    // dividir el size del archivo por el size de paginas
-    
-
-
-
     crearListas();
     
 
 	//int server_fd = iniciar_servidor(loggerMemoria, server_name ,IP, configuracionMemoria.PUERTO_ESCUCHA );  //cambiar variable global
     server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
+    
 	log_info(loggerMemoria, "Servidor listo para recibir al cliente");
-
+    
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel, NULL);
     pthread_detach(hiloKernel);
+
+    pthread_t hiloCpu;
+    pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);
+    pthread_detach(hiloCpu);
     while(1){
 
     }
@@ -109,7 +102,7 @@ int main(int argc, char *argv[])
             proceso->archivos_instrucciones = nombre_archivo;
             
             list_add(lista_ProcesosActivos,proceso);
-            /*
+            
             free(pid);
             free(nombre_archivo);
            break;

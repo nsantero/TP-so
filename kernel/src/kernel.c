@@ -92,6 +92,19 @@ void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete){
 
 }
 
+void paquete_memoria_finalizar_proceso(int PID_paquete){
+
+    t_paquete *paquete_memoria = crear_paquete(FINALIZAR_PROCESO);
+
+    // Agregar el path al paquete
+    agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
+
+    // Pasar PID y txt a memoria
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+}
+
 /*void paquete_crear_proceso(int PID_paquete, char* path_paquete) {
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
 

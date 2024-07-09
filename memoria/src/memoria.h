@@ -35,6 +35,7 @@ typedef struct {
 } Proceso;
 
 typedef struct {
+    int numeroInstruccion;
     char *instruccion;
 } Instruccion;
 
@@ -76,7 +77,7 @@ extern Memoria memoria;
 
 int server_escuchar(int fd_memoria);
 
-static void procesar_conexion(void *void_args) ;
+//static void procesar_conexion(void *void_args) ;
 
 int recv_fetch_instruccion(int fd_modulo, int **pid, int **pc);
 

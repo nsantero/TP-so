@@ -46,7 +46,7 @@ typedef struct {
 
 typedef struct {
     int PID; //id del proceso
-    //int pc; //direccionamiento
+    int pc; //direccionamiento
     int quantum;
     Estado estado; // duración del quantum 
     CPU_Registers cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
@@ -62,7 +62,9 @@ extern int leer_grado_multiprogramación();
 
 // envios a cpu
 
-void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete);
+//void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete);
+void paquete_memoria_finalizar_proceso (int PID_paquete);
+void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete);
 PCB* cambiarARunning(t_list* lista_READY);
 
 #endif

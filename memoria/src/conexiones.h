@@ -8,8 +8,11 @@ void* atenderPeticionesKernel();
 
 void* manejarClienteKernel(void *arg);
 
+void* atenderPeticionesCpu();
+
+void* manejarClienteCpu(void *arg);
+
 void cargarInstrucciones(Proceso *proceso, const char *path);
 
 extern int server_fd;
-
 #endif
