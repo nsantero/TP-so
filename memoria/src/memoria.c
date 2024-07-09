@@ -56,11 +56,12 @@ int main(int argc, char *argv[])
     
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel, NULL);
-    pthread_detach(hiloKernel);
-
+    
     pthread_t hiloCpu;
     pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);
+
     pthread_detach(hiloCpu);
+    pthread_detach(hiloKernel);
     while(1){
 
     }

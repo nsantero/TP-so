@@ -47,8 +47,9 @@ void* manejarClienteCpu(void *arg)
 
         switch(paquete->codigo_operacion){
             case PEDIDO_INSTRUCCION:
-            {
-                }
+            {   
+                
+            }
             default:
             {   
                 log_error(loggerMemoria, "Se recibio un operacion de CPU NO valido");
@@ -97,14 +98,14 @@ void* manejarClienteKernel(void *arg)
                 printf("se recibio proceso con path:%s\n", proceso->path);
                 break;
             }
-
             case FINALIZAR_PROCESO:
             {   
+                int pid_remover;
                 void *stream = paquete->buffer->stream;
-                stream += sizeof(int);
+                memcpy(&pid_remover, stream, sizeof(int));
                 //int pid = paquete->buffer->stream;
-                printf("finalizar proceso:%d\n", stream);
-                list_remove(lista_ProcesosActivos, stream);
+                printf("finalizar proceso:%d\n", pid_remover);
+                list_remove(lista_ProcesosActivos, pid_remover);
             }
             default:
             {   

@@ -8,7 +8,7 @@ t_log* logger;
 char* server_name_dispatch = "CPU_DISPATCH";
 char* server_name_interrupt = "CPU_INTERRUPT";
 
-PCB pcbActual;
+//PCB pcbActual;
 t_list* listaPCBS;
 t_instruccion instruccionActual;
 int interrumpir=0;

@@ -80,7 +80,7 @@ int leer_grado_multiprogramación() {
 void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete){
 
     t_paquete *paquete_memoria = crear_paquete(CREAR_PROCESO);
-
+    
     // Agregar el path al paquete
     agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
     agregar_entero_a_paquete32(paquete_memoria, (strlen(path_paquete)+1));
