@@ -8,7 +8,7 @@ typedef struct {
     CPU_Registers cpuRegisters;
 } Proceso;
 
-extern Proceso procesoEjecutando;
+extern Proceso *procesoEjecutando;
 
 Proceso recibirProcesoAEjecutar(Proceso proceso);
 

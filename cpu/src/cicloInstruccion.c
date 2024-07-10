@@ -7,16 +7,16 @@ extern int program_counter;
 void fetch() {
 
     // Preparar el mensaje con el valor actual del PC
-    sprintf("Dame la instrucción número %d", program_counter);
+    //sprintf("Dame la instrucción número %d", program_counter);
 
     // Enviar mensaje a memoria solicitando la instrucción
-    enviar_mensaje(mensaje, memoria_fd);
+    //enviar_mensaje(mensaje, memoria_fd);
 
     // Recibir la instrucción de memoria y almacenarla de alguna manera
-    recv_instruccion(memoria_fd);
+    //recv_instruccion(memoria_fd);
 
     // Actualizar el Program Counter
-    program_counter += 1;
+    //program_counter += 1;
 }
 
 /*

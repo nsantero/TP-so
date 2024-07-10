@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <commons/bitarray.h>
 #include <dirent.h>
+#include <shared.h>
+#include <entradasalida.h>
 
 
 extern Interfaz interfaz_DialFS;

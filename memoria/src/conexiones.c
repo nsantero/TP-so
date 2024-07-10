@@ -108,7 +108,23 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&pid_remover, stream, sizeof(int));
                 //int pid = paquete->buffer->stream;
                 printf("finalizar proceso:%d\n", pid_remover);
-                list_remove_element(lista_ProcesosActivos, pid_remover);
+                list_remove_element(lista_ProcesosActivos, &pid_remover);
+            }
+            case PEDIDO_INSTRUCCION:
+            {   
+                int pid_solicitado;
+                void *stream = paquete->buffer->stream;
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                printf("pedido de instruccion, pid: %d\n", pid_solicitado );
+                break;
+            }
+            case IO_FS_READ:
+            {
+                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
+            }
+            case  IO_FS_WRITE:
+            {
+                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
             }
             default:
             {   

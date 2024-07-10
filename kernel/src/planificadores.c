@@ -131,11 +131,6 @@ PCB* cambiarARunning(t_list* lista_READY){
     return NULL;
 }
 
-
-
-
-
-
 /*void inicializar_planificadores() {
     t_config* config = config_create("kernel.config");
 

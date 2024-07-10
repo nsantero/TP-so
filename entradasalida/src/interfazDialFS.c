@@ -312,7 +312,10 @@ void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
     //enviar solicitud a memoria
-
+    t_paquete *paquete = crear_paquete(CREAR_PROCESO);
+    agregar_a_paquete(paquete, buffer, (int)tamanio);
+    enviar_paquete(paquete, memoria_fd);
+    eliminar_paquete(paquete);
 
 
     free(buffer);
