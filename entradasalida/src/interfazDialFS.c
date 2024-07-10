@@ -59,6 +59,26 @@ Interfaz generarNuevaInterfazDialFS(char* nombre,char* pathConfiguracion){
     aDevolver.pathBaseDialfs=config_get_string_value(configuracion,"PATH_BASE_DIALFS");;
     aDevolver.retrasoCompactacion=config_get_int_value(configuracion,"RETRASO_COMPACTACION");
     
+    // Specify the permissions (rwxr-xr-x)
+        mode_t mode = 0755;
+
+        // Estructura para almacenar la información del archivo
+        struct stat st = {0};
+
+    // Verificar si el directorio ya existe
+        if (stat(aDevolver.pathBaseDialfs, &st) == -1) {
+            // El directorio no existe, intenta crearlo
+            if (mkdir(aDevolver.pathBaseDialfs, mode) == -1) {
+                //perror("No se pudo crear el directorio");
+                //return EXIT_FAILURE;
+            }
+            //printf("Directorio creado exitosamente\n");
+        } else {
+            //printf("El directorio ya existe\n");
+        }
+
+
+
     DIR *dir=opendir(aDevolver.pathBaseDialfs);
 
     int bloquesCheckeo=1;
@@ -89,19 +109,24 @@ void EJECUTAR_INTERFAZ_DialFS(Peticion_Interfaz_DialFS* peticion){
     switch (peticion->operacion)
     {
     case DFS_CREATE:
-        crearNuevoFile(peticion->nombreArchivo);
+        log_info(loggerIO,"PID: %d - Operacion: DFS_CREATE",peticion->PID);
+        crearNuevoFile(peticion);
         break;
     case DFS_DELETE:
-        borrarFile(peticion->nombreArchivo);
+        log_info(loggerIO,"PID: %d - Operacion: DFS_DELETE",peticion->PID);
+        borrarFile(peticion);
         break;
     case DFS_TRUNCATE:
-        truncarArchivo(peticion->nombreArchivo,peticion->tamanio);
+        log_info(loggerIO,"PID: %d - Operacion: DFS_TRUNCATE",peticion->PID);
+        truncarArchivo(peticion);
         break;
     case DFS_WRITE:
-        escribirEnArchivo(peticion->nombreArchivo,peticion->direcion,peticion->tamanio,peticion->punteroArchivo);
+        log_info(loggerIO,"PID: %d - Operacion: DFS_WRITE",peticion->PID);
+        escribirEnArchivo(peticion);
         break;
     case DFS_READ:
-        leerDelArchivo(peticion->nombreArchivo,peticion->direcion,peticion->tamanio,peticion->punteroArchivo);
+        log_info(loggerIO,"PID: %d - Operacion: DFS_READ",peticion->PID);
+        leerDelArchivo(peticion);
         break;
         
     default:
@@ -142,8 +167,9 @@ void inicializar_bitmap_dat(Interfaz interfaz){
 }
 
 
-void crearNuevoFile(char* nombre){
-    
+void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
+    char* nombre=peticion->nombreArchivo;
+
     char* path=generarPathAArchivoFS(nombre);
     FILE*archivoNuevo=txt_open_for_append(path);
 
@@ -161,27 +187,15 @@ void crearNuevoFile(char* nombre){
     config_destroy(archivo);
 
     //aca deberia poner el bloque q elije como ocupado en el bit map
+    ocuparBloque(bloqueInicialOffs);
 
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
-
-
-    bitarray_set_bit(bitmapAddr,bloqueInicialOffs);
-
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
-    free(path);
-}
-void borrarFile(char* nombre){
+    log_info(loggerIO,"PID: %d - Crear Archivo: %s",peticion->PID,nombre);
     
+}
+void borrarFile(Peticion_Interfaz_DialFS* peticion){
+    
+    char* nombre =peticion->nombreArchivo;
+
     off_t bloqueInicial;
     int tamanioEnbytes;
     char* path=obtenerInfoDeArchivo(nombre,&bloqueInicial,&tamanioEnbytes);
@@ -194,8 +208,17 @@ void borrarFile(char* nombre){
     }
     
     remove(path);
+
+    log_info(loggerIO,"PID: %d - Eliminar Archivo: %s",peticion->PID,nombre);
+
 }
-void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
+void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
+    
+    char* nombreArchivo=peticion->nombreArchivo;
+    uint8_t tamanio=peticion->tamanio;
+    
+    
+    
     off_t bloqueInicial;
     int tamanioEnbytesActual;
     char* path=obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
@@ -240,7 +263,10 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
 
         }else{// caso, se debe reorganizar el FS para acomodar el archivo
             
+            log_info(loggerIO,"PID: %d - Inicio Compactación.",peticion->PID);
             compactarBloquesFSParaQEntreElArchivo(nombreArchivo,bloqueInicial,tamanioEnbytesActual);
+            log_info(loggerIO,"PID: %d - Fin Compactación.",peticion->PID);
+
             obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
@@ -250,11 +276,16 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
         }
 
     }
-
+    log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
 
 }
-void escribirEnArchivo(char* nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     
+    char* nombreArchivo=peticion->nombreArchivo;
+    uint32_t direcion=peticion->direcion;
+    uint8_t tamanio=peticion->tamanio;
+    uint32_t punteroArchivo=peticion->punteroArchivo;
+
     off_t bloqueInicialArchivo;
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
@@ -283,9 +314,16 @@ void escribirEnArchivo(char* nombreArchivo,uint32_t direcion,uint8_t tamanio,uin
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
 
+    log_info(loggerIO,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
+
 }
-void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     
+    char *nombreArchivo = peticion->nombreArchivo;
+    uint32_t direcion = peticion->direcion;
+    uint8_t tamanio = peticion->tamanio;
+    uint32_t punteroArchivo = peticion->punteroArchivo;
+
     off_t bloqueInicialArchivo;
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
@@ -313,6 +351,8 @@ void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32
 
 
     free(buffer);
+
+    log_info(loggerIO,"PID: %d - Escribir Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
 }
 
 //TODO estas dos no tienen en cuenta q el ultimo byte del bitmap puede q tenga hasta 7 bits de mas, buscar bloque libre tmp
