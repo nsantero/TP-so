@@ -496,6 +496,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetI
     off_t offsetAux;
     char* nombreAMover;
     int tamanioEnBytesDelArchivo;
+    off_t bloqueInicial;
 //abro el bitmap
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -529,26 +530,25 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetI
     
     //mueve todos los archivos posteriores al final del archivo
     int ultimoBloqueAControlar=interfaz_DialFS.blockCount-1;
-    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar;i--){
-            
+    int hayArchivosParaMover=0;
+    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i--){
+                                                                                              // si es menor va a tirar false en la primera iteracion y listo       
         if(bitarray_test_bit(bitmapAddr,i)){
+            hayArchivosParaMover=1;
             nombreAMover =buscarArchivoConBloqueInicial(i);       
-            obtenerInfoDeArchivoTamanio(nombreAMover,tamanioEnBytesDelArchivo);
+            obtenerInfoDeArchivo(nombreAMover,&bloqueInicial,&tamanioEnBytesDelArchivo);
             i=i+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);   
         }
 
-        if(i==ultimoBloqueAControlar){
-            offsetAux = buscarBloqueLibreDesdeElFinal();
-            moverArchivo(nombreAMover,offsetAux);
+        if(i==ultimoBloqueAControlar&&hayArchivosParaMover){
+            if(hayLugarDespuesDelArchivo(1,bloqueInicial+(tamanioEnBytesDelArchivo/8))){
+                offsetAux = buscarBloqueLibreDesdeElFinal();
+                moverArchivo(nombreAMover,offsetAux);
+            }
             ultimoBloqueAControlar=ultimoBloqueAControlar-((tamanioEnBytesDelArchivo/8)+1);
+            i=offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1;
+            hayArchivosParaMover=0;
         }
-
-
-
-           /* offsetAux = buscarBloqueLibreDesdeElFinal();
-            moverBloque(i,offsetAux);
-            bitarray_set_bit(bitmapAddr,offsetAux);
-            bitarray_clean_bit(bitmapAddr,i);*/
             
     }
 
@@ -606,23 +606,30 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;
 
 
-    cambiarInfoDeArchivo(nombreArchivo,-1,NULL);
+    cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,NULL);
 
     if(bloqueInicialOriginal<nuevoBloqueInicialOFinal){//caso mueve para "atras"
+        
         for(int i=0;i<cantidadDeBloques;i++){
             moverBloque(bloqueInicialOriginal+i,nuevoBloqueInicialOFinal+i);
             bitarray_set_bit(bitmapAddr,nuevoBloqueInicialOFinal+i);
             bitarray_clean_bit(bitmapAddr,bloqueInicialOriginal+i);
         }
-        cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,NULL);
+        
     }else if(bloqueInicialOriginal>nuevoBloqueInicialOFinal){//caso mueve para "adelante"
-
-
-
+        
+        off_t bloqueFinalOriginal=bloqueInicialOriginal+cantidadDeBloques-1;
+        for(int i=0;i<cantidadDeBloques;i++){
+            moverBloque(bloqueFinalOriginal-i,nuevoBloqueInicialOFinal-i);
+            bitarray_set_bit(bitmapAddr,nuevoBloqueInicialOFinal-i);
+            bitarray_clean_bit(bitmapAddr,bloqueFinalOriginal-i);
+        }
+        nuevoBloqueInicialOFinal=nuevoBloqueInicialOFinal-cantidadDeBloques+1;
 
     }
 
     cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,NULL);
+
 
     bitarray_destroy(bitmapAddr);
     munmap(addr,sb.st_size);
