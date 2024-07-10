@@ -4,12 +4,10 @@
 extern int memoria_fd; 
 extern int program_counter; 
 
-/*
 void fetch() {
-    char mensaje[50]; 
 
     // Preparar el mensaje con el valor actual del PC
-    sprintf(mensaje, "Dame la instrucción número %d", program_counter);
+    sprintf("Dame la instrucción número %d", program_counter);
 
     // Enviar mensaje a memoria solicitando la instrucción
     enviar_mensaje(mensaje, memoria_fd);
@@ -21,6 +19,7 @@ void fetch() {
     program_counter += 1;
 }
 
+/*
 void setRegistro(char *nombre, int valor) {
     // Implementar lógica para asignar un valor a un registro
     printf("Registro %s actualizado con valor %d\n", nombre, valor);
@@ -190,6 +189,7 @@ void checkInterrupt(int pid, int conexionDispatch) {
     }
 }
 */
+
 void recv_instruccion(int memoria_fd){
 
 	t_list *paquete = recibir_paquete(memoria_fd);

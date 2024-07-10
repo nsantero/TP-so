@@ -1,4 +1,5 @@
 #include <utils.h>
+#include <cpu.h>
 
 void fetch();
 

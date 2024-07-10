@@ -4,6 +4,7 @@
 
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
+
 void* escuchar_dispatch(void* arg);
 
 int main(int argc, char* argv[]) {
@@ -66,6 +67,9 @@ void* atenderPeticionesKernel() {
     }
     return NULL;
 }
+
+Proceso *procesoEjecutando = NULL;
+
 void* manejarClienteKernel(void *arg)
 {
     int socketCliente = *((int*)arg);
@@ -83,35 +87,35 @@ void* manejarClienteKernel(void *arg)
             case EJECUTAR_PROCESO:
             //ejecutar proceso
             {
-                Proceso *proceso = malloc(sizeof(Proceso));
+                procesoEjecutando = malloc(sizeof(Proceso));
                 void *stream = paquete->buffer->stream;
                 
-                memcpy(&proceso->PID, stream, sizeof(int));
+                memcpy(&procesoEjecutando->PID, stream, sizeof(int));
                 stream += sizeof(int);
-                memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.PC, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.AX, stream, sizeof(uint8_t));
+                memcpy(&procesoEjecutando->cpuRegisters.AX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso->cpuRegisters.BX, stream, sizeof(uint8_t));
+                memcpy(&procesoEjecutando->cpuRegisters.BX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso->cpuRegisters.CX, stream, sizeof(uint8_t));
+                memcpy(&procesoEjecutando->cpuRegisters.CX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso->cpuRegisters.DX, stream, sizeof(uint8_t));
+                memcpy(&procesoEjecutando->cpuRegisters.DX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso->cpuRegisters.EAX, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.EAX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.EBX, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.EBX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.ECX, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.ECX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.EDX, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.EDX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.SI, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.DI, stream, sizeof(uint32_t));
 
-                paquete_memoria_pedido_instruccion(proceso->PID);
-                printf("se recibio proceso :%d\n", proceso->PID);
+                paquete_memoria_pedido_instruccion(procesoEjecutando->PID);
+                printf("se recibio proceso :%d\n", procesoEjecutando->PID);
                 break;
             }
             default:
