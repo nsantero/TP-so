@@ -64,7 +64,7 @@ void comportamientoFIFO(){
 }
 
 void paquete_CPU_ejecutar_proceso(PCB* proceso){
-    t_paquete *paquete_CPU = crear_paquete(CREAR_PROCESO);
+    t_paquete *paquete_CPU = crear_paquete(EJECUTAR_PROCESO);
 
     agregar_entero_a_paquete32(paquete_CPU, proceso->PID);
     agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.PC);

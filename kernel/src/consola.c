@@ -37,6 +37,8 @@ void* manejadorDeConsola(){
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
                 int pid = atoi(segundoArgumento);
+                printf("PID %d \n", pid);
+                paquete_memoria_finalizar_proceso(pid);
                 //finalizar_proceso(pid);
             } else {
                 printf("Error: Falta el argumento [PID].\n");

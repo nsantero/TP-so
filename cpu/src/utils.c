@@ -1,23 +1,16 @@
-#include <utils.h>
+#include "utils.h"
 
 int memoria_fd;
 int fd_cpu_dispatch;
 int fd_cpu_interrupt;
-cpu_config config_valores;
-t_log* logger;
 char* server_name_dispatch = "CPU_DISPATCH";
 char* server_name_interrupt = "CPU_INTERRUPT";
-
-PCB pcbActual;
 t_list* listaPCBS;
 t_instruccion instruccionActual;
 int interrumpir=0;
 op_code codigo_op_hilo_interrupt_cpu;
 
-
 void* escucharInterrupciones(){
-
-    
 
     codigo_op_hilo_interrupt_cpu = recibir_operacion(fd_cpu_interrupt);
 
@@ -37,7 +30,5 @@ void* escucharInterrupciones(){
     default:
         break;
     }
-
-
-
+    return NULL;
 }

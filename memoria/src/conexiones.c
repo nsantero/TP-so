@@ -3,6 +3,7 @@
 
 int server_fd = 0;
 
+
 void* atenderPeticionesKernel() {
     while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
@@ -14,6 +15,53 @@ void* atenderPeticionesKernel() {
     }
     return NULL;
 }
+
+
+void* atenderPeticionesCpu() {
+    while (1) {
+        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
+        pthread_t client_thread;
+        int* pclient = malloc(sizeof(int));
+        *pclient = socketCliente;
+        pthread_create(&client_thread, NULL, manejarClienteCpu, pclient);
+        pthread_detach(client_thread);
+    }
+    return NULL;
+}
+
+
+void* manejarClienteCpu(void *arg)
+{
+   int socketCliente = *((int*)arg);
+    free(arg);
+    while(1){
+        pthread_mutex_lock(&mutexSocketCpu);
+        t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+
+        
+        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+
+        switch(paquete->codigo_operacion){
+            case PEDIDO_INSTRUCCION:
+            {   
+                int pid_solicitado;
+                void *stream = paquete->buffer->stream;
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                printf("pedido de instruccion, pid: %d\n", pid_solicitado );
+            }
+            default:
+            {   
+                log_error(loggerMemoria, "Se recibio un operacion de CPU NO valido");
+                break;
+            }
+        }
+        pthread_mutex_unlock(&mutexSocketCpu);
+    }  
+} 
 
 void* manejarClienteKernel(void *arg)
 {
@@ -48,16 +96,19 @@ void* manejarClienteKernel(void *arg)
                 //crear lista con las instrucciones
                 //aniadir a lista de procesos
                 //destruir paquete
-                //ESPERAR MILISEGUNDOS
-                printf("\n");
-                char *primeraInstruccion = list_get(proceso->instrucciones, 0);
-                printf("PRIMERA INSTRUCCION:%s\n", primeraInstruccion);
+                list_add(lista_ProcesosActivos,proceso->pid);
+                printf("se recibio proceso PID:%d\n", proceso->pid);
+                printf("se recibio proceso con path:%s\n", proceso->path);
                 break;
             }
             case FINALIZAR_PROCESO:
-            {
-                //IMPLEMENTAR
-                break;
+            {   
+                int pid_remover;
+                void *stream = paquete->buffer->stream;
+                memcpy(&pid_remover, stream, sizeof(int));
+                //int pid = paquete->buffer->stream;
+                printf("finalizar proceso:%d\n", pid_remover);
+                list_remove(lista_ProcesosActivos, pid_remover);
             }
             default:
             {   
@@ -72,12 +123,13 @@ void* manejarClienteKernel(void *arg)
 }
 
 void cargarInstrucciones(Proceso *proceso, const char *path) {
+    int valorInstruccion = 1;
     FILE *file = fopen(path, "r");
     if (!file) {
         perror("Error opening file");
         return;
     }
-
+    
     proceso->instrucciones = list_create();
 
     char line[256];
@@ -87,10 +139,11 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
 
         Instruccion *instruccion = malloc(sizeof(Instruccion));
         instruccion->instruccion = strdup(line);
-
-        printf("instruccion:%s\n", instruccion->instruccion);
-
+        instruccion->numeroInstruccion = valorInstruccion;
+        printf("INSTRUCCION NRO:%d\n", instruccion->numeroInstruccion);
+        printf("INSTRUCCION:%s\n", instruccion->instruccion);
         list_add(proceso->instrucciones, instruccion->instruccion);
+        valorInstruccion ++;
     }
 
     fclose(file);

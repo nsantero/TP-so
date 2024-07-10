@@ -4,45 +4,55 @@ void decir_hola(char* quien) {
    printf("Hola desde %s!!\n", quien);
 }
 
-int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto)
+int iniciar_servidor(t_log *logger,char* server_name, char* puerto)
 {
-	struct addrinfo hints, *server_info;
-	int socket_servidor, s;
+
+    int socketServidor;
+
+	struct addrinfo hints, *serverInfo;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	s = getaddrinfo(ip, puerto, &hints, &server_info);
-	if(s!=0){
+	int status = getaddrinfo(NULL, puerto, &hints, &serverInfo);
+	if(status){
+		fprintf(stderr, "Error en getaddrinfo: %s\n", gai_strerror(status)); // cargar al logger
+        exit(EXIT_FAILURE);
+	}
+
+	// Creamos el socket de escucha del servidor
+	socketServidor = socket(serverInfo->ai_family,
+	 						serverInfo->ai_socktype,
+	  						serverInfo->ai_protocol);
+
+	if(socketServidor  == -1){
+		close(socketServidor);
+		exit(EXIT_FAILURE);
+	}
+						
+	// Asociamos el socket a un puerto
+
+	if(bind(socketServidor, serverInfo->ai_addr,serverInfo->ai_addrlen) == -1){
+		close(socketServidor);
 		exit(EXIT_FAILURE);
 	}
 
-	socket_servidor = socket(server_info->ai_family,
-	                    	 server_info->ai_socktype,
-	                    	 server_info->ai_protocol);
+	// Escuchamos las conexiones entrantes
 
-	if(socket_servidor == -1){
-		close(socket_servidor);
+	if(listen(socketServidor,SOMAXCONN) == -1){
+		close(socketServidor);
 		exit(EXIT_FAILURE);
 	}
+	
+	freeaddrinfo(serverInfo);
 
-	if(bind(socket_servidor, server_info->ai_addr, server_info->ai_addrlen) == -1){
-		close(socket_servidor);
-		exit(EXIT_FAILURE);
-	}
-
-	if(listen(socket_servidor, SOMAXCONN) == -1){
-		close(socket_servidor);
-		exit(EXIT_FAILURE);
-	}
-
-	freeaddrinfo(server_info);
-  //  log_info(logger, ANSI_COLOR_GREEN "Escuchando en %s", nombre);
 	log_info(logger, "Servidor iniciado");
+	printf("Servidor iniciado %s\n", server_name );
 
-	return socket_servidor;
+	return socketServidor;
+
 }
 int iniciarServidorV2(t_log *logger, char* puerto)
 {
@@ -89,6 +99,7 @@ int iniciarServidorV2(t_log *logger, char* puerto)
 	freeaddrinfo(serverInfo);
 
 	log_info(logger, "Servidor iniciado");
+	printf("Servidor iniciado\n" );
 
 	return socketServidor;
 
@@ -181,11 +192,13 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
     {
         perror("Error al conectarse");
         log_error(logger, "Error al conectarme (a %s)\n", server_name);
+		printf("Conexion incorrecta con: %s\n", server_name);
         freeaddrinfo(server_info);
         return 0;
     }
     else
         log_info(logger,ANSI_COLOR_GREEN "Me conecte en %s:%s (a %s)\n", ip, puerto, server_name);
+		printf("Conexion correcta con: %s\n", server_name);
 
     freeaddrinfo(server_info);
 
