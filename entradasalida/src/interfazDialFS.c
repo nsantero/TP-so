@@ -1,5 +1,5 @@
 #include <interfazDialFS.h>
-
+#include <unistd.h>
 
 char* path_bitmap;
 char* path_bloques;// estas se usan solo en un hilo asi q no necesitan semaforos
@@ -203,7 +203,7 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
     off_t cantbloquesActuales=(tamanioEnbytesActual/8);
      //caso hay q achicar el archivo, se liberan los bloques
         
-    if(cantbloquesActuales>cantBloquesNecesarios){ //si la cant de bloquesActuales es igual(no puede ser menor) no se debe liberar ningun bloque
+    if(cantbloquesActuales>cantBloquesNecesarios){ //caso, necesita menos bloques
         
         for(cantbloquesActuales;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
             liberarBloque(cantbloquesActuales);            
@@ -211,7 +211,7 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
         cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
 
 
-    }else if(cantbloquesActuales==cantBloquesNecesarios){
+    }else if(cantbloquesActuales==cantBloquesNecesarios){//caso mismos bloques, puede variar la cant de bytes
         cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
     }//caso, no se necesita achicar ni agrandar
     else{//caso se debe agrandar el archivo
@@ -246,7 +246,12 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
              * 
              * 
             */
-            compactarBloquesFSParaQEntreElArchivo(nombreArchivo,&bloqueInicial,tamanioEnbytesActual);
+            compactarBloquesFSParaQEntreElArchivo(nombreArchivo,bloqueInicial,tamanioEnbytesActual);
+            obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
+            for(int i=1;i<=bloquesNuevosNecesarios;i++){
+                ocuparBloque(bloqueInicial+cantbloquesActuales+i);
+            }
+            cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio); 
 
         }
 
@@ -255,10 +260,62 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
 
 }
 void escribirEnArchivo(char* nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+    
+    off_t bloqueInicialArchivo;
+    int tamanioArchivo;
+    obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
+    if(tamanioArchivo<(punteroArchivo+tamanio)){
+        //mensaje de error a kernel no entra en el archivo
+    }
+    //solicitar info a memoria
+    //recivir info de memoria
+    //recivis un 
+    int bytes;//q tiene q ser igual a tamanio
+    //y un
+    void* buffer=malloc(bytes);//guarda las cosas
+    if(bytes!=tamanio){
+        //error con el mensaje
+    }
+
+    //abro el FS
+    int fdBl=open(path_bloques,O_RDWR);
+    struct stat sbBl;
+    fstat(fdBl,&sbBl);
+    char *addrBloques;
+    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+    //ejecuto tarea
+    memcpy(addrBloques+punteroArchivo,buffer,tamanio);
+    //cierro todo
+    munmap(addrBloques,sbBl.st_size);
+    close(fdBl);
 
 }
 void leerDelArchivo(char *nombreArchivo,uint32_t direcion,uint8_t tamanio,uint32_t punteroArchivo){
+    
+    off_t bloqueInicialArchivo;
+    int tamanioArchivo;
+    obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
+    if(tamanioArchivo<(punteroArchivo+tamanio)){
+        //mensaje de error a kernel lee fuera del archivo
+    }
 
+    //abro el FS
+    int fdBl=open(path_bloques,O_RDWR);
+    struct stat sbBl;
+    fstat(fdBl,&sbBl);
+    char *addrBloques;
+    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+    //ejecuto tarea
+    void* buffer=malloc(tamanio);
+    memcpy(buffer,addrBloques+punteroArchivo,tamanio);
+    //cierro todo
+    munmap(addrBloques,sbBl.st_size);
+    close(fdBl);
+    //enviar solicitud a memoria
+
+
+
+    free(buffer);
 }
 
 //TODO estas dos no tienen en cuenta q el ultimo byte del bitmap puede q tenga hasta 7 bits de mas, buscar bloque libre tmp
@@ -492,7 +549,7 @@ void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
 
 }
 
-void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetInicialDelArchivo,int tamanioEnbytesActual){ 
+void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetInicialDelArchivo,int tamanioEnbytesActual){ 
     off_t offsetAux;
     char* nombreAMover;
     int tamanioEnBytesDelArchivo;
@@ -507,11 +564,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetI
     t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
 //abro el FS
 
-    int fdBl=open(path_bloques,O_RDWR);
-    struct stat sbBl;
-    fstat(fdBl,&sbBl);
-    char *addrBloques;
-    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+   
 
 //ejecuto tarea LA PUTA MADRE, ACA PIERDO TODAS LAS REFERENCIAS NO SIRVE HAY Q HACERLO POR ARCHIVO :)))))))
     //mueve todos los archivos anteriores y el mismo archivo al principio del archivo
@@ -553,14 +606,13 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetI
     }
 
 
-
+    
 
 
 
 
 //cierro todo
-    munmap(addrBloques,sbBl.st_size);
-    close(fdBl);
+  
 
     bitarray_destroy(bitmapAddr);
 
@@ -568,6 +620,8 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t *offsetI
     munmap(addr,sb.st_size);
     close(fd);
 
+//espera pedida en el enunciado
+    usleep(interfaz_DialFS.retrasoCompactacion*1000);
 }
 
 char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
