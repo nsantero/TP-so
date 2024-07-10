@@ -239,13 +239,7 @@ void truncarArchivo(char* nombreArchivo,uint8_t tamanio){
 
 
         }else{// caso, se debe reorganizar el FS para acomodar el archivo
-            //TODO aca hay q hacer la funcion q reacomoda todo y deja este ultimo al final o no se como mierda se hace
-            /**
-             * compactar(); LA FUNCION ESTA ENCIMA DEBERIA TENER CUIDADO DE COMO DEJA AL ARCHIVO Q QUEREMOS ESCRIBIR
-             * DEBERIA QUEDAR AL FINAL
-             * 
-             * 
-            */
+            
             compactarBloquesFSParaQEntreElArchivo(nombreArchivo,bloqueInicial,tamanioEnbytesActual);
             obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
@@ -390,7 +384,7 @@ int existenBloquesDisponibles(int bloquesNecesarios){
  * busca el primer bloque vacio en el FS
  * devuelve -1 si no hay lugar
 */
-
+//TODO tener cuidad con el tamaño del bitmap
 off_t buscarBloqueLibre(){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
