@@ -108,7 +108,7 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&pid_remover, stream, sizeof(int));
                 //int pid = paquete->buffer->stream;
                 printf("finalizar proceso:%d\n", pid_remover);
-                list_remove(lista_ProcesosActivos, pid_remover);
+                list_remove_element(lista_ProcesosActivos, pid_remover);
             }
             default:
             {   

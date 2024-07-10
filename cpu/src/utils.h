@@ -34,7 +34,6 @@ extern char* server_name_interrupt;
 extern int interrumpir;
 extern t_instruccion instruccionActual;
 
-
 void cargar_configuracion(char* archivo_configuracion);
 int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
 void procesar_conexion_interrupt(void* void_args);

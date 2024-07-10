@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
     enviar_mensaje("soy Kernel", cpu_dispatch_fd);
 
 	//levanto servidor
-	server_fd = iniciar_servidor(loggerKernel,server_name ,IP, configuracionKernel.PUERTO_ESCUCHA);
+    char * server_name = "Kernel";
+	server_fd = iniciar_servidor(loggerKernel,server_name, configuracionKernel.PUERTO_ESCUCHA);
 	log_info(loggerKernel, "Servidor listo para recibir al cliente");
 
     pthread_t hiloConsola, procesosNew, procesosReady;

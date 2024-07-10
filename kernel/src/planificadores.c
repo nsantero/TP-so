@@ -104,7 +104,7 @@ void *manejadorDeQuantum(void* quantum){
     return NULL;
 }
 
-void comportamientoVRR(){
+/*void comportamientoVRR(){
     tiempoVRR = temporal_create();
 
     comportamientoRR();
@@ -112,7 +112,7 @@ void comportamientoVRR(){
     tiempoEjecutando = temporal_gettime(tiempoVRR);
     temporal_destroy(tiempoVRR);
 
-}
+}*/
 
 void cambiarAReady(t_list* cola){
     PCB *proceso = list_remove(cola, 0);
