@@ -12,15 +12,15 @@ int main(int argc, char* argv[]) {
     armarConfig();
 
 	//me conecto a memoria
-	memoria_fd = crear_conexion(loggerCpu,"CPU",config_valores.IP_MEMORIA, config_valores.PUERTO_MEMORIA);
+	memoria_fd = crear_conexion(loggerCpu,"CPU",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
 
     enviar_mensaje("Hola, soy CPU!", memoria_fd);
 	
 	// levanto el servidor dispatch e interrupt
-	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch ,IP, config_valores.PUERTO_ESCUCHA_DISPATCH);
-    fd_cpu_interrupt = iniciar_servidor(loggerCpu, server_name_interrupt ,IP, config_valores.PUERTO_ESCUCHA_INTERRUPT);
-	log_info(logger, "Servidor listo para recibir al cliente");
+	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch ,IP, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
+    fd_cpu_interrupt = iniciar_servidor(loggerCpu, server_name_interrupt ,IP, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
+	log_info(loggerCpu, "Servidor listo para recibir al cliente");
 
     //Proceso proceso;
 
@@ -54,7 +54,7 @@ void paquete_memoria_pedido_instruccion(int PID_paquete){
 
 void* atenderPeticionesKernel() {
     while (1) {
-        int socketCliente = esperarClienteV2(logger, fd_cpu_dispatch);
+        int socketCliente = esperarClienteV2(loggerCpu, fd_cpu_dispatch);
         pthread_t client_thread;
         int* pclient = malloc(sizeof(int));
         *pclient = socketCliente;
@@ -82,37 +82,37 @@ void* manejarClienteKernel(void *arg)
                 Proceso *proceso = malloc(sizeof(Proceso));
                 void *stream = paquete->buffer->stream;
                 
-                memcpy(&proceso.PID, stream, sizeof(int));
+                memcpy(&proceso->PID, stream, sizeof(int));
                 stream += sizeof(int);
-                memcpy(&proceso.cpuRegisters.PC, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.AX, stream, sizeof(uint8_t));
+                memcpy(&proceso->cpuRegisters.AX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso.cpuRegisters.BX, stream, sizeof(uint8_t));
+                memcpy(&proceso->cpuRegisters.BX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso.cpuRegisters.CX, stream, sizeof(uint8_t));
+                memcpy(&proceso->cpuRegisters.CX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso.cpuRegisters.DX, stream, sizeof(uint8_t));
+                memcpy(&proceso->cpuRegisters.DX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(&proceso.cpuRegisters.EAX, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.EAX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.EBX, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.EBX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.ECX, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.ECX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.EDX, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.EDX, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.SI, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&proceso.cpuRegisters.DI, stream, sizeof(uint32_t));
+                memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
 
-                paquete_memoria_pedido_instruccion(proceso.PID);
-                printf("se recibio proceso :%s\n", proceso->PID);
+                paquete_memoria_pedido_instruccion(proceso->PID);
+                printf("se recibio proceso :%d\n", proceso->PID);
                 break;
             }
             default:
             {   
-                log_error(logger, "Se recibio un operacion de kernel NO valido");
+                log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
@@ -162,17 +162,17 @@ Proceso recibirProcesoAEjecutar(Proceso proceso){
 
 
 
-
+/*
 void* escuchar_dispatch(void* arg) {
     while (1) {
-        int socket_cliente = esperar_cliente(logger, "CPU Dispatch", fd_cpu_dispatch);
+        int socket_cliente = esperar_cliente(loggerCpu, "CPU Dispatch", fd_cpu_dispatch);
         if (socket_cliente != -1) {
             recibir_proceso(socket_cliente);
         }
     }
     return NULL;
 }
-
+*/
 
 
 /*

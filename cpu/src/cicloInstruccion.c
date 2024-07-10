@@ -4,6 +4,7 @@
 extern int memoria_fd; 
 extern int program_counter; 
 
+/*
 void fetch() {
     char mensaje[50]; 
 
@@ -130,7 +131,7 @@ void decode_execute() {
         }
 }
 
-void execute(Instruccion instruccionActual) {
+void execute(t_instruccion instruccionActual) {
     if (strcmp(instruccionActual.instruccion, "MOV") == 0) {
         // Implementar lógica para MOV
     } else if (strcmp(instruccionActual.instruccion, "ADD") == 0) {
@@ -173,10 +174,10 @@ void execute(Instruccion instruccionActual) {
 void checkInterrupt(int pid, int conexionDispatch) {
     if (hayInterrupcionParaPID(pid)) {
         // Preparar el Contexto de Ejecución actualizado
-        ContextoEjecucion contexto = obtenerContextoActualizado();
+       // ContextoEjecucion contexto = obtenerContextoActualizado();
 
         // Enviar el contexto al Kernel a través de la conexión de dispatch
-        enviarContexto(conexionDispatch, contexto);
+        //enviarContexto(conexionDispatch, contexto);
 
         // Log para indicar que se ha manejado una interrupción
         printf("Interrupción manejada para el PID %d, contexto enviado al Kernel.\n", pid);
@@ -188,7 +189,7 @@ void checkInterrupt(int pid, int conexionDispatch) {
         printf("No hay interrupción para el PID %d, continuando ejecución.\n", pid);
     }
 }
-
+*/
 void recv_instruccion(int memoria_fd){
 
 	t_list *paquete = recibir_paquete(memoria_fd);
@@ -196,7 +197,7 @@ void recv_instruccion(int memoria_fd){
 	// Obtener el path del paquete
 	char *instruccion_cadena = (char *)list_get(paquete, 0);
 
-	log_info(logger, "Recibi la instruccion: %s", instruccion_cadena ); 
+	log_info(loggerCpu, "Recibi la instruccion: %s", instruccion_cadena ); 
 
 	char **palabras = string_split(instruccion_cadena , " ");
     

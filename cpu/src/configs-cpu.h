@@ -1,9 +1,8 @@
-#ifndef CONFIGS-CPU_H
-#define CONFIGS-CPU_H
+#ifndef CONFIGS_CPU_H
+#define CONFIGS_CPU_H
 
 #include <commons/config.h>
 #include <commons/log.h>
-
 
 typedef struct {
 

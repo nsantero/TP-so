@@ -1,5 +1,4 @@
 #include "../../kernel/src/kernel.h"
-#include <configs-cpu.h>
 
 typedef struct {
     int PID;
