@@ -48,8 +48,15 @@ void* manejarClienteKernel(void *arg)
                 //crear lista con las instrucciones
                 //aniadir a lista de procesos
                 //destruir paquete
-                printf("se recibio proceso PID:%d\n", proceso->pid);
-                printf("se recibio proceso con path:%s\n", proceso->path);
+                //ESPERAR MILISEGUNDOS
+                printf("\n");
+                char *primeraInstruccion = list_get(proceso->instrucciones, 0);
+                printf("PRIMERA INSTRUCCION:%s\n", primeraInstruccion);
+                break;
+            }
+            case FINALIZAR_PROCESO:
+            {
+                //IMPLEMENTAR
                 break;
             }
             default:
@@ -59,7 +66,9 @@ void* manejarClienteKernel(void *arg)
             }
         }
         pthread_mutex_unlock(&mutexSocketKernel);
-    }  
+    }
+    close(server_fd);
+    close(socketCliente);
 }
 
 void cargarInstrucciones(Proceso *proceso, const char *path) {
@@ -79,7 +88,9 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
         Instruccion *instruccion = malloc(sizeof(Instruccion));
         instruccion->instruccion = strdup(line);
 
-        list_add(proceso->instrucciones, instruccion);
+        printf("instruccion:%s\n", instruccion->instruccion);
+
+        list_add(proceso->instrucciones, instruccion->instruccion);
     }
 
     fclose(file);

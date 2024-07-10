@@ -11,6 +11,7 @@ typedef enum
     MENSAJE,
     PEDIDO_INSTRUCCION,
     CREAR_PROCESO,
+    FINALIZAR_PROCESO,
     MOV_IN,
     SET,
     SUM,

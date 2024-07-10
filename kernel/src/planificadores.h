@@ -5,6 +5,7 @@
 #include <semaphore.h>
 #include <kernel.h>
 #include <semaforos.h>
+#include <commons/temporal.h>
 
 //HILOS
 //pthread_t hilo_largo_plazo;
@@ -19,6 +20,9 @@ void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
 void comportamientoRR();
 void paquete_CPU_ejecutar_proceso(PCB* proceso);
+
+t_temporal* tiempoVRR;
+int64_t tiempoEjecutando;
 
 extern void inicializar_sem_planificadores();
 extern void planificador_largo_plazo();
