@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 	// Conecto kernel con cpu y memoria
 	cpu_dispatch_fd = crear_conexion(loggerKernel,"CPU_DISPATCH",configuracionKernel.IP_CPU,configuracionKernel.PUERTO_CPU_DISPATCH);
-	//log_info(logger, "Me conecte a cpu (dispatch)");
+	log_info(loggerKernel, "Me conecte a cpu (dispatch)");
     cpu_interrupt_fd = crear_conexion(loggerKernel,"CPU_INTERRUPT",configuracionKernel.IP_CPU,configuracionKernel.PUERTO_CPU_INTERRUPT);
 	log_info(loggerKernel, "Me conecte a cpu (interrupt)");
     memoria_fd = crear_conexion(loggerKernel,"MEMORIA",configuracionKernel.IP_MEMORIA,configuracionKernel.PUERTO_MEMORIA);

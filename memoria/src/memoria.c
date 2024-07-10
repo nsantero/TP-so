@@ -43,7 +43,7 @@ void destruirProcesoEnMemoria(int pid){
 int main(int argc, char *argv[])
 {
     
-    printf("Memoria%d\n");
+    printf("Memoria\n");
     iniciarLoggerMemoria();
 	armarConfigMemoria();
     crearListas();

@@ -36,7 +36,7 @@
 
 
 void decir_hola(char* quien);
-int iniciar_servidor(t_log *logger,char* nombre, char *ip, char* puerto);
+int iniciar_servidor(t_log *logger,char* nombre, char* puerto);
 int iniciarServidorV2(t_log *logger, char* puerto);
 
 int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puerto);

@@ -15,11 +15,10 @@ int main(int argc, char* argv[]) {
 	memoria_fd = crear_conexion(loggerCpu,"CPU",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
 
-    enviar_mensaje("Hola, soy CPU!", memoria_fd);
-	
+    //enviar_mensaje("Hola, soy CPU!", memoria_fd);
 	// levanto el servidor dispatch e interrupt
-	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch ,IP, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
-    fd_cpu_interrupt = iniciar_servidor(loggerCpu, server_name_interrupt ,IP, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
+	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
+    fd_cpu_interrupt = iniciar_servidor(loggerCpu,server_name_interrupt, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
 	log_info(loggerCpu, "Servidor listo para recibir al cliente");
 
     //Proceso proceso;
@@ -36,6 +35,10 @@ int main(int argc, char* argv[]) {
 
     pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
     //hilo de ejecucion 
+    while(1){
+
+    }
+
     return 0;
 }
 
@@ -77,7 +80,8 @@ void* manejarClienteKernel(void *arg)
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
 
         switch(paquete->codigo_operacion){
-            case CREAR_PROCESO:
+            case EJECUTAR_PROCESO:
+            //ejecutar proceso
             {
                 Proceso *proceso = malloc(sizeof(Proceso));
                 void *stream = paquete->buffer->stream;

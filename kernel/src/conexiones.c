@@ -2,8 +2,8 @@
 #include <configs.h>
 
 int memoria_fd;
-int cpu_dispatch_fd;
-int cpu_interrupt_fd;
+int cpu_dispatch_fd=0;
+int cpu_interrupt_fd=0;
 int server_fd;
 char* server_name = "kernel";
 

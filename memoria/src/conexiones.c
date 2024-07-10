@@ -48,7 +48,10 @@ void* manejarClienteCpu(void *arg)
         switch(paquete->codigo_operacion){
             case PEDIDO_INSTRUCCION:
             {   
-                
+                int pid_solicitado;
+                void *stream = paquete->buffer->stream;
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                printf("pedido de instruccion, pid: %d\n", pid_solicitado );
             }
             default:
             {   
@@ -137,7 +140,7 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
         instruccion->numeroInstruccion = valorInstruccion;
         printf("INSTRUCCION NRO:%d\n", instruccion->numeroInstruccion);
         printf("INSTRUCCION:%s\n", instruccion->instruccion);
-        list_add(proceso->instrucciones, instruccion);
+        list_add(proceso->instrucciones, instruccion->instruccion);
         valorInstruccion ++;
     }
 
