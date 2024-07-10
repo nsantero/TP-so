@@ -34,14 +34,7 @@ void crearInterfaces(){
 }
 
 
-char* leer_texto_ingresado() {
-    char *texto = NULL;
-    size_t lenght = 0;
-    printf("Ingrese el texto deseado: ");
-    getline(&texto, &lenght, stdin);
-    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
-    return texto;
-}
+
 
 uint32_t recibir_direccion_fisica(){
 
