@@ -61,6 +61,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 
 	texto_leido = leer_texto_ingresado(peticion->tamanio);
 	agregar_entero_a_paquete8(paquete_entrada,peticion->tamanio);
+    agregar_entero_a_paquete32(paquete_entrada,peticion->direccion);
     agregar_string_a_paquete(paquete_entrada,texto_leido); 
 
 	
