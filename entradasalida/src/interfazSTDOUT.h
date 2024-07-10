@@ -7,7 +7,7 @@
 #include <entradasalida.h>
 #include <pthread.h>
 #include <semaphore.h>
-
+#include <loggersIO.h>
 
 extern Interfaz interfaz_STDOUT;
 extern t_list * cola_procesos_STDOUT;

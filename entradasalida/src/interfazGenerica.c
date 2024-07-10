@@ -22,7 +22,7 @@ void* manejo_interfaz_generica(){
         peticion_ig = list_remove(cola_procesos_ig,0);
         pthread_mutex_unlock(&mutex_cola_ig);
 
-        manejarPeticionInterfazGenerica(peticion_ig->unidades_de_trabajo, interfaz_generica);
+        manejarPeticionInterfazGenerica(peticion_ig->unidades_de_trabajo, interfaz_generica,peticion_ig->PID);
         //Avisar a kernel que termino 
 
 
@@ -55,8 +55,8 @@ Interfaz generarNuevaInterfazGenerica(char* nombre,char* pathConfiguracion){
     return aDevolver;
 }
 
-void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz){
+void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz,int PID){
 
     usleep(unidadesAEsperar*interfaz.tiempoUnidadTrabajo*1000);
-
+    log_info(loggerIO,"PID: %d - Operacion: IO_GEN_SLEEP",PID);
 }

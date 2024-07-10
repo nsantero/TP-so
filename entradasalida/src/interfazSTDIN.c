@@ -19,7 +19,7 @@ void* manejo_interfaz_STDIN(){
         peticion_STDIN = list_remove(cola_procesos_STDIN,0);
         pthread_mutex_unlock(&mutex_cola_STDIN);
 
-        EJECUTAR_INTERFAZ_STDIN();
+        EJECUTAR_INTERFAZ_STDIN(peticion_STDIN);
 
     }
 
@@ -50,7 +50,7 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,char* pathConfiguracion){
     return aDevolver;
 }
 
-void EJECUTAR_INTERFAZ_STDIN(){
+void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	char* texto_leido = NULL;
 
 	t_list* paquete_kernel = recibir_paquete(kernel_fd);//creo que esto deberia ir en el main con como esta pensado ahora TODO
@@ -69,6 +69,8 @@ void EJECUTAR_INTERFAZ_STDIN(){
 	free(paquete_entrada);
 	free(paquete_kernel);
     free(texto_leido);
+
+    log_info(loggerIO,"PID: %d - Operacion: IO_STDIN_READ",peticion->PID);
     
 }
 

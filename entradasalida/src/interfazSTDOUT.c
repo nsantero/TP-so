@@ -19,7 +19,7 @@ void* manejo_interfaz_STDOUT(){
         peticion_STDOUT = list_remove(cola_procesos_STDOUT,0);
         pthread_mutex_unlock(&mutex_cola_STDOUT);
 
-        EJECUTAR_INTERFAZ_STDOUT();
+        EJECUTAR_INTERFAZ_STDOUT(peticion_STDOUT);
 
     }
 
@@ -50,7 +50,7 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,char* pathConfiguracion){
     return aDevolver;
 }
 
-void EJECUTAR_INTERFAZ_STDOUT(){
+void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 	
     uint32_t direccion_ingresada = recibir_direccion_fisica();
     t_paquete* paquete_direccion = crear_paquete(IO_STDOUT_WRITE);
@@ -70,4 +70,7 @@ void EJECUTAR_INTERFAZ_STDOUT(){
     free(paquete_direccion);
     free(paquete_memoria);
     free(contenido_memoria);
+
+
+    log_info(loggerIO,"PID: %d - Operacion: IO_STDOUT_WRITE",peticion->PID);
 }

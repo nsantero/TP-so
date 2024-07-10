@@ -7,6 +7,7 @@
 #include <commons/config.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <loggersIO.h>
 
 extern Interfaz interfaz_generica;
 extern t_list * cola_procesos_ig;
