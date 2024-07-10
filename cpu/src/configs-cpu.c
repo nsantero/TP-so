@@ -9,7 +9,7 @@ void armarConfig(){
     configuracionCpu.IP_MEMORIA = config_get_string_value(configCpu, "IP_MEMORIA");
     configuracionCpu.PUERTO_MEMORIA = config_get_string_value(configCpu, "PUERTO_MEMORIA");
     configuracionCpu.PUERTO_ESCUCHA_DISPATCH = config_get_string_value(configCpu, "PUERTO_ESCUCHA_DISPATCH");
-    configuracionCpu.PUERTO_ESCUCHA_INTERRUPT = config_get_string_value(configCpu, "PUERTO_ESCUCHA_INTERRUPT ");
+    configuracionCpu.PUERTO_ESCUCHA_INTERRUPT = config_get_string_value(configCpu, "PUERTO_ESCUCHA_INTERRUPT");
     configuracionCpu.CANTIDAD_ENTRADAS_TLB = config_get_int_value(configCpu, "CANTIDAD_ENTRADAS_TLB");
     configuracionCpu.ALGORITMO_TLB = config_get_string_value(configCpu, "ALGORITMO_TLB");
 
