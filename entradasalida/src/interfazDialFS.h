@@ -20,6 +20,7 @@
 #include <dirent.h>
 #include <shared.h>
 #include <entradasalida.h>
+#include <loggersIO.h>
 
 
 extern Interfaz interfaz_DialFS;

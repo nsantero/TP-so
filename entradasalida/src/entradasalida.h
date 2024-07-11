@@ -35,7 +35,6 @@ typedef struct
 } entradasalida_config;
 
 entradasalida_config config_valores;
-t_log* logger;
 int kernel_fd;
 int memoria_fd;
 

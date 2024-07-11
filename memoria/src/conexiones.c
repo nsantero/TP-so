@@ -124,6 +124,14 @@ void* manejarClienteKernel(void *arg)
             {
                 //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
             }
+            case  IO_STDIN_READ :
+            {
+                //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
+            }
+            case  IO_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+            }
             default:
             {   
                 log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");

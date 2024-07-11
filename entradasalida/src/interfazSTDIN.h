@@ -8,6 +8,7 @@
 #include <semaphore.h>
 #include <shared.h>
 #include <entradasalida.h>
+#include <loggersIO.h>
 
 extern Interfaz interfaz_STDIN;
 extern t_list * cola_procesos_STDIN;

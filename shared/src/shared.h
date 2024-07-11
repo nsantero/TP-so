@@ -53,7 +53,7 @@ char* recibir_mensaje(int socket_cliente);
 int recibir_operacion(int socket_cliente);
 
 //int recv_instruccion(int fd_modulo, char* path, int pc);
-t_list* recibir_paquete(int socket_cliente);
+t_list* recibir_paquete(int socket_cliente); //esta funcion creo q esta muy mal -nico
 
 
 
