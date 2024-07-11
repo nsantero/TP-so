@@ -94,7 +94,7 @@ void comportamientoRR(){
     PCB* pcbRunnign=list_get(lista_RUNNING, 0);
 
     pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
-    //paquete_CPU_ejecutar_proceso(pcbRunnign);
+    paquete_CPU_ejecutar_proceso(pcbRunnign);
     pthread_join(hiloQuantum, NULL);
     //MANDAR INTERRUPT A CPU
 }

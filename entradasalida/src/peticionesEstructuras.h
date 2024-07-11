@@ -8,6 +8,7 @@ typedef struct
     uint32_t direccion;
     uint8_t tamanio;
     int PID;
+    char *nombre_interfaz;
 }Peticion_Interfaz_STDOUT;
 
 typedef struct
@@ -15,13 +16,14 @@ typedef struct
     uint32_t direccion;
     uint8_t tamanio;
     int PID;
+    char *nombre_interfaz;
 }Peticion_Interfaz_STDIN;
 
 typedef struct
 {
    int unidades_de_trabajo;
    int PID;
-
+   char *nombre_interfaz;
 } Peticion_Interfaz_Generica;
 
 typedef enum {
@@ -41,8 +43,15 @@ typedef struct
     uint8_t tamanio;
     uint32_t punteroArchivo;
     int PID;
-
+    char *nombre_interfaz;
 }Peticion_Interfaz_DialFS;
+
+typedef enum {
+    T_GENERICA,
+    T_STDIN,
+    T_STDOUT,
+    T_DFS,
+}Tipos_Interfaz;
 
 
 

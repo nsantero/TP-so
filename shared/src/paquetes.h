@@ -27,6 +27,8 @@ typedef enum
     PEDIDO_INSTRUCCION,
     
     //KERNEL IO
+    PRESENCIA_INTERFAZ_GENERICA,
+    TERMINO_INTERFAZ,
     MOV_IN,
     SET,
     SUM,
@@ -43,7 +45,7 @@ typedef enum
     IO_GEN_SLEEP,
     IO_STDIN_READ,
     IO_STDOUT_WRITE,
-    
+    AGREGAR_INTERFACES,
     DATOS_DEL_PROCESO,
     DESBLOQUEAR_PROCESO_POR_IO,
 } op_code;

@@ -6,6 +6,9 @@ int cpu_dispatch_fd=0;
 int cpu_interrupt_fd=0;
 int server_fd;
 char* server_name = "kernel";
+int socketCliente;
+
+t_list *interfacesConectadas;
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
@@ -18,12 +21,11 @@ void* conexionesDispatch()
 		t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
-        
         recv(cpu_dispatch_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(cpu_dispatch_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(cpu_dispatch_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-
+		void *stream = paquete->buffer->stream;
 		switch (paquete->codigo_operacion)
 		{
 			case PROCESO_EXIT:
@@ -48,10 +50,39 @@ void* conexionesDispatch()
 			}
 			case PROCESO_WAIT:
 			{
+				
 				break;
 			}
 			case PROCESO_SIGNAL:
 			{
+				break;
+			}
+			case IO_GEN_SLEEP:
+			{
+				Peticion_Interfaz_Generica interfazGenerica;
+
+				PCB* proceso;
+
+				int pathLength;
+
+				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(int));
+				stream += sizeof(int);
+				memcpy(&interfazGenerica.PID, stream, sizeof(int));
+				stream += sizeof(int);
+				memcpy(&pathLength, stream, sizeof(int));
+				interfazGenerica.nombre_interfaz = malloc(pathLength);
+				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
+
+				//MUTEX
+				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
+					enviar_paquete(paquete, socketCliente);
+				}
+				else{
+					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+					paquete_memoria_finalizar_proceso(proceso->PID);
+					eliminarProceso(proceso); //TODO
+				}
+				
 				break;
 			}
 				
@@ -62,7 +93,81 @@ void* conexionesDispatch()
 			}
 			eliminar_paquete(paquete);
 		}
+	}
 }
+
+int existeInterfaz(char *nombre){
+	//mutex lista
+	Interfaces_conectadas_kernel *interfazBuffer;
+	for (int i = 0; i < listsize(interfacesConectadas); i++)
+	{
+		interfazBuffer=list_get(interfacesConectadas, i);
+		if(!strcmp(interfazBuffer->nombre, nombre)){
+			return 1;
+		}
+
+	}
+	return 0;
+}
+
+void* atenderPeticionesIO() {
+    while (1) {
+        int socketCliente = esperarClienteV2(loggerKernel, server_fd);
+        pthread_t client_thread;
+        int* pclient = malloc(sizeof(int));
+        *pclient = socketCliente;
+        pthread_create(&client_thread, NULL, manejarClienteIO, pclient);
+        pthread_detach(client_thread);
+    }
+    return NULL;
+}
+
+void* manejarClienteIO(void *arg)
+{
+    int socketCliente = *((int*)arg);
+    free(arg);
+    while(1){
+        t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+
+        
+        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+		void *stream = paquete->buffer->stream;
+		switch(paquete->codigo_operacion){
+        	case AGREGAR_INTERFACES:
+            {
+				Interfaces_conectadas_kernel *interfazBuffer;
+				int cantidadDeInterfaces;
+				int charTam;
+				memcpy(&charTam, stream, sizeof(int));
+				stream += sizeof(int);
+				interfazBuffer->nombre = malloc(charTam);
+				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
+				stream += charTam;
+				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
+
+				interfazBuffer->ocupada = 0;
+				interfazBuffer->solicitudesEnCola = 0;
+				interfazBuffer->pidActual = NULL;
+
+				list_add(interfacesConectadas, interfazBuffer);
+
+				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
+				
+				break;
+			}
+			case TERMINO_INTERFAZ:
+			{
+				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+			}
+		}
+	}
+}
+
+
 
 /*static void procesar_conexion(void *void_args) {
 	int *args = (int*) void_args;

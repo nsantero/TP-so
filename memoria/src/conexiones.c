@@ -16,52 +16,6 @@ void* atenderPeticionesKernel() {
     return NULL;
 }
 
-
-/*void* atenderPeticionesCpu() {
-    while (1) {
-        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
-        pthread_t client_thread;
-        int* pclient = malloc(sizeof(int));
-        *pclient = socketCliente;
-        pthread_create(&client_thread, NULL, manejarClienteCpu, pclient);
-        pthread_detach(client_thread);
-    }
-    return NULL;
-}
-
-
-void* manejarClienteCpu(void *arg)
-{
-   int socketCliente = *((int*)arg);
-    free(arg);
-    while(1){
-        t_paquete* paquete = malloc(sizeof(t_paquete));
-        paquete->buffer = malloc(sizeof(t_buffer));
-
-        
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-
-        switch(paquete->codigo_operacion){
-            case PEDIDO_INSTRUCCION:
-            {   
-                int pid_solicitado;
-                void *stream = paquete->buffer->stream;
-                memcpy(&pid_solicitado, stream, sizeof(int));
-                printf("pedido de instruccion, pid: %d\n", pid_solicitado );
-                break;
-            }
-            default:
-            {   
-                log_error(loggerMemoria, "Se recibio un operacion de CPU NO valido");
-                break;
-            }
-        }
-    }  
-} */
-
 void* manejarClienteKernel(void *arg)
 {
     int socketCliente = *((int*)arg);
