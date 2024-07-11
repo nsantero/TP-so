@@ -2,7 +2,7 @@
 #define INTEFAZ_GENERICA_H
 
 
-#include <stdint.h>
+#include <peticionesEstructuras.h>
 #include <tiposInterfaces.h>
 #include <commons/config.h>
 #include <pthread.h>
@@ -14,12 +14,6 @@ extern t_list * cola_procesos_ig;
 extern pthread_mutex_t mutex_cola_ig;
 extern sem_t sem_hay_en_cola_ig;
 
-typedef struct
-{
-   int unidades_de_trabajo;
-   int PID;
-
-} Peticion_Interfaz_Generica;
 
 /**
  * @fn generarNuevaInterfazGenerica
