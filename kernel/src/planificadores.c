@@ -5,6 +5,9 @@
 
 //INICIALIZAR PLANIFICADORES
 
+t_temporal* tiempoVRR;
+int64_t tiempoEjecutando;
+
 int totalProcesosEnSistema(){
     pthread_mutex_lock(&mutexListaReady);
     pthread_mutex_lock(&mutexListaBlocked);
@@ -104,7 +107,7 @@ void *manejadorDeQuantum(void* quantum){
     return NULL;
 }
 
-/*void comportamientoVRR(){
+void comportamientoVRR(){
     tiempoVRR = temporal_create();
 
     comportamientoRR();
@@ -112,7 +115,7 @@ void *manejadorDeQuantum(void* quantum){
     tiempoEjecutando = temporal_gettime(tiempoVRR);
     temporal_destroy(tiempoVRR);
 
-}*/
+}
 
 void cambiarAReady(t_list* cola){
     PCB *proceso = list_remove(cola, 0);
@@ -129,6 +132,20 @@ PCB* cambiarARunning(t_list* lista_READY){
     return proceso;
     }
     return NULL;
+}
+PCB* cambiarAExitDesdeRunning(t_list* cola){
+    PCB *proceso = list_remove(cola, 0);
+    proceso->estado = EXIT;
+    list_add(lista_EXIT, proceso);
+
+    return proceso;
+}
+
+void InterruptACPU(){
+    t_paquete *paquete_CPU_interrupcion = crear_paquete(INTERRUMPIR_PROCESO);
+
+    enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
+    eliminar_paquete(paquete_CPU_interrupcion);
 }
 
 /*void inicializar_planificadores() {

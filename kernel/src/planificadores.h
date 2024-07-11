@@ -21,8 +21,8 @@ PCB* cambiarARunning(t_list* lista_READY);
 void comportamientoRR();
 void paquete_CPU_ejecutar_proceso(PCB* proceso);
 
-/*t_temporal* tiempoVRR;
-int64_t tiempoEjecutando;*/
+extern t_temporal* tiempoVRR;
+extern int64_t tiempoEjecutando;
 
 extern void inicializar_sem_planificadores();
 extern void planificador_largo_plazo();

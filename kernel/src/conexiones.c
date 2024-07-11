@@ -9,6 +9,61 @@ char* server_name = "kernel";
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
+void* conexionesDispatch()
+{
+	
+	while (1)
+	{
+
+		t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+
+        
+        recv(cpu_dispatch_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(cpu_dispatch_fd, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(cpu_dispatch_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+
+		switch (paquete->codigo_operacion)
+		{
+			case PROCESO_EXIT:
+			{
+				//mutex listas		
+				PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+				//mutex conexion memoria
+				paquete_memoria_finalizar_proceso(proceso->PID);
+
+				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", proceso->PID);
+
+				//liberar proceso Kernel
+				eliminarProceso(proceso); //TODO
+				break;
+			}
+			case PROCESO_INTERRUMPIDO:
+			{
+				//mutex lista
+				//en caso de ser RR enviar a lista de ready al final
+				//en caso de ser VRR 
+				break;
+			}
+			case PROCESO_WAIT:
+			{
+				break;
+			}
+			case PROCESO_SIGNAL:
+			{
+				break;
+			}
+				
+			default:
+			{
+				//ningun mensaje valido recibido
+				break;
+			}
+			eliminar_paquete(paquete);
+		}
+}
+
 /*static void procesar_conexion(void *void_args) {
 	int *args = (int*) void_args;
 	int cliente_socket = *args;

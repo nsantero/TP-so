@@ -32,14 +32,16 @@ int main(int argc, char *argv[]) {
 	server_fd = iniciar_servidor(loggerKernel,server_name, configuracionKernel.PUERTO_ESCUCHA);
 	log_info(loggerKernel, "Servidor listo para recibir al cliente");
 
-    pthread_t hiloConsola, procesosNew, procesosReady;
+    pthread_t hiloConsola, procesosNew, procesosReady, hiloDispatch;
     pthread_create(&hiloConsola,NULL, manejadorDeConsola, NULL);
     pthread_create(&procesosNew,NULL, planificadorNew, NULL);
     pthread_create(&procesosReady,NULL, planificadorReady, NULL);
+	pthread_create(&hiloDispatch, NULL, conexionesDispatch, NULL);
 
+    pthread_detach(procesosNew);
+    pthread_detach(procesosReady);
+    pthread_detach(hiloDispatch);
     pthread_join(hiloConsola, NULL);
-    pthread_join(procesosNew, NULL);
-    pthread_join(procesosReady, NULL);
 
     return 0;
 }

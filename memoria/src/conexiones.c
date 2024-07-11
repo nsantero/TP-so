@@ -17,7 +17,7 @@ void* atenderPeticionesKernel() {
 }
 
 
-void* atenderPeticionesCpu() {
+/*void* atenderPeticionesCpu() {
     while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
@@ -35,7 +35,6 @@ void* manejarClienteCpu(void *arg)
    int socketCliente = *((int*)arg);
     free(arg);
     while(1){
-        pthread_mutex_lock(&mutexSocketCpu);
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -52,6 +51,7 @@ void* manejarClienteCpu(void *arg)
                 void *stream = paquete->buffer->stream;
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 printf("pedido de instruccion, pid: %d\n", pid_solicitado );
+                break;
             }
             default:
             {   
@@ -59,16 +59,14 @@ void* manejarClienteCpu(void *arg)
                 break;
             }
         }
-        pthread_mutex_unlock(&mutexSocketCpu);
     }  
-} 
+} */
 
 void* manejarClienteKernel(void *arg)
 {
     int socketCliente = *((int*)arg);
     free(arg);
     while(1){
-        pthread_mutex_lock(&mutexSocketKernel);
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -132,8 +130,9 @@ void* manejarClienteKernel(void *arg)
                 break;
             }
         }
-        pthread_mutex_unlock(&mutexSocketKernel);
+        eliminar_paquete(paquete);
     }
+
     close(server_fd);
     close(socketCliente);
 }
