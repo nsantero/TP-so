@@ -29,7 +29,7 @@ Interfaz generarNuevaInterfazGenerica(char* nombre,char* pathConfiguracion);
  * @brief espera una cantidad de tiempo
  */
 
-void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz);
+void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz,int PID);
 
 void* manejo_interfaz_generica();
 

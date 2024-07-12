@@ -2,9 +2,13 @@
 #define LOGGERSIO_H
 
 #include <commons/log.h>
-
+#include <commons/string.h>
+#include <pathDeConfiguracionesIO.h>
 
 extern t_log* loggerIO;
-extern char* path;
+
+void inicializarLogger();
+
+void cerrarLogger();
 
 #endif

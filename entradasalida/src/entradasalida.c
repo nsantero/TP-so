@@ -1,40 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <entradasalida.h>
-
-
-void cargar_configuracion(char* archivo_configuracion)
-{
-	t_config* config = config_create(archivo_configuracion); //Leo el archivo de configuracion
-
-	if (config == NULL) {
-		perror("Archivo de configuracion no encontrado");
-		exit(-1);
-	}
-
-	// Revisar esto -> config_valores.nombre_interfaz = config_get_string_value(config,"NOMBRE_INTERFAZ");
-	config_valores.tipo_interfaz = config_get_string_value(config,"TIPO_INTERFAZ");
-	config_valores.tiempo_unidad_trabajo = config_get_int_value(config,"TIEMPO_UNIDAD_TRABAJO");
-	config_valores.ip_kernel= config_get_string_value(config,"IP_KERNEL");
-	config_valores.puerto_kernel = config_get_string_value(config,"PUERTO_KERNEL"); 
-    config_valores.ip_memoria = config_get_string_value(config,"IP_MEMORIA");
-	config_valores.puerto_memoria= config_get_string_value(config,"PUERTO_MEMORIA");
-	config_valores.path_base_dials = config_get_string_value(config,"PATH_BASE_DIALS");
-    config_valores.block_size = config_get_int_value(config,"BLOCK_SIZE");
-    config_valores.block_count = config_get_int_value(config,"BLOCK_COUNT");
-    config_valores.retraso_compactacion = config_get_int_value(config, "RETRASO_COMPACTACION");
-
-}
-
-
-void crearInterfaces(){
-
-   generarNuevaInterfazGenerica("interfazGenerica"/*TODO, deshardcodear esto*/,"/home/utnso/tp-2024-1c-Aprobado/entradasalida/configGenerica.config");
-   
-}
-
-
-
 
 uint32_t recibir_direccion_fisica(){
 
@@ -47,26 +11,61 @@ uint32_t recibir_direccion_fisica(){
 	return direccion_memoria;
 }
 
-
-
-void EJECUTAR_INTERFAZ_DialFS(){
-
-}
-
 int main(int argc, char* argv[]) {
 
-    logger = log_create("../kernel.log", "ENTRADASALIDA", true, LOG_LEVEL_INFO);
-	log_info(logger, "Se creo el log!");
+    inicializarLogger();
+	log_info(loggerIO, "Se inicio el main de enrada y salida");
 
-    cargar_configuracion("/home/utnso/tp-2024-1c-File-System-Fanatics/entradasalida/entradasalida.config");
+    if(argc==1){
+		printf("Se inicio IO sin especificar ninguna interfaz");
+		log_info(loggerIO, "Se inicio IO sin especificar ninguna interfaz");
+		cerrarLogger();
+		return 0;
+	}
+	entradasalida_config config_valores;
+	t_config *configCargaInterfaz;
 
-	// Conecto entradasalida con kernel y memoria
-	kernel_fd = crear_conexion(logger,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);
-	log_info(logger, "Me conecte a kernel");
-    memoria_fd = crear_conexion(logger,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
-	log_info(logger, "Me conecte a memoria");
+	configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[1],".config"));
+	
+	//Conecto entradasalida con kernel y memoria
+	config_valores.ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
+	config_valores.ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
+	config_valores.puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
+	config_valores.puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
+	kernel_fd = crear_conexion(loggerIO,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);
+	log_info(loggerIO, "Me conecte a kernel");
+    memoria_fd = crear_conexion(loggerIO,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
+	log_info(loggerIO, "Me conecte a memoria");
+
+	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
+	log_info(loggerIO, "Se conecto la interfaz: %s",argv[1]);
 
 
+	for(int i=2;i<argc;i++){
+		configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[i],".config"));
+		enviarNuevaInterfazAKernel(configCargaInterfaz,argv[i]);
+		log_info(loggerIO, "Se conecto la interfaz: %s",argv[i]);
+	}
+
+
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+/* ESTO ESTA ASI DE CUANDO IBAMOS A HACER UN HILO POR CADA TIPO DE INTERFAZ
 
 	interfaz_generica = generarNuevaInterfazGenerica("Int1","PATH");//TODO PATH
 	
@@ -96,29 +95,11 @@ int main(int argc, char* argv[]) {
 	pthread_join(hilo_interfaz_generica,NULL);
 	pthread_join(hilo_interfaz_STDIN,NULL);
 	pthread_join(hilo_interfaz_STDOUT,NULL);
-	pthread_join(hilo_interfaz_DialFS,NULL);
+	pthread_join(hilo_interfaz_DialFS,NULL);*/
 	//TODO agregar otros hilos
 	
 	
-	
-	
-	
-	
-	
-	char* tipoInterfaz = config_valores.tipo_interfaz;
 
-	if(tipoInterfaz == "GENERICA"){
-		
-	}
-		else if (tipoInterfaz == "STDIN"){
-			EJECUTAR_INTERFAZ_STDIN();
-		}
-			else if (tipoInterfaz == "STDOUT"){
-				EJECUTAR_INTERFAZ_STDOUT();
-				}
-				else{//Es del tipo DialFS
-					EJECUTAR_INTERFAZ_DialFS();
-	}
 
 	// envio mensajes
 	//enviar_mensaje("soy e/s", memoria_fd);
