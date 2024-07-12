@@ -4,6 +4,7 @@
 extern int memoria_fd; 
 extern int program_counter; 
 
+
 void fetch() {
 
     // Preparar el mensaje con el valor actual del PC
