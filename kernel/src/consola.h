@@ -16,6 +16,8 @@ void finalizar_proceso(int pid);
 void detener_planificacion();
 void iniciar_planificacion();
 void modificar_multiprogramacion(int valor);
+void ejecutarScript(char* path);
+void procesarLinea(char* linea);
 
 
 #endif // CONSOLA_H

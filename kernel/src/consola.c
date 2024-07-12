@@ -17,8 +17,7 @@ void* manejadorDeConsola(){
         if(!strcmp(comando,"EJECUTAR_SCRIPT")){
             segundoArgumento = strtok(NULL, " ");
             if(segundoArgumento){
-                //ejecutarScript(path);
-                //ejecutarScript(segundoArgumento);
+                ejecutarScript(segundoArgumento);
             }
             else{
                 printf("Error: Falta el argumento [PATH]\n");
@@ -66,12 +65,45 @@ void* manejadorDeConsola(){
         }
         free(linea);
     }
-
-/*void iniciar_proceso(char* path) {
-    PCB* proceso = crearPCB(path);
-    paquete_crear_proceso(proceso->PID, path, proceso->pc);
-}*/
-
-
     
+}
+
+void ejecutarScript(char* path){
+    FILE* archivo = fopen(path, "r");
+    if (archivo == NULL) {
+        //log_error("Error: No se puede abrir el archivo %s\n", path);
+        return;
+    }
+
+    char* linea = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+    while ((read = getline(&linea, &len, archivo)) != -1) {
+        // Eliminar el carácter de nueva línea si existe
+        if (linea[read - 1] == '\n') {
+            linea[read - 1] = '\0';
+        }
+        procesarLinea(linea);
+    }
+
+    free(linea);
+    fclose(archivo);
+}
+
+void procesarLinea(char* linea) {
+    char* comando = strtok(linea, " ");
+    char* argumento = strtok(NULL, " ");
+    
+    if (comando == NULL) {
+        return;
+    }
+    
+    if (strcmp(comando, "INICIAR_PROCESO") == 0) {
+        if (argumento != NULL) {
+            crearPCB(argumento);
+        } else {
+           //log_error("Error: Falta el argumento [PATH] para INICIAR_PROCESO\n");
+        }
+    }
 }

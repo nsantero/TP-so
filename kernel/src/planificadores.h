@@ -18,8 +18,10 @@ void comportamientoFIFO();
 void* manejadorDeQuantum(void *quantum);
 void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
+PCB* cambiarAExitDesdeRunning(t_list* cola);
 void comportamientoRR();
 void paquete_CPU_ejecutar_proceso(PCB* proceso);
+void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 
 extern t_temporal* tiempoVRR;
 extern int64_t tiempoEjecutando;

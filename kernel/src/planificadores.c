@@ -85,6 +85,13 @@ void paquete_CPU_ejecutar_proceso(PCB* proceso){
     enviar_paquete(paquete_CPU, cpu_dispatch_fd);
     eliminar_paquete(paquete_CPU);
 }
+void paquete_CPU_interrumpir_proceso_fin_quantum(int pid){
+    t_paquete *paquete_CPU = crear_paquete(INTERRUMPIR_PROCESO);
+
+    agregar_entero_a_paquete32(paquete_CPU, pid);
+    enviar_paquete(paquete_CPU, cpu_interrupt_fd);
+    eliminar_paquete(paquete_CPU);
+}
 
 void comportamientoRR(){
     pthread_t hiloQuantum;
@@ -96,7 +103,7 @@ void comportamientoRR(){
     pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
     paquete_CPU_ejecutar_proceso(pcbRunnign);
     pthread_join(hiloQuantum, NULL);
-    //MANDAR INTERRUPT A CPU
+    paquete_CPU_interrumpir_proceso_fin_quantum(pcbRunnign->PID);
 }
 
 void *manejadorDeQuantum(void* quantum){

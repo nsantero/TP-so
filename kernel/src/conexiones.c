@@ -30,7 +30,7 @@ void* conexionesDispatch()
 		{
 			case PROCESO_EXIT:
 			{
-				//mutex listas		
+				//mutex listas	
 				PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(proceso->PID);
@@ -38,7 +38,7 @@ void* conexionesDispatch()
 				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", proceso->PID);
 
 				//liberar proceso Kernel
-				eliminarProceso(proceso); //TODO
+				//eliminarProceso(proceso); //TODO
 				break;
 			}
 			case PROCESO_INTERRUMPIDO:
@@ -80,7 +80,7 @@ void* conexionesDispatch()
 				else{
 					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
 					paquete_memoria_finalizar_proceso(proceso->PID);
-					eliminarProceso(proceso); //TODO
+					//eliminarProceso(proceso); //TODO
 				}
 				
 				break;
@@ -99,7 +99,7 @@ void* conexionesDispatch()
 int existeInterfaz(char *nombre){
 	//mutex lista
 	Interfaces_conectadas_kernel *interfazBuffer;
-	for (int i = 0; i < listsize(interfacesConectadas); i++)
+	for (int i = 0; i < list_size(interfacesConectadas); i++)
 	{
 		interfazBuffer=list_get(interfacesConectadas, i);
 		if(!strcmp(interfazBuffer->nombre, nombre)){
@@ -151,7 +151,7 @@ void* manejarClienteIO(void *arg)
 
 				interfazBuffer->ocupada = 0;
 				interfazBuffer->solicitudesEnCola = 0;
-				interfazBuffer->pidActual = NULL;
+				interfazBuffer->pidActual = -1;
 
 				list_add(interfacesConectadas, interfazBuffer);
 
@@ -162,6 +162,11 @@ void* manejarClienteIO(void *arg)
 			case TERMINO_INTERFAZ:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+			}
+			default:
+			{
+				//ningun mensaje valido recibido
+				break;
 			}
 		}
 	}
