@@ -26,26 +26,54 @@ void* conexionesDispatch()
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(cpu_dispatch_fd, paquete->buffer->stream, paquete->buffer->size, 0);
 		void *stream = paquete->buffer->stream;
+		PCB *procesoCPU;
+		PCB* procesoKernel;
 		switch (paquete->codigo_operacion)
 		{
 			case PROCESO_EXIT:
 			{
-				//mutex listas	
-				PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaExit);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				if(procesoCPU->PID == procesoKernel->PID){
+					actualizarProceso(procesoCPU, procesoKernel);
+				}
+				else{
+					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+
+				}
+				procesoKernel->estado = EXIT;
+				list_add(lista_EXIT, procesoKernel); 
+				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaExit);	
 				//mutex conexion memoria
-				paquete_memoria_finalizar_proceso(proceso->PID);
+				paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", proceso->PID);
+				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 
-				//liberar proceso Kernel
-				//eliminarProceso(proceso); //TODO
+				eliminarProceso(procesoKernel);
 				break;
 			}
-			case PROCESO_INTERRUMPIDO:
+			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
-				//mutex lista
-				//en caso de ser RR enviar a lista de ready al final
-				//en caso de ser VRR 
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaReady);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					actualizarProceso(procesoCPU, procesoKernel);
+					procesoKernel->estado = READY;
+					list_add(lista_READY, procesoKernel);
+				}
+				else{
+					log_error(loggerKernel,"Solo se tienen que interrumpir los procesos que usan RR o VRR");
+				}
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaReady);
+
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por fin de qunatum\n", procesoKernel->PID);
 				break;
 			}
 			case PROCESO_WAIT:
@@ -172,53 +200,71 @@ void* manejarClienteIO(void *arg)
 	}
 }
 
+////////////////////////////////////////////////////////// EMPAQUETACION //////////////////////////////////////////////////////////
 
+PCB *recibirProcesoContextoEjecucion(void *stream){
+	PCB* proceso;
+	memcpy(&proceso->PID, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.AX, stream, sizeof(uint8_t));
+	stream += sizeof(uint8_t);
+	memcpy(&proceso->cpuRegisters.BX, stream, sizeof(uint8_t));
+	stream += sizeof(uint8_t);
+	memcpy(&proceso->cpuRegisters.CX, stream, sizeof(uint8_t));
+	stream += sizeof(uint8_t);
+	memcpy(&proceso->cpuRegisters.DX, stream, sizeof(uint8_t));
+	stream += sizeof(uint8_t);
+	memcpy(&proceso->cpuRegisters.EAX, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.EBX, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.ECX, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.EDX, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+	memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
 
-/*static void procesar_conexion(void *void_args) {
-	int *args = (int*) void_args;
-	int cliente_socket = *args;
-	op_code cop;
+	return proceso;
+}
 
-	while (cliente_socket != -1) {
-		if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-			log_info(loggerKernel, ANSI_COLOR_BLUE"El cliente se desconecto de %s server", server_name);
-			return;
-		}
-		switch (cop) {
-		case MENSAJE:{
+void paquete_CPU_ejecutar_proceso(PCB* proceso){
+    t_paquete *paquete_CPU = crear_paquete(EJECUTAR_PROCESO);
 
-			char* mensaje = recibir_mensaje(cliente_socket);
-            log_info(loggerKernel, ANSI_COLOR_YELLOW"Me llegó el mensaje: %s", mensaje);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->PID);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.PC);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.AX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.BX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.CX);
+    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.DX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EAX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EBX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.ECX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EDX);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.SI);
+    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.DI);
 
-            free(mensaje); // Liberar la memoria del mensaje recibido
+    enviar_paquete(paquete_CPU, cpu_dispatch_fd);
+    eliminar_paquete(paquete_CPU);
+}
 
-			break;
-            }
-		case PAQUETE:
+void paquete_CPU_interrumpir_proceso_fin_quantum(int pid){
+    t_paquete *paquete_CPU = crear_paquete(INTERRUMPIR_PROCESO);
 
-			///// IMPLEMENTAR
+    agregar_entero_a_paquete32(paquete_CPU, pid);
+    enviar_paquete(paquete_CPU, cpu_interrupt_fd);
+    eliminar_paquete(paquete_CPU);
+}
 
-			break;
+void InterruptACPU(){
+    t_paquete *paquete_CPU_interrupcion = crear_paquete(INTERRUMPIR_PROCESO);
 
-        default:
-            printf("Error al recibir  %d \n", cop);
-            break;
-	return;
-        }
-    }
-}*/
+    enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
+    eliminar_paquete(paquete_CPU_interrupcion);
+}
 
-/*int server_escuchar(int fd_memoria) {
-
-	int cliente_socket = esperar_cliente(loggerKernel, server_name, fd_memoria);
-
-	if (cliente_socket != -1) {
-		pthread_t hilo;
-		pthread_create(&hilo, NULL, (void*) procesar_conexion, (void*) &cliente_socket);
-		pthread_detach(hilo);
-		return 1;
-	}
-
-	return 0;
-}*/
 

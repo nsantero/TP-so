@@ -6,6 +6,7 @@
 #include <kernel.h>
 #include <semaforos.h>
 #include <commons/temporal.h>
+#include <conexiones.h>
 
 //HILOS
 //pthread_t hilo_largo_plazo;
@@ -20,9 +21,9 @@ void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
 PCB* cambiarAExitDesdeRunning(t_list* cola);
 void comportamientoRR();
-void paquete_CPU_ejecutar_proceso(PCB* proceso);
-void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 
+
+extern pthread_t hiloQuantum;
 extern t_temporal* tiempoVRR;
 extern int64_t tiempoEjecutando;
 

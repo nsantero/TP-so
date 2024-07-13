@@ -20,6 +20,11 @@ int existeInterfaz(char *nombre);
 void* manejarClienteIO(void *arg);
 void* atenderPeticionesIO();
 
+void paquete_CPU_ejecutar_proceso(PCB* proceso);
+void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
+void InterruptACPU();
+PCB *recibirProcesoContextoEjecucion(void *stream);
+
 extern t_list *interfacesConectadas;
 extern t_list *interfacesGenericasCola;
 extern t_list *interfacesStdinCola;

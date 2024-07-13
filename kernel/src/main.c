@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
     
 	iniciarLogger();
     armarConfig();
-
     inicializarListas();
     inicializar_sem_planificadores();
 
