@@ -3,36 +3,54 @@
 
 extern int memoria_fd; 
 extern int program_counter; 
-#define MEM_SIZE 256
-
+char memoria[MEM_SIZE][20];
 // Memoria ficticia para almacenar instrucciones
-char memoria[MEM_SIZE][20]; // Cada instrucción tiene un tamaño máximo de 20 caracteres
+ // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
-void fetch(CPU_Registers *cpu, char *instruccion);
-
-const char* decode(const char *instruccion);
-
-void execute(CPU_Registers *cpu, const char *instruccion);
-
-void checkInterrupts(CPU_Registers *cpu);
-
-void ciclo_de_instruccion(CPU_Registers *cpu) {
+void* ciclo_de_instruccion() {
     char instruccion[20];
     while (1) {
-        fetch(cpu, instruccion);
-        const char *decoded_instr = decode(instruccion);
-        execute(cpu, decoded_instr);
-        check_interrupts(cpu);
+        fetch(procesoEjecutando);
+        //const char *decoded_instr = decode(instruccion);
+        //execute(cpu, decoded_instr);
+        //check_interrupts(cpu);
     }
 }
 
-void fetch(CPU_Registers *cpu) {
+
+void fetch(Proceso *proceso) {
     // Obtener la instrucción de la memoria usando el PC
     // Actualizar el PC para la siguiente instrucción
-    printf("FETCH - PC: %d\n", cpu->PC);
+
+    paquete_memoria_pedido_instruccion(proceso->PID,proceso->cpuRegisters.PC);
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+
+    switch(paquete->codigo_operacion){
+            case ENVIO_INSTRUCCION:
+            {
+                printf("se recibio instruccion \n");
+
+                break;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
+                break;
+            }
+     }       
+
+
+    //printf("FETCH - PC: %d\n");
 }
 
-const char* decode(CPU_Registers *cpu) {
+const char* decode(char *instruccion) {
     // Decodificar la instrucción obtenida
     printf("DECODE - Instrucción: ...\n");
     return "SET AX 1"; // Ejemplo de instrucción decodificada

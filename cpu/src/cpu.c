@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
     fd_cpu_interrupt = iniciar_servidor(loggerCpu,server_name_interrupt, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
 	log_info(loggerCpu, "Servidor listo para recibir al cliente");
-    
+    //pedir tamaño de pagina
     //Proceso proceso;
 
     //proceso = recibirProcesoAEjecutar(proceso);
@@ -29,37 +29,19 @@ int main(int argc, char* argv[]) {
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel,NULL);
 
+    
+    
 	//Hilo de escuchar interrupcion
 
-    //pthread_t hiloEscuchaKernelSocketInterrupt;
-    //pthread_create(&hiloEscuchaKernelSocketInterrupt,NULL,escucharInterrupciones,NULL);
+    pthread_t hiloEscuchaKernelSocketInterrupt;
+    pthread_create(&hiloEscuchaKernelSocketInterrupt,NULL,escucharInterrupciones,NULL);
 
-    //pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
+    pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
+    
     //hilo de ejecucion 
     pthread_detach(hiloKernel); 
 
-    paquete_memoria_pedido_instruccion(1,0);
-    t_paquete* paquete = malloc(sizeof(t_paquete));
-    paquete->buffer = malloc(sizeof(t_buffer));
-
-    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
-    switch(paquete->codigo_operacion){
-            case ENVIO_INSTRUCCION:
-            {
-                printf("se recibio instruccion \n");
-
-                break;
-            }
-            default:
-            {   
-                log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
-                break;
-            }
-     }       
+    
     while(1){
 
     }
@@ -147,7 +129,9 @@ void* manejarClienteKernel(void *arg)
 
                 printf("se recibio proceso :%d\n", procesoEjecutando->PID);
                 //paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
-            
+                pthread_t hiloCicloDeEjecucion;
+                pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
+                pthread_detach(hiloCicloDeEjecucion); 
                 break;
             }
             
