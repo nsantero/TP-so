@@ -59,4 +59,6 @@ void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz
 
     usleep(unidadesAEsperar*interfaz.tiempoUnidadTrabajo*1000);
     log_info(loggerIO,"PID: %d - Operacion: IO_GEN_SLEEP",PID);
+
+    //TODO enviar mensaje a kernel
 }

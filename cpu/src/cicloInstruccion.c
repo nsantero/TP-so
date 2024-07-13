@@ -3,21 +3,54 @@
 
 extern int memoria_fd; 
 extern int program_counter; 
+#define MEM_SIZE 256
 
-void fetch() {
+// Memoria ficticia para almacenar instrucciones
+char memoria[MEM_SIZE][20]; // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
-    // Preparar el mensaje con el valor actual del PC
-    //sprintf("Dame la instrucción número %d", program_counter);
+void fetch(CPU_Registers *cpu, char *instruccion);
 
-    // Enviar mensaje a memoria solicitando la instrucción
-    //enviar_mensaje(mensaje, memoria_fd);
+const char* decode(const char *instruccion);
 
-    // Recibir la instrucción de memoria y almacenarla de alguna manera
-    //recv_instruccion(memoria_fd);
+void execute(CPU_Registers *cpu, const char *instruccion);
 
-    // Actualizar el Program Counter
-    //program_counter += 1;
+void checkInterrupts(CPU_Registers *cpu);
+
+void ciclo_de_instruccion(CPU_Registers *cpu) {
+    char instruccion[20];
+    while (1) {
+        fetch(cpu, instruccion);
+        const char *decoded_instr = decode(instruccion);
+        execute(cpu, decoded_instr);
+        check_interrupts(cpu);
+    }
 }
+
+void fetch(CPU_Registers *cpu) {
+    // Obtener la instrucción de la memoria usando el PC
+    // Actualizar el PC para la siguiente instrucción
+    printf("FETCH - PC: %d\n", cpu->PC);
+}
+
+const char* decode(CPU_Registers *cpu) {
+    // Decodificar la instrucción obtenida
+    printf("DECODE - Instrucción: ...\n");
+    return "SET AX 1"; // Ejemplo de instrucción decodificada
+}
+
+void execute(CPU_Registers *cpu, const char *instruccion) {
+    // Ejecutar la instrucción decodificada
+    printf("EXECUTE - Instrucción: %s\n", instruccion);
+    if (strncmp(instruccion, "SET", 3) == 0) {
+        ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
+    }
+}
+
+void check_interrupts(CPU_Registers *cpu) {
+    // Verificar si hay interrupciones y manejarlas
+    printf("CHECK INTERRUPTS\n");
+}
+
 
 /*
 void setRegistro(char *nombre, int valor) {

@@ -53,7 +53,7 @@ typedef enum {
     T_DFS,
 }Tipos_Interfaz;
 
-
+int obtenerTipoConString(char* tipo);
 
 
 #endif
