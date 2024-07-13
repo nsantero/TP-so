@@ -1,8 +1,28 @@
 #include <conexiones.h>
 #include <semaforos.h>
+#include <configs.h>
 
 int server_fd = 0;
 
+/*char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
+    return ;
+}
+*/
+void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cliente){
+
+    t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
+
+    //char* instruccion = buscar_instruccion(PID_paquete,PC_paquete);
+
+    // Agregar el path al paquete
+    agregar_entero_a_paquete32(paquete_cpu, PID_paquete);
+    //agregar_string_a_paquete(paquete_cpu, instruccion);
+    //printf("se envio:%s\n",instruccion);
+    // Pasar PID y txt a memoria
+    enviar_paquete(paquete_cpu, socket_cliente);
+    eliminar_paquete(paquete_cpu);
+
+}
 
 void* atenderPeticionesKernel() {
     while (1) {
@@ -58,16 +78,21 @@ void* manejarClienteKernel(void *arg)
                 int pid_remover;
                 void *stream = paquete->buffer->stream;
                 memcpy(&pid_remover, stream, sizeof(int));
-                //int pid = paquete->buffer->stream;
                 printf("finalizar proceso:%d\n", pid_remover);
                 list_remove_element(lista_ProcesosActivos, &pid_remover);
             }
             case PEDIDO_INSTRUCCION:
             {   
                 int pid_solicitado;
+                int pc_solicitado;
                 void *stream = paquete->buffer->stream;
                 memcpy(&pid_solicitado, stream, sizeof(int));
-                printf("pedido de instruccion, pid: %d\n", pid_solicitado );
+                stream += sizeof(int);
+                memcpy(&pc_solicitado, stream, sizeof(int));
+                printf("pedido de instruccion del pid: %d\n", pid_solicitado );
+                printf("pedido de instruccion del pc: %d\n", pc_solicitado );
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
                 break;
             }
             case IO_FS_READ:

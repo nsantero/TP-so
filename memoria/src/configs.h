@@ -1,3 +1,6 @@
+
+#ifndef CONFIGS_H
+#define CONFIGS_H
 #include <commons/config.h>
 #include <commons/log.h>
 
@@ -18,3 +21,5 @@ extern t_log* loggerMemoria;
 
 void armarConfigMemoria();
 void iniciarLoggerMemoria();
+extern int server_fd;
+#endif

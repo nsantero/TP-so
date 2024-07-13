@@ -23,6 +23,7 @@ int calculoDeFrames(int memoria_tam, int pagina_tam){
     return memoria_tam/pagina_tam;
 }
 
+
 void inicializarMemoria(){
     memoria.tam = configuracionMemoria.TAM_MEMORIA;
     memoria.pagina_tam = configuracionMemoria.TAM_PAGINA;

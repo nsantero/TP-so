@@ -23,9 +23,9 @@ void* escucharInterrupciones(){
          * TODO
         */
         break;
-    case INTERRUMPIR_PROCESO_ACTUAL:
-        interrumpir=1;
-        break;
+    //case INTERRUMPIR_PROCESO_ACTUAL:
+    //    interrumpir=1;
+    //    break;
     
     default:
         break;
