@@ -1,10 +1,10 @@
 #include <planificadores.h>
-#include <conexiones.h>
 #include <semaforos.h>
 #include <configs.h>
 
 //INICIALIZAR PLANIFICADORES
 
+pthread_t hiloQuantum;
 t_temporal* tiempoVRR;
 int64_t tiempoEjecutando;
 
@@ -66,35 +66,7 @@ void comportamientoFIFO(){
     }
 }
 
-void paquete_CPU_ejecutar_proceso(PCB* proceso){
-    t_paquete *paquete_CPU = crear_paquete(EJECUTAR_PROCESO);
-
-    agregar_entero_a_paquete32(paquete_CPU, proceso->PID);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.PC);
-    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.AX);
-    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.BX);
-    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.CX);
-    agregar_entero_a_paquete8(paquete_CPU, proceso->cpuRegisters.DX);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EAX);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EBX);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.ECX);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.EDX);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.SI);
-    agregar_entero_a_paquete32(paquete_CPU, proceso->cpuRegisters.DI);
-
-    enviar_paquete(paquete_CPU, cpu_dispatch_fd);
-    eliminar_paquete(paquete_CPU);
-}
-void paquete_CPU_interrumpir_proceso_fin_quantum(int pid){
-    t_paquete *paquete_CPU = crear_paquete(INTERRUMPIR_PROCESO);
-
-    agregar_entero_a_paquete32(paquete_CPU, pid);
-    enviar_paquete(paquete_CPU, cpu_interrupt_fd);
-    eliminar_paquete(paquete_CPU);
-}
-
 void comportamientoRR(){
-    pthread_t hiloQuantum;
 
     cambiarARunning(lista_READY);
 
@@ -148,12 +120,6 @@ PCB* cambiarAExitDesdeRunning(t_list* cola){
     return proceso;
 }
 
-void InterruptACPU(){
-    t_paquete *paquete_CPU_interrupcion = crear_paquete(INTERRUMPIR_PROCESO);
-
-    enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
-    eliminar_paquete(paquete_CPU_interrupcion);
-}
 
 /*void inicializar_planificadores() {
     t_config* config = config_create("kernel.config");

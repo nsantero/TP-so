@@ -54,7 +54,9 @@ typedef struct {
 } PCB;
 
 
-PCB* crearPCB();
+PCB* crearPCB(char* path);
+void eliminarProceso(PCB* proceso);
+void actualizarProceso(PCB* procesoCPU, PCB* procesoKernel);
 
 // Funciones para planificar
 
