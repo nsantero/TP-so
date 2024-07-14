@@ -76,12 +76,14 @@ void comportamientoRR(){
     paquete_CPU_ejecutar_proceso(pcbRunnign);
     pthread_join(hiloQuantum, NULL);
     paquete_CPU_interrumpir_proceso_fin_quantum(pcbRunnign->PID);
+    
 }
 
 void *manejadorDeQuantum(void* quantum){
     int quantumProceso = *((int*) quantum);
     log_info(loggerKernel, "el valor obetenido es: %d", quantumProceso);
     usleep(quantumProceso/1000);
+    
 
     return NULL;
 }

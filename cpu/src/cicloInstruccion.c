@@ -6,6 +6,7 @@ char* instruccionRecibida;
 extern int program_counter; 
 t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
+int interrumpir = 0;
 // Memoria ficticia para almacenar instrucciones
  // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
@@ -26,22 +27,60 @@ void* ciclo_de_instruccion() {
         if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
             valor =0;
-            break;
+            t_paquete *paquete_Kernel = crear_paquete(PROCESO_EXIT);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+            enviar_paquete(paquete_Kernel, socketCliente);
+            eliminar_paquete(paquete_Kernel);
+            return NULL;
             
         }
 
         decode(instruccion_a_decodificar);
         
-        //check_interrupts(cpu);
+        //mutex interrumpir
+        if(interrumpir == 1){
+            t_paquete *paquete_Kernel = crear_paquete(PROCESO_INTERRUMPIDO_CLOCK);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+            enviar_paquete(paquete_Kernel, socketCliente);
+            eliminar_paquete(paquete_Kernel);
+
+            return NULL;
+        }
     }
+
+    return NULL;
 }
 
 
-char* fetch(Proceso *proceso) {
+char* fetch(Proceso *procesoEjecutando) {
     // Obtener la instrucción de la memoria usando el PC
     // Actualizar el PC para la siguiente instrucción
 
-    paquete_memoria_pedido_instruccion(proceso->PID,proceso->cpuRegisters.PC);
+    paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -57,14 +96,14 @@ char* fetch(Proceso *proceso) {
                 void *stream = paquete->buffer->stream;
                 int instruccionLength;
 
-                uint32_t incrementalPC = proceso->cpuRegisters.PC +1;
+                uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC +1;
                 char * instruccionRecibida;
             
                 memcpy(&instruccionLength, stream, sizeof(int));
                 stream += sizeof(int);
                 instruccionRecibida = malloc(instruccionLength);
                 memcpy(instruccionRecibida, stream, instruccionLength);
-                proceso->cpuRegisters.PC= incrementalPC;
+                procesoEjecutando->cpuRegisters.PC= incrementalPC;
                 return instruccionRecibida;
             }
             default:
@@ -72,8 +111,8 @@ char* fetch(Proceso *proceso) {
                 log_error(loggerCpu, "Error");
                 break;
             }
-     }       
-
+    }       
+    return NULL;
 
 }
 
@@ -114,11 +153,6 @@ void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
     //if (strncmp(instruccion_a_ejecutar, "SET", 3) == 0) {
     //    ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
     //}
-}
-
-void check_interrupts(CPU_Registers *cpu) {
-    // Verificar si hay interrupciones y manejarlas
-    printf("CHECK INTERRUPTS\n");
 }
 
 
@@ -173,7 +207,7 @@ void decode_execute() {
         }
         
         else if (strcmp(instruccionActual.instruccion, "RESIZE") == 0) {
-            // Solicitar ajuste de tamaño de proceso. Manejar respuesta de memoria.
+            // Solicitar ajuste de tamaño de procesoEjecutando. Manejar respuesta de memoria.
             int nuevoTamaño = atoi(instruccionActual.operando1);
             if (!resizeMemoria(nuevoTamaño)) {
                 // Enviar contexto de ejecución al Kernel por Out of Memory.
@@ -225,7 +259,7 @@ void decode_execute() {
             leerArchivoAMemoria(instruccionActual.operando1, instruccionActual.operando2, atoi(instruccionActual.operando3), atoi(instruccionActual.operando4), atoi(instruccionActual.operando5));
         }
         else if (strcmp(instruccionActual.instruccion, "EXIT") == 0) {
-            // Finaliza el proceso y devuelve el contexto de ejecución al Kernel.
+            // Finaliza el procesoEjecutando y devuelve el contexto de ejecución al Kernel.
             finalizarProcesoYDevolverContexto();
         }
         else {

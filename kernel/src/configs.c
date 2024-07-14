@@ -9,7 +9,7 @@ void armarConfig(){
     configuracionKernel.PUERTO_ESCUCHA = config_get_string_value(configKernel, "PUERTO_ESCUCHA");
     configuracionKernel.IP_MEMORIA = config_get_string_value(configKernel, "IP_MEMORIA");
     configuracionKernel.PUERTO_MEMORIA = config_get_string_value(configKernel, "PUERTO_MEMORIA");
-    configuracionKernel.IP_CPU = config_get_string_value(configKernel, "IP_CPU ");
+    configuracionKernel.IP_CPU = config_get_string_value(configKernel, "IP_CPU");
     configuracionKernel.PUERTO_CPU_DISPATCH = config_get_string_value(configKernel, "PUERTO_CPU_DISPATCH");
     configuracionKernel.PUERTO_CPU_INTERRUPT = config_get_string_value(configKernel, "PUERTO_CPU_INTERRUPT");
     configuracionKernel.ALGORITMO_PLANIFICACION = config_get_string_value(configKernel, "ALGORITMO_PLANIFICACION");

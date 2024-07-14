@@ -53,12 +53,13 @@ void* conexionesDispatch()
 
 				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 
-				eliminarProceso(procesoKernel);
+				//eliminarProceso(procesoKernel);
 				break;
 			}
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
 				procesoKernel = list_remove(lista_RUNNING, 0);
@@ -66,6 +67,7 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
+					sem_post(&semListaReady);
 				}
 				else{
 					log_error(loggerKernel,"Solo se tienen que interrumpir los procesos que usan RR o VRR");
@@ -92,7 +94,8 @@ void* conexionesDispatch()
 				PCB* proceso;
 
 				int pathLength;
-
+				
+				
 				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(int));
 				stream += sizeof(int);
 				memcpy(&interfazGenerica.PID, stream, sizeof(int));
@@ -203,7 +206,8 @@ void* manejarClienteIO(void *arg)
 ////////////////////////////////////////////////////////// EMPAQUETACION //////////////////////////////////////////////////////////
 
 PCB *recibirProcesoContextoEjecucion(void *stream){
-	PCB* proceso;
+	PCB* proceso = malloc(sizeof(PCB));
+	proceso->estado = RUNNING;
 	memcpy(&proceso->PID, stream, sizeof(uint32_t));
 	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));

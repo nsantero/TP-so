@@ -11,6 +11,8 @@ extern int tam_pagina;
 
 extern Proceso *procesoEjecutando;
 
+extern int socketCliente;
+
 Proceso recibirProcesoAEjecutar(Proceso proceso);
 
 void* manejarClienteKernel(void *arg);
@@ -22,6 +24,8 @@ int pedir_tam_pagina_memoria();
 void paquete_memoria_pedido_tam_pagina();
 
 void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete);
+
+void* check_interrupts();
 
 extern pthread_mutex_t mutexSocketKernel;
 
