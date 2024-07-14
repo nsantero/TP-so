@@ -2,15 +2,21 @@
 #include <stdio.h> 
 
 extern int memoria_fd; 
+char* instruccionRecibida;
 extern int program_counter; 
 char memoria[MEM_SIZE][20];
 // Memoria ficticia para almacenar instrucciones
  // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
 void* ciclo_de_instruccion() {
-    char instruccion[20];
-    while (1) {
-        fetch(procesoEjecutando);
+    char* instruccion;
+    int valor= 1;
+    while (valor) {
+        instruccion = fetch(procesoEjecutando);
+        printf("Instrucción recibida: %s\n", instruccion);
+        if ( strstr(instruccion, "EXIT") != NULL ){
+            valor =0;
+        }
         //const char *decoded_instr = decode(instruccion);
         //execute(cpu, decoded_instr);
         //check_interrupts(cpu);
@@ -18,7 +24,7 @@ void* ciclo_de_instruccion() {
 }
 
 
-void fetch(Proceso *proceso) {
+char* fetch(Proceso *proceso) {
     // Obtener la instrucción de la memoria usando el PC
     // Actualizar el PC para la siguiente instrucción
 
@@ -30,24 +36,32 @@ void fetch(Proceso *proceso) {
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
+ 
 
     switch(paquete->codigo_operacion){
             case ENVIO_INSTRUCCION:
             {
-                printf("se recibio instruccion \n");
+                void *stream = paquete->buffer->stream;
+                int instruccionLength;
 
-                break;
+                uint32_t incrementalPC = proceso->cpuRegisters.PC +1;
+                char * instruccionRecibida;
+            
+                memcpy(&instruccionLength, stream, sizeof(int));
+                stream += sizeof(int);
+                instruccionRecibida = malloc(instruccionLength);
+                memcpy(instruccionRecibida, stream, instruccionLength);
+                proceso->cpuRegisters.PC= incrementalPC;
+                return instruccionRecibida;
             }
             default:
             {   
-                log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
+                log_error(loggerCpu, "Error");
                 break;
             }
      }       
 
 
-    //printf("FETCH - PC: %d\n");
 }
 
 const char* decode(char *instruccion) {

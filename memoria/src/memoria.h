@@ -85,6 +85,10 @@ void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) ;
 
 char *armar_path_instruccion(int pid) ;
 
+void inicializarMemoria();
+
+int calculoDeFrames(int memoria_tam, int pagina_tam);
+
 void obtener_instruccion(char *path_consola, int pc, int fd) ;
 
 void crearListas() ;

@@ -7,7 +7,9 @@
 // Memoria ficticia para almacenar instrucciones
 extern char memoria[MEM_SIZE][20]; // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
-void fetch(Proceso *proceso);
+extern char* instruccionRecibida;
+
+char* fetch(Proceso *proceso);
 
 const char* decode(char *instruccion);
 

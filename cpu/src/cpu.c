@@ -5,7 +5,50 @@
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
 
+int tam_pagina;
+
+void paquete_memoria_pedido_tam_pagina(){
+
+    t_paquete *paquete_memoria = crear_paquete(PEDIDO_TAM_PAGINA);
+
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+}
+
 void* escuchar_dispatch(void* arg);
+
+int pedir_tam_pagina_memoria(){
+
+    int tam_pagina_recibido;
+
+    paquete_memoria_pedido_tam_pagina();
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    
+    switch(paquete->codigo_operacion){
+            case ENVIO_TAM_PAGINA:
+            {
+                memcpy(&tam_pagina_recibido, stream, sizeof(int));
+                return tam_pagina_recibido;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+    }      
+    
+
+    return 0;
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -13,7 +56,7 @@ int main(int argc, char* argv[]) {
     armarConfig();
 
 	//me conecto a memoria
-	memoria_fd = crear_conexion(loggerCpu,"CPU",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
+	memoria_fd = crear_conexion(loggerCpu,"MEMORIA",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
 
     //enviar_mensaje("Hola, soy CPU!", memoria_fd);
@@ -21,16 +64,16 @@ int main(int argc, char* argv[]) {
 	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
     fd_cpu_interrupt = iniciar_servidor(loggerCpu,server_name_interrupt, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
 	log_info(loggerCpu, "Servidor listo para recibir al cliente");
-    //pedir tamaño de pagina
-    //Proceso proceso;
+    
+    tam_pagina = pedir_tam_pagina_memoria();
+    printf("se recibio tam de pagina :%d\n", tam_pagina);
 
+    //Proceso proceso;
     //proceso = recibirProcesoAEjecutar(proceso);
 
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel,NULL);
 
-    
-    
 	//Hilo de escuchar interrupcion
 
     pthread_t hiloEscuchaKernelSocketInterrupt;
@@ -41,7 +84,6 @@ int main(int argc, char* argv[]) {
     //hilo de ejecucion 
     pthread_detach(hiloKernel); 
 
-    
     while(1){
 
     }
@@ -55,14 +97,14 @@ void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete){
 
     t_paquete *paquete_memoria = crear_paquete(PEDIDO_INSTRUCCION);
 
-    // Agregar el path al paquete
     agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
     agregar_entero_a_paquete32(paquete_memoria, PC_paquete);
     
-    // Pasar PID y txt a memoria
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
-    printf("se envio el pid :%d\n", PID_paquete);
+    
+    printf("se solicita instruccion del pid :%d\n", PID_paquete);
+    printf("PC:%d\n", PC_paquete);
     
 }
 
