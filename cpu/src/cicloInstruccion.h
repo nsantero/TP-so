@@ -11,7 +11,13 @@ extern char* instruccionRecibida;
 
 char* fetch(Proceso *proceso);
 
-void decode(char *instruccion);
+int buscar_frame(int pagina);
+
+void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);
+
+direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid);
+
+void decode(char *instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
 

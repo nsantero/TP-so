@@ -21,8 +21,7 @@ void* ciclo_de_instruccion() {
 
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
         
-        instruccion.operando1 = cadena_instruccion[1];
-        instruccion.operando2 = cadena_instruccion[2];
+        
 
         if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
@@ -47,7 +46,7 @@ void* ciclo_de_instruccion() {
             
         }
 
-        decode(instruccion_a_decodificar);
+        decode(instruccion_a_decodificar,procesoEjecutando->PID);
         
         //mutex interrumpir
         if(interrumpir == 1){
@@ -116,33 +115,173 @@ char* fetch(Proceso *procesoEjecutando) {
 
 }
 
-void decode(char *instruccionDecodificar) {
+int buscar_frame(int pagina){
+
+    //buscar en tlb
+
+    //buscar en memoria
+
+    return 1;
+}
+
+direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid){
+
+    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
+
+    int direccion_logica = string_itoa(dl);
+    int numero_de_pagina;
+
+    numero_de_pagina = floor(direccion_logica / tam_pagina); 
+
+    direccion->PID = pid;
+
+    //logica de paginas divido el tamaño de pagina
+
+    // buscar en memoria el frame y en tlb
+
+    direccion->numero_frame = buscar_frame(numero_de_pagina);
+
+    direccion->desplazamiento = direccion_logica - numero_de_pagina * tam_pagina;
+
+    return direccion;
+}
+
+
+void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
+
+        //DL
+        
+        
+        if(instruccion_memoria.tipo_instruccion = MOV_IN){
+
+            //MOV_IN (Registro Datos, Registro Dirección): 
+            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
+            
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_datos_leer = instruccion_memoria.operando1;
+            char* registro_direccion_dl = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+
+        }
+
+        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
+            //MOV_OUT (Registro Dirección, Registro Datos): 
+            //Lee el valor del Registro Datos y 
+            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+    
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_direccion = instruccion_memoria.operando1;
+            char* registro_datos = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
+        }
+
+        if(instruccion_memoria.tipo_instruccion = RESIZE){
+            //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
+            //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            int tam_nuevo = instruccion_memoria.operando1;
+            
+        }
+
+        //traduccion_mmu(t_instruccion instruccion_memoria);
+
+}
+
+void decode(char *instruccionDecodificar, int pid) {
 
     char **cadena_instruccion = string_split(instruccionDecodificar , " ");
 
-    
-    if (strcmp(cadena_instruccion[0], "MOV_IN") == 0) {
-
-        instruccion.tipo_instruccion = MOV_IN;
-        //execute(&procesoEjecutando->cpuRegisters, instruccion);
-
+    int tamanio_array = 0;
+    while ((cadena_instruccion)[tamanio_array] != NULL) {
+        tamanio_array++;
     }
 
-    if (strcmp(cadena_instruccion[0], "MOV_OUT") == 0) {
-        
-        instruccion.tipo_instruccion = MOV_OUT; 
+    if(tamanio_array = 3){
 
-        printf("Aca \n");
+        if (strcmp(cadena_instruccion[0], "MOV_IN") == 0) {
 
-        //execute(&procesoEjecutando->cpuRegisters, instruccion);
+            instruccion.tipo_instruccion = MOV_IN;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            utilizacion_memoria(instruccion, pid);
+            //execute(&procesoEjecutando->cpuRegisters, instruccion);
+
+        }
+
+        if (strcmp(cadena_instruccion[0], "MOV_OUT") == 0) {
+            
+            instruccion.tipo_instruccion = MOV_OUT;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            utilizacion_memoria(instruccion, pid);
+            //execute(&procesoEjecutando->cpuRegisters, instruccion);
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SET") == 0) {
+            
+            instruccion.tipo_instruccion = SET;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SUM") == 0) {
+            
+            instruccion.tipo_instruccion = SUM;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SUB") == 0) {
+            
+            instruccion.tipo_instruccion = SUB;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "JNZ") == 0) {
+            
+            instruccion.tipo_instruccion = JNZ;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
         
     }
 
-    if (strcmp(cadena_instruccion[0], "RESIZE") == 0) {
-        
-        instruccion.tipo_instruccion = RESIZE;
-        execute(&procesoEjecutando->cpuRegisters, instruccion);
-        
+    if(tamanio_array = 2){
+
+        if (strcmp(cadena_instruccion[0], "RESIZE") == 0) {
+            
+            instruccion.tipo_instruccion = RESIZE;
+            instruccion.operando1 = cadena_instruccion[1];
+            utilizacion_memoria(instruccion, pid);
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
+            
+            instruccion.tipo_instruccion = COPY_STRING;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "WAIT") == 0) {
+            
+            instruccion.tipo_instruccion = WAIT;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SIGNAL") == 0) {
+            
+            instruccion.tipo_instruccion = SIGNAL;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
     }
     
 }

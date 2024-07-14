@@ -11,26 +11,20 @@
 // ESTURCTURAS
 
 typedef struct
-{		
-    int numeroDePagina;
-    int numeroDeFrame; 	
-   
-} tabla_paginas_proceso;
-typedef struct
 {	
-    int pid; 	
-    t_list lista_de_paginas_proceso;
-    
-} paginas_proceso;
+    int pid_tabla_de_paginas;
+    int numero_de_pagina;
+    int numero_de_frame; 	
+   
+} tabla_de_paginas_proceso;
 
 // Estructura del Proceso
 typedef struct {
 
     int pid;
     char * path;
-    //int cantidad_paginas;
     t_list *instrucciones;
-    //paginas_proceso* paginas;
+    t_list *tabla_de_paginas;
 
 } Proceso;
 
@@ -61,7 +55,6 @@ typedef struct
 //extern int cantidad_frames;
 
 extern Memoria memoria;
-
 //char* server_name;
 
 int server_escuchar(int fd_memoria);
@@ -86,6 +79,6 @@ extern t_list* lista_ProcesosActivos;
 
 extern t_list* lista_frames;
 
-extern t_list* lista_de_paginas_proceso;
+extern t_list* tabla_de_paginas;
 
 #endif

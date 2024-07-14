@@ -98,6 +98,21 @@ void* manejarClienteCpu(void *arg)
                 paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
                 break;
             }
+            case MOV_OUT:
+            {   
+                //MOV_OUT (Registro Dirección, Registro Datos): 
+                //Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+                //int direccion_fisica;
+                break;
+            }
+            case MOV_IN:
+            {   
+                break;
+            }
+            case RESIZE:
+            {   
+                break;
+            }
             default:
             {   
                 log_error(loggerMemoria, "Error");

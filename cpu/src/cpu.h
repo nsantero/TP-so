@@ -6,6 +6,11 @@ typedef struct {
     int PID;
     CPU_Registers cpuRegisters;
 } Proceso;
+typedef struct {
+    int PID;
+    int numero_frame;
+    int desplazamiento;
+} direccion_fisica;
 
 extern int tam_pagina;
 

@@ -2,8 +2,6 @@
 #include <conexiones.h>
 #include <semaforos.h>
 
-tabla_paginas_proceso tablaDePaginasDeUnProceso;
-paginas_proceso paginasDeUnProceso;
 Memoria memoria;
 t_list *lista_frames;
 t_list *lista_de_paginas_proceso;
