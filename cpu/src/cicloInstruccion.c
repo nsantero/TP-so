@@ -18,13 +18,19 @@ void* ciclo_de_instruccion() {
         instruccion_a_decodificar = fetch(procesoEjecutando);
         printf("Instrucción recibida: %s\n", instruccion_a_decodificar);
 
-        instruccion.tipo_instruccion = decode(instruccion_a_decodificar);
+        char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
+        
+        instruccion.operando1 = cadena_instruccion[1];
+        instruccion.operando2 = cadena_instruccion[2];
 
-        execute(procesoEjecutando->cpuRegisters, instruccion);
+        if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
-        if ( strstr(instruccion_a_decodificar, "EXIT") != NULL ){
             valor =0;
+            break;
+            
         }
+
+        decode(instruccion_a_decodificar);
         
         //check_interrupts(cpu);
     }
@@ -71,22 +77,40 @@ char* fetch(Proceso *proceso) {
 
 }
 
-op_code decode(char *instruccion) {
+void decode(char *instruccionDecodificar) {
 
-    if (strcmp(instruccion, "MOV_IN") == 0) 
-    {return MOV_IN;}
+    char **cadena_instruccion = string_split(instruccionDecodificar , " ");
 
-    if (strcmp(instruccion, "MOV_OUT") == 0) 
-    {return MOV_OUT;}
+    
+    if (strcmp(cadena_instruccion[0], "MOV_IN") == 0) {
 
-    if (strcmp(instruccion, "RESIZE") == 0) 
-    {return RESIZE;}
+        instruccion.tipo_instruccion = MOV_IN;
+        //execute(&procesoEjecutando->cpuRegisters, instruccion);
+
+    }
+
+    if (strcmp(cadena_instruccion[0], "MOV_OUT") == 0) {
+        
+        instruccion.tipo_instruccion = MOV_OUT; 
+
+        printf("Aca \n");
+
+        //execute(&procesoEjecutando->cpuRegisters, instruccion);
+        
+    }
+
+    if (strcmp(cadena_instruccion[0], "RESIZE") == 0) {
+        
+        instruccion.tipo_instruccion = RESIZE;
+        execute(&procesoEjecutando->cpuRegisters, instruccion);
+        
+    }
     
 }
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
     
-    printf("EXECUTE - Instrucción: %s\n", instruccion);
+    //printf("EXECUTE - Instrucción: %s\n", instruccion);
     //if (strncmp(instruccion_a_ejecutar, "SET", 3) == 0) {
     //    ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
     //}
@@ -287,8 +311,8 @@ void recv_instruccion(int memoria_fd){
         tamanio_array++;
     }
 
-	instruccionActual.instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
-    strcpy(instruccionActual.instruccion, palabras[0]); 
+	//instruccionActual.tipo_instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
+    //strcpy(instruccionActual.tipo_instruccion, palabras[0]); 
 
 	instruccionActual.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
     strcpy(instruccionActual.operando1, palabras[1]); 

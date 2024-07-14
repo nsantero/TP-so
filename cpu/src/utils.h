@@ -18,7 +18,7 @@
 #include <configs-cpu.h>
 
 typedef struct {
-    char* instruccion;
+    op_code tipo_instruccion;
     char* operando1;        
     char* operando2; 
     char* operando3; 
@@ -32,6 +32,7 @@ extern int fd_cpu_interrupt;
 extern char* server_name_dispatch;
 extern char* server_name_interrupt;
 extern int interrumpir;
+extern t_instruccion instruccion;
 extern t_instruccion instruccionActual;
 
 void cargar_configuracion(char* archivo_configuracion);

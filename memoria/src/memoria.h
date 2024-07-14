@@ -57,17 +57,6 @@ typedef struct
 
 } t_proceso;
 
-typedef struct
-{
-    char *opcode; // nombre instruccion
-    char *var1;
-    char *var2;
-    char *var3;
-    char *var4;
-    char *var5;
-
-} t_instruccion;
-
 //extern void* memoria_espacio;
 //extern int cantidad_frames;
 
@@ -92,8 +81,6 @@ int calculoDeFrames(int memoria_tam, int pagina_tam);
 void obtener_instruccion(char *path_consola, int pc, int fd) ;
 
 void crearListas() ;
-
-t_instruccion armar_instruccion(char* instruccion_leida);
 
 extern t_list* lista_ProcesosActivos;
 
