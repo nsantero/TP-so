@@ -4,21 +4,28 @@
 extern int memoria_fd; 
 char* instruccionRecibida;
 extern int program_counter; 
+t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
 // Memoria ficticia para almacenar instrucciones
  // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
 void* ciclo_de_instruccion() {
-    char* instruccion;
+    char* instruccion_a_decodificar;
     int valor= 1;
+
     while (valor) {
-        instruccion = fetch(procesoEjecutando);
-        printf("Instrucción recibida: %s\n", instruccion);
-        if ( strstr(instruccion, "EXIT") != NULL ){
+
+        instruccion_a_decodificar = fetch(procesoEjecutando);
+        printf("Instrucción recibida: %s\n", instruccion_a_decodificar);
+
+        instruccion.tipo_instruccion = decode(instruccion_a_decodificar);
+
+        execute(procesoEjecutando->cpuRegisters, instruccion);
+
+        if ( strstr(instruccion_a_decodificar, "EXIT") != NULL ){
             valor =0;
         }
-        //const char *decoded_instr = decode(instruccion);
-        //execute(cpu, decoded_instr);
+        
         //check_interrupts(cpu);
     }
 }
@@ -64,18 +71,25 @@ char* fetch(Proceso *proceso) {
 
 }
 
-const char* decode(char *instruccion) {
-    // Decodificar la instrucción obtenida
-    printf("DECODE - Instrucción: ...\n");
-    return "SET AX 1"; // Ejemplo de instrucción decodificada
+op_code decode(char *instruccion) {
+
+    if (strcmp(instruccion, "MOV_IN") == 0) 
+    {return MOV_IN;}
+
+    if (strcmp(instruccion, "MOV_OUT") == 0) 
+    {return MOV_OUT;}
+
+    if (strcmp(instruccion, "RESIZE") == 0) 
+    {return RESIZE;}
+    
 }
 
-void execute(CPU_Registers *cpu, const char *instruccion) {
-    // Ejecutar la instrucción decodificada
+void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
+    
     printf("EXECUTE - Instrucción: %s\n", instruccion);
-    if (strncmp(instruccion, "SET", 3) == 0) {
-        ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
-    }
+    //if (strncmp(instruccion_a_ejecutar, "SET", 3) == 0) {
+    //    ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
+    //}
 }
 
 void check_interrupts(CPU_Registers *cpu) {

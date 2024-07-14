@@ -18,14 +18,16 @@ typedef enum
     PROCESO_EXIT,
     PROCESO_WAIT,
     PROCESO_SIGNAL,
-    MOV_IN,
     SET,
     SUM,
     SUB,
-    MOV_OUT,
-    RESIZE,
     JNZ,
     COPY_STRING,
+
+    // INSTRUCCIONES DE MEMORIA
+    MOV_OUT,
+    MOV_IN,
+    RESIZE,
 
     //KERNEL MEMORIA
     CREAR_PROCESO,
