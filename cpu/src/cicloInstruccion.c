@@ -296,6 +296,19 @@ void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
         char destino[3], origen[3];
         sscanf(instruccion_a_ejecutar.operando1, "SUM %s %s", destino, origen);
         ejecutar_sum(cpu, destino, origen);
+    }  else if (strncmp(instruccion_a_ejecutar.operando1, "SUB ", 4) == 0) {
+        char destino[4], origen[4];
+        sscanf(instruccion_a_ejecutar.operando1, "SUB %s %s", destino, origen);
+        ejecutar_sub(cpu, destino, origen);
+    }   else if (strncmp(instruccion_a_ejecutar.operando1, "JNZ ", 4) == 0) {
+        char registro[4];
+        uint32_t nueva_instruccion;
+        sscanf(instruccion_a_ejecutar.operando1, "JNZ %s %u", registro, &nueva_instruccion);
+        ejecutar_jnz(cpu, registro, nueva_instruccion);
+    }   else if (strncmp(instruccion_a_ejecutar.operando1, "WAIT ", 5) == 0) {
+        char recurso[20];
+        sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
+        ejecutar_wait(cpu, recurso);
     }
 }
 
