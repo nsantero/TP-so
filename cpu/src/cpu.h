@@ -30,6 +30,8 @@ void paquete_memoria_pedido_tam_pagina();
 
 void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete);
 
+void paquete_memoria_resize(int PID_paquete,int tam_nuevo);
+
 void* check_interrupts();
 
 extern pthread_mutex_t mutexSocketKernel;

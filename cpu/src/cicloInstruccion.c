@@ -1,8 +1,9 @@
 #include <cicloInstruccion.h>
 #include <stdio.h> 
+#include <math.h>
 
 extern int memoria_fd; 
-char* instruccionRecibida;
+char *instruccionRecibida;
 extern int program_counter; 
 t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
@@ -11,7 +12,7 @@ int interrumpir = 0;
  // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
 void* ciclo_de_instruccion() {
-    char* instruccion_a_decodificar;
+    char *instruccion_a_decodificar;
     int valor= 1;
 
     while (valor) {
@@ -21,8 +22,6 @@ void* ciclo_de_instruccion() {
 
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
         
-        
-
         if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
             valor =0;
@@ -96,7 +95,7 @@ char* fetch(Proceso *procesoEjecutando) {
                 int instruccionLength;
 
                 uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC +1;
-                char * instruccionRecibida;
+                char *instruccionRecibida;
             
                 memcpy(&instruccionLength, stream, sizeof(int));
                 stream += sizeof(int);
@@ -124,14 +123,14 @@ int buscar_frame(int pagina){
     return 1;
 }
 
-direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid){
+direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
 
     direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
-    int direccion_logica = string_itoa(dl);
-    int numero_de_pagina;
+    int direccion_logica = atoi(dl);
+    int nro_pagina;
 
-    numero_de_pagina = floor(direccion_logica / tam_pagina); 
+    nro_pagina = floor(direccion_logica / tam_pagina); 
 
     direccion->PID = pid;
 
@@ -139,9 +138,9 @@ direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid){
 
     // buscar en memoria el frame y en tlb
 
-    direccion->numero_frame = buscar_frame(numero_de_pagina);
+    direccion->numero_frame = buscar_frame(nro_pagina);
 
-    direccion->desplazamiento = direccion_logica - numero_de_pagina * tam_pagina;
+    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
 
     return direccion;
 }
@@ -175,14 +174,6 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
         }
 
-        if(instruccion_memoria.tipo_instruccion = RESIZE){
-            //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
-            //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            int tam_nuevo = instruccion_memoria.operando1;
-            
-        }
-
         //traduccion_mmu(t_instruccion instruccion_memoria);
 
 }
@@ -196,7 +187,7 @@ void decode(char *instruccionDecodificar, int pid) {
         tamanio_array++;
     }
 
-    if(tamanio_array = 3){
+    if(tamanio_array == 3){
 
         if (strcmp(cadena_instruccion[0], "MOV_IN") == 0) {
 
@@ -252,13 +243,19 @@ void decode(char *instruccionDecodificar, int pid) {
         
     }
 
-    if(tamanio_array = 2){
+    if(tamanio_array == 2){
 
         if (strcmp(cadena_instruccion[0], "RESIZE") == 0) {
             
             instruccion.tipo_instruccion = RESIZE;
             instruccion.operando1 = cadena_instruccion[1];
-            utilizacion_memoria(instruccion, pid);
+
+            //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
+            //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            int tam_nuevo = atoi(instruccion.operando1);
+
+            paquete_memoria_resize(pid,tam_nuevo);
             
         }
 

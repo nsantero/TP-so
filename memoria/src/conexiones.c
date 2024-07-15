@@ -6,6 +6,37 @@ int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
 
+void paquete_cpu_oom(int pid, int socket_cliente){
+
+    t_paquete *paquete_cpu = crear_paquete(OUT_OF_MEMORY);
+
+    agregar_entero_a_paquete32(paquete_cpu, pid);
+    
+    enviar_paquete(paquete_cpu, socket_cliente);
+
+    eliminar_paquete(paquete_cpu);
+}
+
+
+bool actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño){
+    Proceso *proceso = NULL;
+
+        for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+
+            proceso = list_get(lista_ProcesosActivos,i);
+
+            if (proceso->pid == pid_a_cambiar) {
+                
+                //TODO
+                //proceso->
+                return true;
+                
+                }
+            }
+}
+
+
+
 char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 
     Proceso *proceso = NULL;
@@ -77,9 +108,7 @@ void* manejarClienteCpu(void *arg)
         switch(paquete->codigo_operacion){
             case PEDIDO_TAM_PAGINA:
             {   
-                //printf("Cpu me pide el tamaño de pagina\n");
                 paquete_cpu_envio_tam_pagina(socketCliente);
-                //printf("Se envio el tamaño de pagina\n");
                 break;
             }
             case PEDIDO_INSTRUCCION:
@@ -111,6 +140,21 @@ void* manejarClienteCpu(void *arg)
             }
             case RESIZE:
             {   
+                int nuevo_tamaño;
+                int pid_a_cambiar;
+                bool estado_cambio;
+                paquete->buffer->stream = malloc(paquete->buffer->size);
+                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+                void *stream = paquete->buffer->stream;
+
+                memcpy(&pid_a_cambiar, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&nuevo_tamaño, stream, sizeof(int));
+                printf("Se recibio cambiar el tamanio a: %d\n", nuevo_tamaño );
+                estado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                if (!estado_cambio){ 
+                    paquete_cpu_oom(pid_a_cambiar,socketCliente);                  
+                }                    
                 break;
             }
             default:

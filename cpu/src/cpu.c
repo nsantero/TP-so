@@ -91,6 +91,19 @@ int main(int argc, char* argv[]) {
 }
 
 
+void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
+
+    t_paquete *paquete_memoria = crear_paquete(RESIZE);
+
+    agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
+    agregar_entero_a_paquete32(paquete_memoria, tam_nuevo);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+    printf("Se solicita resize a memoria: %d\n", tam_nuevo);
+       
+}
 
 void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete){
 

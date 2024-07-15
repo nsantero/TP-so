@@ -4,12 +4,12 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <commons/bitarray.h>
 #include <commons/string.h>
 #include "../../shared/src/shared.h"
 #include "configs.h"
 
 // ESTURCTURAS
-
 typedef struct
 {	
     int pid_tabla_de_paginas;
@@ -55,6 +55,8 @@ typedef struct
 //extern int cantidad_frames;
 
 extern Memoria memoria;
+
+extern t_bitarray* bitmap_frames;
 //char* server_name;
 
 int server_escuchar(int fd_memoria);
@@ -67,13 +69,15 @@ void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) ;
 
 char *armar_path_instruccion(int pid) ;
 
-void inicializarMemoria();
-
 int calculoDeFrames(int memoria_tam, int pagina_tam);
 
 void obtener_instruccion(char *path_consola, int pc, int fd) ;
 
-void crearListas() ;
+void crearListas();
+
+void inicializarMemoria();
+
+void esquemaPaginacion();
 
 extern t_list* lista_ProcesosActivos;
 

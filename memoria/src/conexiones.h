@@ -20,6 +20,10 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
 void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
+bool actualizar_tam_proceso(int pid_a_cambiar,int nuevo_tamaño);
+
+void paquete_cpu_oom(int pid,int socket_cliente);
+
 extern int server_fd;
 
 #endif
