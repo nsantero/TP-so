@@ -76,6 +76,7 @@ void* conexionesDispatch()
 				//MUTEX
 				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
 					enviar_paquete(paquete, socketCliente);
+					//bloquear procesos? //TODO
 				}
 				else{
 					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
