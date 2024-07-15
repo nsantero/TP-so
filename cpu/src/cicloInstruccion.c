@@ -1,23 +1,296 @@
 #include <cicloInstruccion.h>
 #include <stdio.h> 
+#include <math.h>
 
 extern int memoria_fd; 
+char *instruccionRecibida;
 extern int program_counter; 
+t_instruccion instruccion;
+char memoria[MEM_SIZE][20];
+int interrumpir = 0;
+// Memoria ficticia para almacenar instrucciones
+ // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
-void fetch() {
+void* ciclo_de_instruccion() {
+    char *instruccion_a_decodificar;
+    int valor= 1;
 
-    // Preparar el mensaje con el valor actual del PC
-    //sprintf("Dame la instrucción número %d", program_counter);
+    while (valor) {
 
-    // Enviar mensaje a memoria solicitando la instrucción
-    //enviar_mensaje(mensaje, memoria_fd);
+        instruccion_a_decodificar = fetch(procesoEjecutando);
+        printf("Instrucción recibida: %s\n", instruccion_a_decodificar);
 
-    // Recibir la instrucción de memoria y almacenarla de alguna manera
-    //recv_instruccion(memoria_fd);
+        char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
+        
+        if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
-    // Actualizar el Program Counter
-    //program_counter += 1;
+            valor =0;
+            t_paquete *paquete_Kernel = crear_paquete(PROCESO_EXIT);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+            enviar_paquete(paquete_Kernel, socketCliente);
+            eliminar_paquete(paquete_Kernel);
+            return NULL;
+            
+        }
+
+        decode(instruccion_a_decodificar,procesoEjecutando->PID);
+        
+        //mutex interrumpir
+        if(interrumpir == 1){
+            t_paquete *paquete_Kernel = crear_paquete(PROCESO_INTERRUMPIDO_CLOCK);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+            enviar_paquete(paquete_Kernel, socketCliente);
+            eliminar_paquete(paquete_Kernel);
+
+            return NULL;
+        }
+    }
+
+    return NULL;
 }
+
+
+char* fetch(Proceso *procesoEjecutando) {
+    // Obtener la instrucción de la memoria usando el PC
+    // Actualizar el PC para la siguiente instrucción
+
+    paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+ 
+
+    switch(paquete->codigo_operacion){
+            case ENVIO_INSTRUCCION:
+            {
+                void *stream = paquete->buffer->stream;
+                int instruccionLength;
+
+                uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC +1;
+                char *instruccionRecibida;
+            
+                memcpy(&instruccionLength, stream, sizeof(int));
+                stream += sizeof(int);
+                instruccionRecibida = malloc(instruccionLength);
+                memcpy(instruccionRecibida, stream, instruccionLength);
+                procesoEjecutando->cpuRegisters.PC= incrementalPC;
+                return instruccionRecibida;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+    }       
+    return NULL;
+
+}
+
+int buscar_frame(int pagina){
+
+    //buscar en tlb
+
+    //buscar en memoria
+
+    return 1;
+}
+
+direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
+
+    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
+
+    int direccion_logica = atoi(dl);
+    int nro_pagina;
+
+    nro_pagina = floor(direccion_logica / tam_pagina); 
+
+    direccion->PID = pid;
+
+    //logica de paginas divido el tamaño de pagina
+
+    // buscar en memoria el frame y en tlb
+
+    direccion->numero_frame = buscar_frame(nro_pagina);
+
+    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+
+    return direccion;
+}
+
+
+void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
+
+        //DL
+        
+        
+        if(instruccion_memoria.tipo_instruccion = MOV_IN){
+
+            //MOV_IN (Registro Datos, Registro Dirección): 
+            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
+            
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_datos_leer = instruccion_memoria.operando1;
+            char* registro_direccion_dl = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+
+        }
+
+        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
+            //MOV_OUT (Registro Dirección, Registro Datos): 
+            //Lee el valor del Registro Datos y 
+            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+    
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_direccion = instruccion_memoria.operando1;
+            char* registro_datos = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
+        }
+
+        //traduccion_mmu(t_instruccion instruccion_memoria);
+
+}
+
+void decode(char *instruccionDecodificar, int pid) {
+
+    char **cadena_instruccion = string_split(instruccionDecodificar , " ");
+
+    int tamanio_array = 0;
+    while ((cadena_instruccion)[tamanio_array] != NULL) {
+        tamanio_array++;
+    }
+
+    if(tamanio_array == 3){
+
+        if (strcmp(cadena_instruccion[0], "MOV_IN") == 0) {
+
+            instruccion.tipo_instruccion = MOV_IN;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            utilizacion_memoria(instruccion, pid);
+            //execute(&procesoEjecutando->cpuRegisters, instruccion);
+
+        }
+
+        if (strcmp(cadena_instruccion[0], "MOV_OUT") == 0) {
+            
+            instruccion.tipo_instruccion = MOV_OUT;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            utilizacion_memoria(instruccion, pid);
+            //execute(&procesoEjecutando->cpuRegisters, instruccion);
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SET") == 0) {
+            
+            instruccion.tipo_instruccion = SET;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SUM") == 0) {
+            
+            instruccion.tipo_instruccion = SUM;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SUB") == 0) {
+            
+            instruccion.tipo_instruccion = SUB;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "JNZ") == 0) {
+            
+            instruccion.tipo_instruccion = JNZ;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            
+        }
+        
+    }
+
+    if(tamanio_array == 2){
+
+        if (strcmp(cadena_instruccion[0], "RESIZE") == 0) {
+            
+            instruccion.tipo_instruccion = RESIZE;
+            instruccion.operando1 = cadena_instruccion[1];
+
+            //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
+            //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            int tam_nuevo = atoi(instruccion.operando1);
+
+            paquete_memoria_resize(pid,tam_nuevo);
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
+            
+            instruccion.tipo_instruccion = COPY_STRING;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "WAIT") == 0) {
+            
+            instruccion.tipo_instruccion = WAIT;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
+
+        if (strcmp(cadena_instruccion[0], "SIGNAL") == 0) {
+            
+            instruccion.tipo_instruccion = SIGNAL;
+            instruccion.operando1 = cadena_instruccion[1];
+            
+        }
+    }
+    
+}
+
+void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
+    
+    //printf("EXECUTE - Instrucción: %s\n", instruccion);
+    //if (strncmp(instruccion_a_ejecutar, "SET", 3) == 0) {
+    //    ejecutar_set(cpu, "AX", 1); // Ejemplo simplificado
+    //}
+}
+
 
 /*
 void setRegistro(char *nombre, int valor) {
@@ -70,7 +343,7 @@ void decode_execute() {
         }
         
         else if (strcmp(instruccionActual.instruccion, "RESIZE") == 0) {
-            // Solicitar ajuste de tamaño de proceso. Manejar respuesta de memoria.
+            // Solicitar ajuste de tamaño de procesoEjecutando. Manejar respuesta de memoria.
             int nuevoTamaño = atoi(instruccionActual.operando1);
             if (!resizeMemoria(nuevoTamaño)) {
                 // Enviar contexto de ejecución al Kernel por Out of Memory.
@@ -122,7 +395,7 @@ void decode_execute() {
             leerArchivoAMemoria(instruccionActual.operando1, instruccionActual.operando2, atoi(instruccionActual.operando3), atoi(instruccionActual.operando4), atoi(instruccionActual.operando5));
         }
         else if (strcmp(instruccionActual.instruccion, "EXIT") == 0) {
-            // Finaliza el proceso y devuelve el contexto de ejecución al Kernel.
+            // Finaliza el procesoEjecutando y devuelve el contexto de ejecución al Kernel.
             finalizarProcesoYDevolverContexto();
         }
         else {
@@ -208,8 +481,8 @@ void recv_instruccion(int memoria_fd){
         tamanio_array++;
     }
 
-	instruccionActual.instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
-    strcpy(instruccionActual.instruccion, palabras[0]); 
+	//instruccionActual.tipo_instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
+    //strcpy(instruccionActual.tipo_instruccion, palabras[0]); 
 
 	instruccionActual.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
     strcpy(instruccionActual.operando1, palabras[1]); 

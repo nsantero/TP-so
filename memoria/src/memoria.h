@@ -4,33 +4,27 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <commons/bitarray.h>
 #include <commons/string.h>
 #include "../../shared/src/shared.h"
 #include "configs.h"
 
 // ESTURCTURAS
-
-typedef struct
-{		
-    int numeroDePagina;
-    int numeroDeFrame; 	
-   
-} tabla_paginas_proceso;
 typedef struct
 {	
-    int pid; 	
-    t_list lista_de_paginas_proceso;
-    
-} paginas_proceso;
+    int pid_tabla_de_paginas;
+    int numero_de_pagina;
+    int numero_de_frame; 	
+   
+} Registro_tabla_paginas_proceso;
 
 // Estructura del Proceso
 typedef struct {
 
     int pid;
     char * path;
-    //int cantidad_paginas;
     t_list *instrucciones;
-    //paginas_proceso* paginas;
+    t_list *tabla_de_paginas;
 
 } Proceso;
 
@@ -57,22 +51,12 @@ typedef struct
 
 } t_proceso;
 
-typedef struct
-{
-    char *opcode; // nombre instruccion
-    char *var1;
-    char *var2;
-    char *var3;
-    char *var4;
-    char *var5;
-
-} t_instruccion;
-
 //extern void* memoria_espacio;
 //extern int cantidad_frames;
 
 extern Memoria memoria;
 
+extern t_bitarray* bitmap_frames;
 //char* server_name;
 
 int server_escuchar(int fd_memoria);
@@ -85,16 +69,20 @@ void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) ;
 
 char *armar_path_instruccion(int pid) ;
 
+int calculoDeFrames(int memoria_tam, int pagina_tam);
+
 void obtener_instruccion(char *path_consola, int pc, int fd) ;
 
-void crearListas() ;
+void crearListas();
 
-t_instruccion armar_instruccion(char* instruccion_leida);
+void inicializarMemoria();
+
+void esquemaPaginacion();
 
 extern t_list* lista_ProcesosActivos;
 
 extern t_list* lista_frames;
 
-extern t_list* lista_de_paginas_proceso;
+extern t_list* tabla_de_paginas;
 
 #endif

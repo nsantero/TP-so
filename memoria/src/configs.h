@@ -1,3 +1,6 @@
+
+#ifndef CONFIGS_H
+#define CONFIGS_H
 #include <commons/config.h>
 #include <commons/log.h>
 
@@ -12,9 +15,14 @@ typedef struct
 } memoria_config;
 
 extern memoria_config configuracionMemoria;
+
 extern t_config* configMemoria;
 
 extern t_log* loggerMemoria;
 
 void armarConfigMemoria();
+
 void iniciarLoggerMemoria();
+
+extern int server_fd;
+#endif

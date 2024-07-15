@@ -193,6 +193,7 @@ int crear_conexion(t_log *logger, const char *server_name, char *ip, char *puert
         perror("Error al conectarse");
         log_error(logger, "Error al conectarme (a %s)\n", server_name);
 		printf("Conexion incorrecta con: %s\n", server_name);
+		log_info(logger,ANSI_COLOR_GREEN "NO me conecte en %s:%s (a %s)\n", ip, puerto, server_name);
         freeaddrinfo(server_info);
         return 0;
     }

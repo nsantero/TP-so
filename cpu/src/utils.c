@@ -7,7 +7,7 @@ char* server_name_dispatch = "CPU_DISPATCH";
 char* server_name_interrupt = "CPU_INTERRUPT";
 t_list* listaPCBS;
 t_instruccion instruccionActual;
-int interrumpir=0;
+extern int interrumpir;
 op_code codigo_op_hilo_interrupt_cpu;
 
 void* escucharInterrupciones(){
@@ -23,9 +23,9 @@ void* escucharInterrupciones(){
          * TODO
         */
         break;
-    case INTERRUMPIR_PROCESO_ACTUAL:
-        interrumpir=1;
-        break;
+    //case INTERRUMPIR_PROCESO_ACTUAL:
+    //    interrumpir=1;
+    //    break;
     
     default:
         break;

@@ -5,7 +5,50 @@
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
 
+int tam_pagina;
+
+void paquete_memoria_pedido_tam_pagina(){
+
+    t_paquete *paquete_memoria = crear_paquete(PEDIDO_TAM_PAGINA);
+
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+}
+
 void* escuchar_dispatch(void* arg);
+
+int pedir_tam_pagina_memoria(){
+
+    int tam_pagina_recibido;
+
+    paquete_memoria_pedido_tam_pagina();
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    
+    switch(paquete->codigo_operacion){
+            case ENVIO_TAM_PAGINA:
+            {
+                memcpy(&tam_pagina_recibido, stream, sizeof(int));
+                return tam_pagina_recibido;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+    }      
+    
+
+    return 0;
+}
+int socketCliente;
 
 int main(int argc, char* argv[]) {
 
@@ -13,29 +56,33 @@ int main(int argc, char* argv[]) {
     armarConfig();
 
 	//me conecto a memoria
-	memoria_fd = crear_conexion(loggerCpu,"CPU",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
+	memoria_fd = crear_conexion(loggerCpu,"MEMORIA",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
 
     //enviar_mensaje("Hola, soy CPU!", memoria_fd);
 	// levanto el servidor dispatch e interrupt
-	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
     fd_cpu_interrupt = iniciar_servidor(loggerCpu,server_name_interrupt, configuracionCpu.PUERTO_ESCUCHA_INTERRUPT);
+	fd_cpu_dispatch = iniciar_servidor(loggerCpu,server_name_dispatch, configuracionCpu.PUERTO_ESCUCHA_DISPATCH);
+
 	log_info(loggerCpu, "Servidor listo para recibir al cliente");
+    
+    tam_pagina = pedir_tam_pagina_memoria();
+    printf("se recibio tam de pagina :%d\n", tam_pagina);
 
     //Proceso proceso;
-
     //proceso = recibirProcesoAEjecutar(proceso);
 
-    pthread_t hiloKernel;
-    pthread_create(&hiloKernel, NULL, atenderPeticionesKernel, NULL);
-
-	//Hilo de escuchar interrupcion
-
-    pthread_t hiloEscuchaKernelSocketInterrupt;
-    pthread_create(&hiloEscuchaKernelSocketInterrupt,NULL,escucharInterrupciones,NULL);
-
-    pthread_join(hiloEscuchaKernelSocketInterrupt,NULL);
+    //pthread_t hiloKernel;
+    //pthread_create(&hiloKernel, NULL, atenderPeticionesKernel,NULL);
+    pthread_t hiloKernel, hiloEscuchaKernelSocketInterrupt;
+    pthread_create(&hiloKernel, NULL, manejarClienteKernel, NULL);
+    pthread_create(&hiloEscuchaKernelSocketInterrupt,NULL,check_interrupts,NULL);
     //hilo de ejecucion 
+    
+    //Hilo de escuchar interrupcion
+    pthread_detach(hiloEscuchaKernelSocketInterrupt);
+    pthread_join(hiloKernel, NULL);
+
     while(1){
 
     }
@@ -43,20 +90,38 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void paquete_memoria_pedido_instruccion(int PID_paquete){
+
+void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
+
+    t_paquete *paquete_memoria = crear_paquete(RESIZE);
+
+    agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
+    agregar_entero_a_paquete32(paquete_memoria, tam_nuevo);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+    printf("Se solicita resize a memoria: %d\n", tam_nuevo);
+       
+}
+
+void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete){
 
     t_paquete *paquete_memoria = crear_paquete(PEDIDO_INSTRUCCION);
 
-    // Agregar el path al paquete
     agregar_entero_a_paquete32(paquete_memoria, PID_paquete);
+    agregar_entero_a_paquete32(paquete_memoria, PC_paquete);
     
-    // Pasar PID y txt a memoria
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
-
+    
+    printf("se solicita instruccion del pid :%d\n", PID_paquete);
+    printf("PC:%d\n", PC_paquete);
+    
 }
 
-void* atenderPeticionesKernel() {
+
+/*void* atenderPeticionesKernel() {
     while (1) {
         int socketCliente = esperarClienteV2(loggerCpu, fd_cpu_dispatch);
         pthread_t client_thread;
@@ -66,23 +131,26 @@ void* atenderPeticionesKernel() {
         pthread_detach(client_thread);
     }
     return NULL;
-}
+}*/
 
 Proceso *procesoEjecutando = NULL;
 
 void* manejarClienteKernel(void *arg)
 {
-    int socketCliente = *((int*)arg);
-    free(arg);
+    //int socketCliente = *((int*)arg);
+    socketCliente = esperarClienteV2(loggerCpu, fd_cpu_dispatch);
+    //free(arg);
     while(1){
-        pthread_mutex_lock(&mutexSocketKernel);
+        //pthread_mutex_lock(&mutexSocketKernel);
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
+
         recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-
+        
+    
         switch(paquete->codigo_operacion){
             case EJECUTAR_PROCESO:
             //ejecutar proceso
@@ -92,7 +160,7 @@ void* manejarClienteKernel(void *arg)
                 
                 memcpy(&procesoEjecutando->PID, stream, sizeof(int));
                 stream += sizeof(int);
-                memcpy(&procesoEjecutando->cpuRegisters.PC, stream, sizeof(uint32_t));
+                memcpy(&procesoEjecutando->cpuRegisters.PC, stream, sizeof(int));
                 stream += sizeof(uint32_t);
                 memcpy(&procesoEjecutando->cpuRegisters.AX, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
@@ -114,18 +182,59 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(uint32_t);
                 memcpy(&procesoEjecutando->cpuRegisters.DI, stream, sizeof(uint32_t));
 
-                paquete_memoria_pedido_instruccion(procesoEjecutando->PID);
                 printf("se recibio proceso :%d\n", procesoEjecutando->PID);
+                //paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
+                pthread_t hiloCicloDeEjecucion;
+                pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
+                pthread_detach(hiloCicloDeEjecucion); 
                 break;
             }
+            
             default:
             {   
                 log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
-        pthread_mutex_unlock(&mutexSocketKernel);
+        eliminar_paquete(paquete);
+        //thread_mutex_unlock(&mutexSocketKernel);
     }  
+    close(fd_cpu_dispatch);
+    close(socketCliente);
+}
+void* check_interrupts() {
+    while(1){
+        int socketCliente = esperarClienteV2(loggerCpu, fd_cpu_interrupt);
+        t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+
+        
+        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+		void *stream = paquete->buffer->stream;
+        int pidInterrumpido;
+        switch (paquete->codigo_operacion)
+		{
+			case INTERRUMPIR_PROCESO:
+			{
+				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
+                //mutex procesoEjecutando
+                if(procesoEjecutando->PID == pidInterrumpido){
+                    //mutex interrumpir
+                    interrumpir = 1;
+                }
+				break;
+			}
+            default:
+            {
+                log_error(loggerCpu,"No es un mensaje correcto para CPU");
+                break;
+            }
+        }
+        eliminar_paquete(paquete);
+    }
 }
 /*
 Proceso recibirProcesoAEjecutar(Proceso proceso){
