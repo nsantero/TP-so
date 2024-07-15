@@ -16,7 +16,7 @@ typedef struct
     int numero_de_pagina;
     int numero_de_frame; 	
    
-} tabla_de_paginas_proceso;
+} Registro_tabla_paginas_proceso;
 
 // Estructura del Proceso
 typedef struct {
