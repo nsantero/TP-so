@@ -27,41 +27,62 @@ void paquete_cpu_oom(int pid, int socket_cliente){
 }
 
 
-bool actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño){
+bool actualizar_tam_proceso(pid_a_cambiar,tam_a_cambiar){
 
     Proceso *proceso = NULL;
 
-        for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
-            proceso = list_get(lista_ProcesosActivos,i);
+        proceso = list_get(lista_ProcesosActivos,i);
 
-            if (proceso->pid == pid_a_cambiar) {
-                
-                
-                printf("proceso encontrado:%d\n",proceso->pid);
-                printf("proceso encontrado path:%s\n",proceso->path);
+        if (proceso->pid == pid_a_cambiar) {
+            
+            int cantidad_paginas = tam_a_cambiar/memoria.pagina_tam +1;
+            int tam_actual = proceso->tam_proceso;
 
-                proceso->tabla_de_paginas = list_create();
+            //Caso Ampliacion de un proceso
+            if(proceso->tam_proceso == 0){
 
-                int cantidad_paginas = nuevo_tamaño/memoria.pagina_tam +1;
+                proceso->tam_proceso = tam_a_cambiar;
 
                 for (int i = 0; i < cantidad_paginas; i++) {
 
-                Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    
+                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                    reg_tp_proceso->numero_de_pagina = i + 1;
+                    
+                    reg_tp_proceso->numero_de_frame = asignarFrameLbre();
+                    reg_tp_proceso->modificado = false;
+                    list_add(tabla_de_paginas, reg_tp_proceso);
 
-                reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                reg_tp_proceso->numero_de_pagina = i + 1;
-
-                // TODO, primero chequear que haya espacio y luego asignar
-                reg_tp_proceso->numero_de_frame = asignarFrameLbre();
-
-                list_add(tabla_de_paginas, reg_tp_proceso);
-
-                i ++;
-
+                    i ++;
                 }
+
+                return true;
+
             }
+            
+            if(tam_actual<tam_a_cambiar){
+
+                //Agregar paginas
+                
+                int dif_tamaño = tam_actual-tam_a_cambiar;
+
+
+            
+
+            }
+
+            if(tam_actual>tam_a_cambiar){
+
+                //Remover paginas
+
+            }
+
         }
+    }
+
 }
 
 
@@ -238,6 +259,8 @@ void* manejarClienteKernel(void *arg)
                 proceso->path = malloc(pathLenght);
                 memcpy(proceso->path, stream, pathLenght);
                 cargarInstrucciones(proceso, proceso->path);
+                proceso->tam_proceso = 0;
+                proceso->tabla_de_paginas = list_create();
                 list_add(lista_ProcesosActivos,proceso);
                 printf("se recibio proceso PID:%d\n", proceso->pid);
                 printf("se recibio proceso con path:%s\n", proceso->path);
@@ -275,6 +298,7 @@ void* manejarClienteKernel(void *arg)
                 break;
             }
         }
+
         eliminar_paquete(paquete);
     }
 
@@ -282,6 +306,7 @@ void* manejarClienteKernel(void *arg)
 }
 
 void cargarInstrucciones(Proceso *proceso, const char *path) {
+
     int valorInstruccion = 0;
     FILE *file = fopen(path, "r");
     if (!file) {

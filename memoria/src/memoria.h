@@ -4,28 +4,29 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <commons/bitarray.h>
 #include <commons/string.h>
 #include "../../shared/src/shared.h"
 #include "configs.h"
 
 // ESTURCTURAS
-typedef struct
-{	
+
+// Estructura de la Tabla de Paginas por proces
+typedef struct{	
     int pid_tabla_de_paginas;
     int numero_de_pagina;
     int numero_de_frame; 	
-   
+    bool modificado;
 } Registro_tabla_paginas_proceso;
 
 // Estructura del Proceso
 typedef struct {
-
     int pid;
     char * path;
     t_list *instrucciones;
+    int tam_proceso;
     t_list *tabla_de_paginas;
-
 } Proceso;
 
 typedef struct {
@@ -33,35 +34,20 @@ typedef struct {
     char *instruccion;
 } Instruccion;
 
-typedef struct
-{	   
+// Estructura de la memoria
+typedef struct{	   
     void* espacioUsuario; 
     int tam;
     int pagina_tam;
     int cantidad_frames;
-    int* frames_libres;
-    //t_list lista_frames;
-
+    t_bitarray* bitmap_frames;
 } Memoria;
-typedef struct 
-{
-    int pid;
-    int pathLength;
-    char* archivos_instrucciones;
-
-} t_proceso;
-
-//extern void* memoria_espacio;
-//extern int cantidad_frames;
 
 extern Memoria memoria;
 
 extern t_bitarray* bitmap_frames;
-//char* server_name;
 
 int server_escuchar(int fd_memoria);
-
-//static void procesar_conexion(void *void_args) ;
 
 int recv_fetch_instruccion(int fd_modulo, int **pid, int **pc);
 

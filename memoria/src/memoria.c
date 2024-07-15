@@ -8,11 +8,9 @@ t_list *lista_de_paginas_proceso;
 t_list *lista_ProcesosActivos=NULL;
 
 void crearListas(){
-
     lista_ProcesosActivos = list_create(); 
     lista_frames = list_create(); 
     lista_de_paginas_proceso = list_create(); 
-
 }
 
 void esquemaPaginacion(){
@@ -21,8 +19,8 @@ void esquemaPaginacion(){
     
     void* espacio_frames =malloc(calculo_espacio_frames);
      
-    t_bitarray* bitmap_frames =  bitarray_create_with_mode(espacio_frames,calculo_espacio_frames,LSB_FIRST);
-
+    memoria.bitmap_frames =  bitarray_create_with_mode(espacio_frames,calculo_espacio_frames,LSB_FIRST);
+    
 }
 
 int calculoDeFrames(int memoria_tam, int pagina_tam){
@@ -33,10 +31,12 @@ int calculoDeFrames(int memoria_tam, int pagina_tam){
 
 void inicializarMemoria(){
 
-    memoria.tam = configuracionMemoria.TAM_MEMORIA;
-    memoria.pagina_tam = configuracionMemoria.TAM_PAGINA;
-    memoria.cantidad_frames = calculoDeFrames(memoria.tam, memoria.pagina_tam);
-    memoria.espacioUsuario = malloc(memoria.tam);
+    Memoria *memoria = malloc(sizeof(Memoria));
+    
+    memoria->tam = configuracionMemoria.TAM_MEMORIA;
+    memoria->pagina_tam = configuracionMemoria.TAM_PAGINA;
+    memoria->cantidad_frames = calculoDeFrames(memoria->tam, memoria->pagina_tam);
+    memoria->espacioUsuario = malloc(memoria->tam);
 
 }
 
