@@ -37,10 +37,7 @@ void* manejo_interfaz_DialFS(){
 
 }
 
-Interfaz generarNuevaInterfazDialFS(char* nombre,char* pathConfiguracion){
-
-    t_config * configuracion;
-    configuracion = config_create(pathConfiguracion);
+Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion){
 
     Interfaz aDevolver;
 

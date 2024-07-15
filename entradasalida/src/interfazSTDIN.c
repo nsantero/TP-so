@@ -25,10 +25,9 @@ void* manejo_interfaz_STDIN(){
 
 }
 
-Interfaz generarNuevaInterfazSTDIN(char* nombre,char* pathConfiguracion){
+Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
 
-    t_config * configuracion;
-    configuracion = config_create(pathConfiguracion);
+   
 
     Interfaz aDevolver;
     

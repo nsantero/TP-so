@@ -16,7 +16,7 @@ extern sem_t sem_hay_en_cola_STDOUT;
 
 
 
-Interfaz generarNuevaInterfazSTDOUT(char* nombre,char* pathConfiguracion);
+Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion);
 
 void EJECUTAR_INTERFAZ_STDOUT();
 

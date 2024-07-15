@@ -27,15 +27,23 @@ int main(int argc, char* argv[]) {
 		log_info(loggerIO, "Se introdujo mas de una interfaz, se conectara solo la primera");
 	}
 	
+	
+	t_config *configCargaInterfaz;
+
+	configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[1],".config"));
+	if(configCargaInterfaz==NULL){
+		log_info(loggerIO,"No se encuentra el archivo de congiguracion, se finaliza el programa");
+		cerrarLogger();
+		return 0;
+	}
+
 	log_info(loggerIO,"Se continuan los logs en %s.log",argv[1]);
 	cerrarLogger();
 	inicializarLoggerDeInterfaz(argv[1]);
 	
 	
 	entradasalida_config config_valores;
-	t_config *configCargaInterfaz;
-
-	configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[1],".config"));
+	
 	
 
 	//Conecto entradasalida con kernel y memoria
@@ -58,39 +66,43 @@ int main(int argc, char* argv[]) {
 	switch (tipo)
 	{
 	case T_GENERICA:
-		interfaz_generica = generarNuevaInterfazGenerica("Int1",pathADirectorio);//TODO PATH
+		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);//TODO PATH
 	
 		pthread_t hilo_interfaz_generica;
 		pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
 		pthread_join(hilo_interfaz_generica,NULL);
+		recibirPeticionDeIO_GEN();
 		break;
 	case T_STDIN:
-		interfaz_STDIN = generarNuevaInterfazSTDIN("Int2",pathADirectorio);//TODO PATH
+		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);//TODO PATH
 
 		pthread_t hilo_interfaz_STDIN;
 		pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
 		pthread_join(hilo_interfaz_STDIN,NULL);
+		recibirPeticionDeIO_STDIN();
 		break;
 	case T_STDOUT:
-		interfaz_STDOUT = generarNuevaInterfazSTDOUT("Int3",pathADirectorio);//TODO PATH
+		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);//TODO PATH
 
 		pthread_t hilo_interfaz_STDOUT;
 		pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
 		pthread_join(hilo_interfaz_STDOUT,NULL);
+		recibirPeticionDeIO_STDOUT();
 		break;
 	case T_DFS:
-		interfaz_DialFS = generarNuevaInterfazDialFS("Int4",pathADirectorio);//TODO path
+		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);//TODO path
 
 		pthread_t hilo_interfaz_DialFS;
 		pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
 		pthread_join(hilo_interfaz_DialFS,NULL);
+		recibirPeticionDeIO_DialFS();
 		break;
 	default:
 		break;
 	}
 
 	
-	
+
 
 
 

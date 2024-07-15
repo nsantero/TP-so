@@ -21,7 +21,7 @@ extern sem_t sem_hay_en_cola_ig;
  */
 
 
-Interfaz generarNuevaInterfazGenerica(char* nombre,char* pathConfiguracion);
+Interfaz generarNuevaInterfazGenerica(char* nombre,t_config* configuracion);
 
 
 /**
