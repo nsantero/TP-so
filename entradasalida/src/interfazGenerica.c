@@ -44,12 +44,12 @@ Interfaz generarNuevaInterfazGenerica(char* nombre,t_config* configuracion){
     aDevolver.tiempoUnidadTrabajo=config_get_int_value(configuracion,"TIEMPO_UNIDAD_TRABAJO");
     aDevolver.ipKernel=config_get_string_value(configuracion,"IP_KERNEL");
     aDevolver.puertoKernel=config_get_string_value(configuracion,"PUERTO_KERNEL");
-    aDevolver.blockCount=NULL;
-    aDevolver.blockSize=NULL;
+    aDevolver.blockCount=-1;
+    aDevolver.blockSize=-1;
     aDevolver.ipMemoria=NULL;
     aDevolver.puertoMemoria=NULL;
     aDevolver.pathBaseDialfs=NULL;
-    aDevolver.retrasoCompactacion=NULL;
+    aDevolver.retrasoCompactacion=-1;
     
 
     return aDevolver;

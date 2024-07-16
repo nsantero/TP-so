@@ -44,18 +44,21 @@ int main(int argc, char* argv[]) {
 	inicializarLoggerDeInterfaz(argv[1]);
 	
 	
-	entradasalida_config config_valores;
+	char* ip_kernel;
+    char* puerto_kernel;
+    char* ip_memoria;
+    char* puerto_memoria;
 	
 	
 
 	//Conecto entradasalida con kernel y memoria
-	config_valores.ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
-	config_valores.ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
-	config_valores.puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
-	config_valores.puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
-	kernel_fd = crear_conexion(loggerIO,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);
+	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
+	ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
+	puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
+	puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
+	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
 	log_info(loggerIO, "Me conecte a kernel");
-    memoria_fd = crear_conexion(loggerIO,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
+    memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
 	log_info(loggerIO, "Me conecte a memoria");
 
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);

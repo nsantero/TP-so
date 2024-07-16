@@ -35,18 +35,26 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
 
     aDevolver.nombre=nombre;
     aDevolver.tipoInterfaz=config_get_string_value(configuracion,"TIPO_INTERFAZ");
-    aDevolver.tiempoUnidadTrabajo=NULL;
+    aDevolver.tiempoUnidadTrabajo=-1;
     aDevolver.ipKernel=config_get_string_value(configuracion,"IP_KERNEL");
     aDevolver.puertoKernel=config_get_string_value(configuracion,"PUERTO_KERNEL");
-    aDevolver.blockCount=NULL;
-    aDevolver.blockSize=NULL;
+    aDevolver.blockCount=-1;
+    aDevolver.blockSize=-1;
     aDevolver.ipMemoria=config_get_string_value(configuracion,"IP_MEMORIA");
     aDevolver.puertoMemoria=config_get_string_value(configuracion,"PUERTO_MEMORIA");
     aDevolver.pathBaseDialfs=NULL;
-    aDevolver.retrasoCompactacion=NULL;
+    aDevolver.retrasoCompactacion=-1;
     
 
     return aDevolver;
+}
+
+char* leer_texto_ingresado(uint8_t tamanio) {
+    char *texto = malloc(tamanio+1);
+    printf("Ingrese el texto deseado, tamaño maximo %d: ",tamanio);
+    fgets(texto, tamanio+1, stdin);
+    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
+    return texto;
 }
 
 void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
@@ -79,11 +87,5 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     
 }
 
-char* leer_texto_ingresado(uint8_t tamanio) {
-    char *texto = malloc(tamanio+1);
-    printf("Ingrese el texto deseado, tamaño maximo %d: ",tamanio);
-    fgets(texto, tamanio+1, stdin);
-    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
-    return texto;
-}
+
 

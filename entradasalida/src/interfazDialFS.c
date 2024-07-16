@@ -84,16 +84,17 @@ Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion){
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
-        if(entry->d_name=="bloques.dat"){
+        
+        if(strcmp(entry->d_name,"bloques.dat")==0){
             bloquesCheckeo=0;
-        }else if(entry->d_name=="bitmap.dat"){
+        }else if(strcmp(entry->d_name,"bitmap.dat")==0){
             bitCheckeo=0;
         }
 
 
     }
-
-    close(dir);
+    
+    closedir(dir);
     if(bloquesCheckeo){inicializar_bloques_dat(aDevolver);}
     if(bitCheckeo){inicializar_bitmap_dat(aDevolver);}
 
@@ -177,7 +178,7 @@ void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
             return;
         }
     }
-    close(dir);
+    closedir(dir);
 
 
     char* path=generarPathAArchivoFS(nombre);
@@ -217,8 +218,8 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
 
 
             int cantBloques=(tamanioEnbytes/interfaz_DialFS.blockSize)+1;
-
-            for(bloqueInicial;bloqueInicial<(cantBloques+bloqueInicial);bloqueInicial++){
+            int bloqueFinal=cantBloques+bloqueInicial;
+            for(;bloqueInicial<bloqueFinal;bloqueInicial++){
                 liberarBloque(bloqueInicial);
             }
             
@@ -251,15 +252,15 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
         
     if(cantbloquesActuales>cantBloquesNecesarios){ //caso, necesita menos bloques
         
-        for(cantbloquesActuales;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
+        for(;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
             liberarBloque(cantbloquesActuales);            
         }  
-        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
+        cambiarInfoDeArchivo(nombreArchivo,-1,tamanio);
         log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);  
         log_info(loggerIO,"Caso: necesita menos bloques.");
 
     }else if(cantbloquesActuales==cantBloquesNecesarios){//caso mismos bloques, puede variar la cant de bytes
-        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
+        cambiarInfoDeArchivo(nombreArchivo,-1,tamanio);
         log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
         log_info(loggerIO,"Caso: mismos bloques, pueden variar los bytes.");
     }//caso, no se necesita achicar ni agrandar
@@ -279,7 +280,7 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
             }
-            cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
+            cambiarInfoDeArchivo(nombreArchivo,-1,tamanio);  
             log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
             log_info(loggerIO,"Caso: se agranda con bloques inmediatamente despues.");
 
@@ -294,7 +295,7 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
             }
-            cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio); 
+            cambiarInfoDeArchivo(nombreArchivo,-1,tamanio); 
             log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
             log_info(loggerIO,"Caso: necesito compactacion");
         }
@@ -446,7 +447,7 @@ int existenBloquesDisponibles(int bloquesNecesarios){
     off_t offset=0;
     int contador=0;
 
-    for (offset;offset<interfaz_DialFS.blockCount;offset++){
+    for (;offset<interfaz_DialFS.blockCount;offset++){
         if (!bitarray_test_bit(bitmapAddr,offset)){
             contador++;
             if(contador>=bloquesNecesarios){
@@ -484,7 +485,7 @@ off_t buscarBloqueLibre(){
     int encontrado=0;
     off_t offset=0;
 
-    for (offset;offset<interfaz_DialFS.blockCount;offset++){
+    for (;offset<interfaz_DialFS.blockCount;offset++){
         if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
@@ -511,7 +512,7 @@ off_t buscarBloqueLibreDesdeElFinal(){
     int encontrado=0;
     off_t offset=interfaz_DialFS.blockCount-1;
 
-    for (offset;offset>=0;offset--){
+    for (;offset>=0;offset--){
         if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
@@ -542,26 +543,25 @@ char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes
 void obtenerInfoDeArchivoOffset(char* nombreArchivo,off_t* offset){
     char* path= generarPathAArchivoFS(nombreArchivo);
     t_config* archivo=config_create(path);
-    offset = config_get_long_value(archivo,"BLOQUE_INICIAL");
+    *offset = config_get_long_value(archivo,"BLOQUE_INICIAL");
     config_destroy(archivo);
-    return path;
 }
 void obtenerInfoDeArchivoTamanio(char* nombreArchivo,int* tamanioEnBytes){
     char* path= generarPathAArchivoFS(nombreArchivo);
     t_config* archivo=config_create(path);
-    tamanioEnBytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
+    *tamanioEnBytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
     config_destroy(archivo);
-    return path;
+    
 }
 void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){
     char* path= generarPathAArchivoFS(nombreArchivo);
     t_config* archivo=config_create(path);
-    if(offset!=NULL){
+    if(offset!=-1){
         char offsetChar[20];
         snprintf(offsetChar,20,"%ld",(long)offset);
         config_set_value(archivo,"BLOQUE_INICIAL",offsetChar);
     }
-    if(tamanioEnBytes!=NULL){
+    if(tamanioEnBytes!=-1){
         char* tamanioChar=string_from_format("%d",tamanioEnBytes);
         config_set_value(archivo,"TAMANIO_ARCHIVO",tamanioChar);
     }
@@ -723,7 +723,7 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
         }
 
     }
-    close(dir);
+    closedir(dir);
     return NULL;
 }
 void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
@@ -745,7 +745,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;
 
 
-    cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,NULL);
+    cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,-1);
 
     if(bloqueInicialOriginal<nuevoBloqueInicialOFinal){//caso mueve para "atras"
         
@@ -767,7 +767,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
 
     }
 
-    cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,NULL);
+    cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,-1);
 
 
     bitarray_destroy(bitmapAddr);

@@ -49,4 +49,43 @@ void* manejo_interfaz_DialFS();
 
 
 
+void inicializar_sem_cola_DialFS();
+
+
+
+void inicializar_bloques_dat(Interfaz interfaz);
+void inicializar_bitmap_dat(Interfaz interfaz);
+
+
+void crearNuevoFile(Peticion_Interfaz_DialFS* peticion);
+
+void borrarFile(Peticion_Interfaz_DialFS* peticion);
+void truncarArchivo(Peticion_Interfaz_DialFS* peticion);
+void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion);
+void leerDelArchivo(Peticion_Interfaz_DialFS* peticion);
+int hayLugarDespuesDelArchivo(int cantBloques,off_t ultimoBloqueDelArchivo);
+int existenBloquesDisponibles(int bloquesNecesarios);
+
+
+off_t buscarBloqueLibre();
+off_t buscarBloqueLibreDesdeElFinal();
+char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes);
+void obtenerInfoDeArchivoOffset(char* nombreArchivo,off_t* offset);
+void obtenerInfoDeArchivoTamanio(char* nombreArchivo,int* tamanioEnBytes);
+void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes);
+
+void liberarBloque(off_t offset);
+void ocuparBloque(off_t offset);
+void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino);
+
+void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetInicialDelArchivo,int tamanioEnbytesActual);
+
+char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial);
+void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal);
+
+char* generarPathAArchivoFS(char* nombreArchivo);
+
+
+
+
 #endif
