@@ -60,6 +60,13 @@ typedef enum
     AGREGAR_INTERFACES,
     DATOS_DEL_PROCESO,
     DESBLOQUEAR_PROCESO_POR_IO,
+
+    //IO MEMORIA
+    IO_MEM_FS_WRITE,
+    IO_MEM_FS_READ,
+    IO_MEM_STDIN_READ,
+    IO_MEM_STDOUT_WRITE
+
 } op_code;
 
 typedef struct

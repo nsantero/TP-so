@@ -40,7 +40,7 @@ typedef struct
 
 
 
-Interfaz generarNuevaInterfazDialFS(char* nombre,char* pathConfiguracion);
+Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion);
 
 void EJECUTAR_INTERFAZ_DialFS();
 

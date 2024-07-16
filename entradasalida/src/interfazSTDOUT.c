@@ -25,10 +25,9 @@ void* manejo_interfaz_STDOUT(){
 
 }
 
-Interfaz generarNuevaInterfazSTDOUT(char* nombre,char* pathConfiguracion){
+Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion){
 
-    t_config * configuracion;
-    configuracion = config_create(pathConfiguracion);
+    
 
     Interfaz aDevolver;
     

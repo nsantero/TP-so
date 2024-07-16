@@ -9,6 +9,8 @@ extern t_log* loggerIO;
 
 void inicializarLogger();
 
+void inicializarLoggerDeInterfaz(char* nombreDeInterfaz);
+
 void cerrarLogger();
 
 #endif

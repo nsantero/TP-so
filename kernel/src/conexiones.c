@@ -107,6 +107,7 @@ void* conexionesDispatch()
 				//MUTEX
 				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
 					enviar_paquete(paquete, socketCliente);
+					//bloquear procesos? //TODO
 				}
 				else{
 					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
@@ -270,5 +271,32 @@ void InterruptACPU(){
     enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
     eliminar_paquete(paquete_CPU_interrupcion);
 }
+
+/*
+Recurso recursos[10];  
+int num_recursos = 0;
+
+// Función para manejar la solicitud de WAIT
+void manejar_wait(const char* recurso, PCB *proceso) { // acá tendría que tener el contexto de ejecucion de CPU con el PID
+    for (int i = 0; i < num_recursos; i++) {
+        if (strcmp(recursos[i].nombre, recurso) == 0) {
+            recursos[i].instancias--;
+            if (recursos[i].instancias < 0) {
+                // Bloquear el proceso
+                printf("Proceso %d bloqueado esperando recurso %s\n", proceso->pid, recurso);
+                // Añadir el proceso a la cola de bloqueados del recurso
+                // Implementar la lógica para gestionar la cola de bloqueados
+            } else {
+                // Asignar el recurso al proceso
+				printf("Recurso %s asignado al proceso %d\n", recurso, proceso->pid);
+            }
+            return;
+        }
+    }
+    // Si el recurso no existe, enviar el proceso a EXIT
+    printf("Recurso %s no existe. Proceso %d enviado a EXIT\n", recurso, proceso->pid);
+}
+
+*/
 
 

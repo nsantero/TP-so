@@ -30,10 +30,9 @@ void* manejo_interfaz_generica(){
 
 }
 
-Interfaz generarNuevaInterfazGenerica(char* nombre,char* pathConfiguracion){
+Interfaz generarNuevaInterfazGenerica(char* nombre,t_config* configuracion){
 
-    t_config * configuracion;
-    configuracion = config_create(pathConfiguracion);
+    
 
     Interfaz aDevolver;
     

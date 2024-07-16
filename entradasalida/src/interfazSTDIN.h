@@ -17,7 +17,7 @@ extern sem_t sem_hay_en_cola_STDIN;
 
 
 
-Interfaz generarNuevaInterfazSTDIN(char* nombre,char* pathConfiguracion);
+Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion);
 
 void EJECUTAR_INTERFAZ_STDIN();
 

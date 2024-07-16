@@ -22,11 +22,30 @@ int main(int argc, char* argv[]) {
 		cerrarLogger();
 		return 0;
 	}
-	entradasalida_config config_valores;
+	if(argc>2){
+		printf("Se introdujo mas de una interfaz, se conectara solo la primera");
+		log_info(loggerIO, "Se introdujo mas de una interfaz, se conectara solo la primera");
+	}
+	
+	
 	t_config *configCargaInterfaz;
 
 	configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[1],".config"));
+	if(configCargaInterfaz==NULL){
+		log_info(loggerIO,"No se encuentra el archivo de congiguracion, se finaliza el programa");
+		cerrarLogger();
+		return 0;
+	}
+
+	log_info(loggerIO,"Se continuan los logs en %s.log",argv[1]);
+	cerrarLogger();
+	inicializarLoggerDeInterfaz(argv[1]);
 	
+	
+	entradasalida_config config_valores;
+	
+	
+
 	//Conecto entradasalida con kernel y memoria
 	config_valores.ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
 	config_valores.ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
@@ -38,65 +57,57 @@ int main(int argc, char* argv[]) {
 	log_info(loggerIO, "Me conecte a memoria");
 
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
-	log_info(loggerIO, "Se conecto la interfaz: %s",argv[1]);
+	log_info(loggerIO, "Se conecto la interfaz con kernel");
+
+	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
+	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
 
 
-	for(int i=2;i<argc;i++){
-		configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[i],".config"));
-		enviarNuevaInterfazAKernel(configCargaInterfaz,argv[i]);
-		log_info(loggerIO, "Se conecto la interfaz: %s",argv[i]);
+	switch (tipo)
+	{
+	case T_GENERICA:
+		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);//TODO PATH
+	
+		pthread_t hilo_interfaz_generica;
+		pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
+		pthread_join(hilo_interfaz_generica,NULL);
+		recibirPeticionDeIO_GEN();
+		break;
+	case T_STDIN:
+		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);//TODO PATH
+
+		pthread_t hilo_interfaz_STDIN;
+		pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
+		pthread_join(hilo_interfaz_STDIN,NULL);
+		recibirPeticionDeIO_STDIN();
+		break;
+	case T_STDOUT:
+		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);//TODO PATH
+
+		pthread_t hilo_interfaz_STDOUT;
+		pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
+		pthread_join(hilo_interfaz_STDOUT,NULL);
+		recibirPeticionDeIO_STDOUT();
+		break;
+	case T_DFS:
+		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);//TODO path
+
+		pthread_t hilo_interfaz_DialFS;
+		pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
+		pthread_join(hilo_interfaz_DialFS,NULL);
+		recibirPeticionDeIO_DialFS();
+		break;
+	default:
+		break;
 	}
 
-
-	
-	
-	
-	
-	
 	
 
 
 
 
 
-
-
-
-
-
-
-/* ESTO ESTA ASI DE CUANDO IBAMOS A HACER UN HILO POR CADA TIPO DE INTERFAZ
-
-	interfaz_generica = generarNuevaInterfazGenerica("Int1","PATH");//TODO PATH
 	
-	pthread_t hilo_interfaz_generica;
-	pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
-
-
-	interfaz_STDIN = generarNuevaInterfazSTDIN("Int2","PATH");//TODO PATH
-
-	pthread_t hilo_interfaz_STDIN;
-	pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
-
-
-	interfaz_STDOUT = generarNuevaInterfazSTDOUT("Int3","PATH");//TODO PATH
-
-	pthread_t hilo_interfaz_STDOUT;
-	pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
-
-
-	interfaz_DialFS = generarNuevaInterfazDialFS("Int4","PATH");//TODO path
-
-	pthread_t hilo_interfaz_DialFS;
-	pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
-
-
-
-	pthread_join(hilo_interfaz_generica,NULL);
-	pthread_join(hilo_interfaz_STDIN,NULL);
-	pthread_join(hilo_interfaz_STDOUT,NULL);
-	pthread_join(hilo_interfaz_DialFS,NULL);*/
-	//TODO agregar otros hilos
 	
 	
 
