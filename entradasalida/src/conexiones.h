@@ -19,4 +19,8 @@ void recibirPeticionDeIO_STDIN();
 void recibirPeticionDeIO_STDOUT();
 void recibirPeticionDeIO_DialFS();
 
+void avisarErrorAKernel(char* nombre,int PID);
+void terminoEjecucionInterfaz(char* nombre,int PID);
+//TODO hay q ver si sirve esta info para kernel.
+
 #endif
