@@ -19,13 +19,17 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);
 
 direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid);
 
-void decode(char *instruccionDecodificar, int pid);
+t_instruccion decode(char *instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
+
+int execute2(t_instruccion instruccion_a_ejecutar);
 
 void* ciclo_de_instruccion();
 
 void recv_instruccion(int memoria_fd);
+
+void mandarPaqueteaKernel(op_code codigoDeOperacion);
 
 #endif // CICLOINSTRUCCION_H
 

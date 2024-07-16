@@ -18,6 +18,7 @@ typedef enum
     PROCESO_EXIT,
     PROCESO_WAIT,
     PROCESO_SIGNAL,
+    IO_GEN_SLEEP,
 
     //INSTRUCCIONES
     SET,
@@ -55,7 +56,6 @@ typedef enum
     IO_FS_TRUNCATE,
     IO_FS_WRITE,
     IO_FS_READ,
-    IO_GEN_SLEEP,
     IO_STDIN_READ,
     IO_STDOUT_WRITE,
     AGREGAR_INTERFACES,

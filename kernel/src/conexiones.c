@@ -47,7 +47,8 @@ void* conexionesDispatch()
 				list_add(lista_EXIT, procesoKernel); 
 				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
 				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaExit);	
+				pthread_mutex_unlock(&mutexListaExit);
+				sem_post(&semListaRunning);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
@@ -74,6 +75,7 @@ void* conexionesDispatch()
 				}
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
+				sem_post(&semListaRunning);
 
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por fin de qunatum\n", procesoKernel->PID);
 				break;
@@ -89,6 +91,27 @@ void* conexionesDispatch()
 			}
 			case IO_GEN_SLEEP:
 			{
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					terminarHiloQuantum();
+				}
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaBlocked);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				actualizarProceso(procesoCPU, procesoKernel);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					temporal_stop(tiempoVRR);
+					tiempoEjecutando = temporal_gettime(tiempoVRR);
+					temporal_destroy(tiempoVRR);
+					procesoKernel->quantum -= tiempoEjecutando;
+				}
+				procesoKernel->estado = BLOCKED;
+				list_add(lista_BLOCKED, procesoKernel);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				sem_post(&semListaRunning);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
 				Peticion_Interfaz_Generica interfazGenerica;
 
 				PCB* proceso;

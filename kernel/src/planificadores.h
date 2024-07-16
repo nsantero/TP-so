@@ -21,6 +21,7 @@ void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
 PCB* cambiarAExitDesdeRunning(t_list* cola);
 void comportamientoRR();
+void terminarHiloQuantum();
 
 
 extern pthread_t hiloQuantum;

@@ -43,6 +43,7 @@ void* planificadorNew(){
 void* planificadorReady(){
      while (1) {
         sem_wait(&semListaReady);
+        sem_wait(&semListaRunning);
         pthread_mutex_lock(&mutexListaReady);
         pthread_mutex_lock(&mutexListaRunning);
         if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {
@@ -92,10 +93,7 @@ void comportamientoVRR(){
     tiempoVRR = temporal_create();
 
     comportamientoRR();
-    temporal_stop(tiempoVRR);
-    tiempoEjecutando = temporal_gettime(tiempoVRR);
-    temporal_destroy(tiempoVRR);
-
+   
 }
 
 void cambiarAReady(t_list* cola){
@@ -120,6 +118,12 @@ PCB* cambiarAExitDesdeRunning(t_list* cola){
     list_add(lista_EXIT, proceso);
 
     return proceso;
+}
+
+void terminarHiloQuantum(){
+    pthread_mutex_lock(&mutexHiloQuantum);
+    pthread_cancel(hiloQuantum);
+    pthread_mutex_unlock(&mutexHiloQuantum);
 }
 
 

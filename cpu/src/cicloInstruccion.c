@@ -5,7 +5,7 @@
 extern int memoria_fd; 
 char *instruccionRecibida;
 extern int program_counter; 
-t_instruccion instruccion;
+//t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
 int interrumpir = 0;
 // Memoria ficticia para almacenar instrucciones
@@ -14,6 +14,7 @@ int interrumpir = 0;
 void* ciclo_de_instruccion() {
     char *instruccion_a_decodificar;
     int valor= 1;
+    t_instruccion instruccion;
 
     while (valor) {
 
@@ -26,23 +27,7 @@ void* ciclo_de_instruccion() {
         if (strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
             valor =0;
-            t_paquete *paquete_Kernel = crear_paquete(PROCESO_EXIT);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
-
-            enviar_paquete(paquete_Kernel, socketCliente);
-            eliminar_paquete(paquete_Kernel);
-
+            mandarPaqueteaKernel(PROCESO_EXIT);
             int tamanio_array = 0;
             while ((cadena_instruccion)[tamanio_array] != NULL) {
                 free(cadena_instruccion[tamanio_array]);
@@ -56,26 +41,17 @@ void* ciclo_de_instruccion() {
             
         }
 
-        decode(instruccion_a_decodificar,procesoEjecutando->PID);
+        instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
+
+        int bloqueado = execute2(instruccion);
+
+        if(bloqueado == 1){
+            return;
+        }
         
         //mutex interrumpir
         if(interrumpir == 1){
-            t_paquete *paquete_Kernel = crear_paquete(PROCESO_INTERRUMPIDO_CLOCK);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
-            agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
-            agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
-
-            enviar_paquete(paquete_Kernel, socketCliente);
-            eliminar_paquete(paquete_Kernel);
+            mandarPaqueteaKernel(PROCESO_INTERRUMPIDO_CLOCK);
 
             int tamanio_array = 0;
             while ((cadena_instruccion)[tamanio_array] != NULL) {
@@ -245,7 +221,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
 }
 
-void decode(char *instruccionDecodificar, int pid) {
+t_instruccion decode(char *instruccionDecodificar, int pid) {
+
+    t_instruccion instruccion;
 
     char **cadena_instruccion = string_split(instruccionDecodificar , " ");
 
@@ -281,7 +259,7 @@ void decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = SET;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-            
+
         }
 
         if (strcmp(cadena_instruccion[0], "SUM") == 0) {
@@ -289,7 +267,7 @@ void decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = SUM;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-            
+
         }
 
         if (strcmp(cadena_instruccion[0], "SUB") == 0) {
@@ -297,6 +275,7 @@ void decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = SUB;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
+
             
         }
 
@@ -305,9 +284,17 @@ void decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = JNZ;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-            
+
         }
-        
+        if (strcmp(cadena_instruccion[0], "IO_GEN_SLEEP") == 0) {
+            
+            instruccion.tipo_instruccion = IO_GEN_SLEEP;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+
+
+        }
+       
     }
 
     if(tamanio_array == 2){
@@ -325,7 +312,6 @@ void decode(char *instruccionDecodificar, int pid) {
             paquete_memoria_resize(pid,tam_nuevo);
             recibir_confirmacion_memoria_resize();
             //enviar a kernel
-            
         }
 
         if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
@@ -349,12 +335,53 @@ void decode(char *instruccionDecodificar, int pid) {
             
         }
     }
+
+    return instruccion;
     
 }
 
+void mandarPaqueteaKernel(op_code codigoDeOperacion){
+    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
+
+int execute2(t_instruccion instruccion_a_ejecutar){
+    int bloqueado = 0;
+    switch(instruccion_a_ejecutar.tipo_instruccion){
+        case IO_GEN_SLEEP:
+        {
+            mandarPaqueteaKernel(IO_GEN_SLEEP);
+            bloqueado = 1;
+            break;
+        }
+        default:
+        {   
+            log_error(loggerCpu, "Error");
+            break;
+        }
+
+    }
+    return bloqueado;     
+}
+
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
-    
-     printf("EXECUTE - Instrucción: %s\n", instruccion);
+
+    //printf("EXECUTE - Instrucción: %s\n", instruccion_a_ejecutar);
+
     
     if (strncmp(instruccion_a_ejecutar.operando1, "SET ", 4) == 0) {
         char registro[3];
@@ -378,7 +405,12 @@ void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
         char recurso[20];
         sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
         ejecutar_wait(cpu, recurso);
+    }   else if (strncmp(instruccion_a_ejecutar.operando1, "WAIT ", 5) == 0) {
+        char recurso[20];
+        sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
+        ejecutar_wait(cpu, recurso);
     }
+    
 }
 
 void recv_instruccion(int memoria_fd){
