@@ -172,7 +172,7 @@ void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
-        if(entry->d_name==nombre){
+        if(strcmp(entry->d_name,nombre)==0){
             log_info(loggerIO,"Ya existe el archivo en el FS");
             //Deberia avisar a kernel?? TODO
             return;
@@ -211,7 +211,7 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
-        if(entry->d_name==nombre){
+        if(strcmp(entry->d_name,nombre)==0){
             off_t bloqueInicial;
             int tamanioEnbytes;
             char* path=obtenerInfoDeArchivo(nombre,&bloqueInicial,&tamanioEnbytes);
