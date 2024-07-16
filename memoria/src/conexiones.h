@@ -2,13 +2,15 @@
 #define CONEXIONESMEMORIA_H
 
 #include <../../shared/src/shared.h>
-#include "memoria.h"
+#include <memoria.h>
+
+int cantidadFrameLibre();
 
 int asignarFrameLibre();
 
-void paquete_cpu_oom(int pid, int socket_cliente);
+void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente);
 
-bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar);
+op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar);
 
 char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar);
 

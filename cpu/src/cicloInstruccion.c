@@ -20,9 +20,10 @@ void* ciclo_de_instruccion() {
         instruccion_a_decodificar = fetch(procesoEjecutando);
         printf("Instrucción recibida: %s\n", instruccion_a_decodificar);
 
+        //char **cadena_instruccion = malloc(sizeof(char**));
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
         
-        if ( strstr(cadena_instruccion[0], "EXIT") != NULL ){
+        if (strstr(cadena_instruccion[0], "EXIT") != NULL ){
 
             valor =0;
             t_paquete *paquete_Kernel = crear_paquete(PROCESO_EXIT);
@@ -41,7 +42,17 @@ void* ciclo_de_instruccion() {
 
             enviar_paquete(paquete_Kernel, socketCliente);
             eliminar_paquete(paquete_Kernel);
-            return NULL;
+
+            int tamanio_array = 0;
+            while ((cadena_instruccion)[tamanio_array] != NULL) {
+                free(cadena_instruccion[tamanio_array]);
+                tamanio_array++;
+            }
+            free(cadena_instruccion);
+            free(instruccion_a_decodificar);
+
+            //return NULL;
+            break;
             
         }
 
@@ -66,8 +77,27 @@ void* ciclo_de_instruccion() {
             enviar_paquete(paquete_Kernel, socketCliente);
             eliminar_paquete(paquete_Kernel);
 
-            return NULL;
+            int tamanio_array = 0;
+            while ((cadena_instruccion)[tamanio_array] != NULL) {
+                free(cadena_instruccion[tamanio_array]);
+                tamanio_array++;
+            }
+            free(cadena_instruccion);
+            free(instruccion_a_decodificar);
+
+            //return NULL;
+            break;
         }
+
+        int tamanio_array = 0;
+        while ((cadena_instruccion)[tamanio_array] != NULL) {
+            free(cadena_instruccion[tamanio_array]);
+            tamanio_array++;
+        }
+        free(cadena_instruccion);
+        free(instruccion_a_decodificar);
+
+
     }
 
     return NULL;
@@ -113,6 +143,43 @@ char* fetch(Proceso *procesoEjecutando) {
     return NULL;
 
 }
+
+
+void recibir_confirmacion_memoria_resize(){
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+ 
+
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                printf("Instrucción resize realizada!! \n");
+                break;
+            }
+            case OUT_OF_MEMORY:
+            {
+                //enviar a kernel 
+                printf("Instrucción resize: OUT OF MEMORYY ! \n");
+                break;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+
+    }       
+
+}
+
 
 int buscar_frame(int pagina){
 
@@ -256,6 +323,8 @@ void decode(char *instruccionDecodificar, int pid) {
             int tam_nuevo = atoi(instruccion.operando1);
 
             paquete_memoria_resize(pid,tam_nuevo);
+            recibir_confirmacion_memoria_resize();
+            //enviar a kernel
             
         }
 

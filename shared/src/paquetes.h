@@ -45,6 +45,7 @@ typedef enum
     ENVIO_INSTRUCCION,
     ENVIO_TAM_PAGINA,
     OUT_OF_MEMORY,
+    OK,
     
     //KERNEL IO
     PRESENCIA_INTERFAZ_GENERICA,

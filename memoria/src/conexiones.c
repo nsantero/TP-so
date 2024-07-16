@@ -1,5 +1,6 @@
 #include <conexiones.h>
 #include <semaforos.h>
+#include <math.h>
 #include <configs.h>
 
 
@@ -7,20 +8,48 @@ int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
 
-int asignarFrameLibre(){
+int cantidadFrameLibre(){
 
-    //TODO
+    int cant_frames_libres = 0;
+    int cant_frames_bitarray = bitarray_get_max_bit(memoria.bitmap_frames);
+    int diferencia = cant_frames_bitarray-memoria.cantidad_frames;
 
-    int frame_libre=0;
+    for (int i = 0; i < memoria.cantidad_frames; i++) {
+    
+        int valor = bitarray_test_bit(memoria.bitmap_frames, i);
+        
+        if(!valor){
+            cant_frames_libres ++;
+        }
+        
 
-    return frame_libre;
+    }
+
+    return cant_frames_libres-diferencia;
 }
 
-void paquete_cpu_oom(int pid, int socket_cliente){
+int asignarFrameLibre(){
 
-    t_paquete *paquete_cpu = crear_paquete(OUT_OF_MEMORY);
+    for (int i = 0; i < memoria.cantidad_frames; i++) {
+    
+        int valor = bitarray_test_bit(memoria.bitmap_frames, i);
 
-    agregar_entero_a_paquete32(paquete_cpu, pid);
+        if(!valor){
+
+            bitarray_set_bit(memoria.bitmap_frames, i);
+
+            printf("valor nuevo del bitarray: %d\n", bitarray_test_bit(memoria.bitmap_frames, i));
+            
+            return i;
+        }
+    
+    }
+
+}
+
+void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente){
+
+    t_paquete *paquete_cpu = crear_paquete(resultado);
     
     enviar_paquete(paquete_cpu, socket_cliente);
 
@@ -28,7 +57,7 @@ void paquete_cpu_oom(int pid, int socket_cliente){
 }
 
 
-bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
+op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
     Proceso *proceso = NULL;
 
@@ -38,8 +67,15 @@ bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
         if (proceso->pid == pid_a_cambiar) {
             
-            int cantidad_paginas = tam_a_cambiar/memoria.pagina_tam +1;
+            int cantidad_paginas = ceil(tam_a_cambiar/memoria.pagina_tam);
             int tam_actual = proceso->tam_proceso;
+
+            if (cantidadFrameLibre() == 0 || cantidad_paginas>cantidadFrameLibre()){
+
+                return false;
+
+            }
+            else{
 
             //Caso Ampliacion de un proceso
             if(proceso->tam_proceso == 0){
@@ -52,7 +88,7 @@ bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
                     
                     reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                    reg_tp_proceso->numero_de_pagina = i + 1;
+                    reg_tp_proceso->numero_de_pagina = i;
                     
                     reg_tp_proceso->numero_de_frame = asignarFrameLibre();
                     reg_tp_proceso->modificado = false;
@@ -61,14 +97,14 @@ bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     i ++;
                 }
 
-                return true;
+                return OK;
 
             }
             
             if(tam_actual<tam_a_cambiar){
 
                 //Agregar paginas
-                int dif_tamaño = tam_actual-tam_a_cambiar;
+                //int dif_tamaño = tam_actual-tam_a_cambiar;
             
 
             }
@@ -77,6 +113,7 @@ bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
                 //Remover paginas
 
+            }
             }
 
         }
@@ -128,7 +165,7 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente){
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_TAM_PAGINA);
 
-    agregar_entero_a_paquete32(paquete_cpu, memoria.pagina_tam);
+    agregar_entero_a_paquete32(paquete_cpu, memoria.pagina_tam );
     
     enviar_paquete(paquete_cpu, socket_cliente);
     eliminar_paquete(paquete_cpu);
@@ -203,7 +240,7 @@ void* manejarClienteCpu(void *arg)
             {   
                 int nuevo_tamaño;
                 int pid_a_cambiar;
-                bool estado_cambio;
+                op_code resultado_cambio;
                 paquete->buffer->stream = malloc(paquete->buffer->size);
                 recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
                 void *stream = paquete->buffer->stream;
@@ -212,10 +249,8 @@ void* manejarClienteCpu(void *arg)
                 stream += sizeof(int);
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
                 printf("Se recibio cambiar el tamanio a: %d\n", nuevo_tamaño );
-                estado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
-                if (!estado_cambio){ 
-                    paquete_cpu_oom(pid_a_cambiar,socketCliente);                  
-                }                    
+                resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
                 break;
             }
 
@@ -290,6 +325,7 @@ void* manejarClienteKernel(void *arg)
 
             case FINALIZAR_PROCESO:
             {   
+                //CHECK
                 int pid_remover;
                 void *stream = paquete->buffer->stream;
                 memcpy(&pid_remover, stream, sizeof(int));

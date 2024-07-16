@@ -11,6 +11,8 @@ extern char* instruccionRecibida;
 
 char* fetch(Proceso *proceso);
 
+void recibir_confirmacion_memoria_resize();
+
 int buscar_frame(int pagina);
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);

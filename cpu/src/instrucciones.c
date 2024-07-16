@@ -114,7 +114,7 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
 
 void ejecutar_wait(CPU_Registers *cpu, const char* recurso) {
     // Enviar la solicitud de WAIT al Kernel
-    enviar_solicitud_wait(recurso);
+    //enviar_solicitud_wait(recurso);
     printf("WAIT - Solicitud enviada para el recurso: %s\n", recurso);
 }
 

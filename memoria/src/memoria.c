@@ -18,11 +18,13 @@ void crearListas(){
 
 void esquemaPaginacion(){
     
-    int calculo_espacio_frames = memoria.cantidad_frames/8 +1 ;
+    int cant_fr = memoria.tam/memoria.pagina_tam;
+    int calculo_espacio_frames = ceil((double)cant_fr/8);
     void* espacio_frames =malloc(calculo_espacio_frames);
      
     memoria.bitmap_frames =  bitarray_create_with_mode(espacio_frames,calculo_espacio_frames,LSB_FIRST);
-    
+    //int cant_frames = bitarray_get_max_bit(memoria.bitmap_frames);
+
 }
 
 int calculoDeFrames(int memoria_tam, int pagina_tam){
@@ -32,13 +34,11 @@ int calculoDeFrames(int memoria_tam, int pagina_tam){
 }
 
 void inicializarMemoria(){
-
-    Memoria *memoria = malloc(sizeof(Memoria));
     
-    memoria->tam = configuracionMemoria.TAM_MEMORIA;
-    memoria->pagina_tam = configuracionMemoria.TAM_PAGINA;
-    memoria->cantidad_frames = calculoDeFrames(memoria->tam, memoria->pagina_tam);
-    memoria->espacioUsuario = malloc(memoria->tam);
+    memoria.tam = configuracionMemoria.TAM_MEMORIA;
+    memoria.pagina_tam = configuracionMemoria.TAM_PAGINA;
+    memoria.cantidad_frames = calculoDeFrames(memoria.tam, memoria.pagina_tam);
+    memoria.espacioUsuario = malloc(memoria.tam);
 
 }
 
@@ -51,12 +51,15 @@ int main(int argc, char *argv[])
     iniciarLoggerMemoria();
 	armarConfigMemoria();
     crearListas();
+
+    Memoria *memoria = malloc(sizeof(Memoria));
+
     inicializarMemoria();
     esquemaPaginacion();
     
     server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
-    
 	log_info(loggerMemoria, "Servidor listo para recibir al cliente");
+
     pthread_t hiloCpu;
     pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);
 
