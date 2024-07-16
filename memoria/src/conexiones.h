@@ -4,15 +4,11 @@
 #include <../../shared/src/shared.h>
 #include "memoria.h"
 
-void* atenderPeticionesKernel();
+int asignarFrameLibre();
 
-void* manejarClienteKernel(void *arg);
+void paquete_cpu_oom(int pid, int socket_cliente);
 
-void* atenderPeticionesCpu();
-
-void* manejarClienteCpu(void *arg);
-
-void cargarInstrucciones(Proceso *proceso, const char *path);
+bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar);
 
 char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar);
 
@@ -20,9 +16,15 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
 void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
-bool actualizar_tam_proceso(int pid_a_cambiar,int nuevo_tamaño);
+void* manejarClienteCpu(void *arg);
 
-void paquete_cpu_oom(int pid,int socket_cliente);
+void* atenderPeticionesCpu();
+
+void* manejarClienteKernel(void *arg);
+
+void* atenderPeticionesKernel();
+
+void cargarInstrucciones(Proceso *proceso, const char *path);
 
 extern int server_fd;
 

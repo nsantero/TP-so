@@ -2,6 +2,7 @@
 #include <semaforos.h>
 #include <configs.h>
 
+
 int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
@@ -10,7 +11,7 @@ int asignarFrameLibre(){
 
     //TODO
 
-    int frame_libre;
+    int frame_libre=0;
 
     return frame_libre;
 }
@@ -27,7 +28,7 @@ void paquete_cpu_oom(int pid, int socket_cliente){
 }
 
 
-bool actualizar_tam_proceso(pid_a_cambiar,tam_a_cambiar){
+bool actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
     Proceso *proceso = NULL;
 
@@ -44,6 +45,7 @@ bool actualizar_tam_proceso(pid_a_cambiar,tam_a_cambiar){
             if(proceso->tam_proceso == 0){
 
                 proceso->tam_proceso = tam_a_cambiar;
+                
 
                 for (int i = 0; i < cantidad_paginas; i++) {
 
@@ -52,9 +54,9 @@ bool actualizar_tam_proceso(pid_a_cambiar,tam_a_cambiar){
                     reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
                     reg_tp_proceso->numero_de_pagina = i + 1;
                     
-                    reg_tp_proceso->numero_de_frame = asignarFrameLbre();
+                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
                     reg_tp_proceso->modificado = false;
-                    list_add(tabla_de_paginas, reg_tp_proceso);
+                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
 
                     i ++;
                 }
@@ -66,10 +68,7 @@ bool actualizar_tam_proceso(pid_a_cambiar,tam_a_cambiar){
             if(tam_actual<tam_a_cambiar){
 
                 //Agregar paginas
-                
                 int dif_tamaño = tam_actual-tam_a_cambiar;
-
-
             
 
             }
@@ -94,15 +93,17 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
     for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
         proceso = list_get(lista_ProcesosActivos,i);
+
         if (proceso->pid == pid_a_buscar) {
 
             for (int i = 0; i < list_size(proceso->instrucciones); i++) {
+
                 Instruccion *instruccion_ = list_get(proceso->instrucciones, i);
 
                 if (instruccion_->numeroInstruccion == pc_a_buscar) {
-                    //printf("nroinstruccion:%d\n",instruccion_->numeroInstruccion);
-                    //printf("instruccion:%s\n",instruccion_->instruccion);
-                return instruccion_->instruccion;
+
+                    return instruccion_->instruccion;
+
                 }
             }
         }
@@ -110,6 +111,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 }
 
 void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cliente){
+
     t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
 
     char* instruccion = buscar_instruccion(PID_paquete,PC_paquete);
@@ -134,6 +136,7 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente){
 }
 
 void* atenderPeticionesCpu() {
+
     while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
@@ -142,6 +145,7 @@ void* atenderPeticionesCpu() {
         pthread_create(&client_thread, NULL, manejarClienteCpu, pclient);
         pthread_detach(client_thread);
     }
+
     return NULL;
 }
 
@@ -149,18 +153,22 @@ void* manejarClienteCpu(void *arg)
 {
     int socketCliente = *((int*)arg);
     free(arg);
+
     while(1){
+
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
         recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         
         switch(paquete->codigo_operacion){
+
             case PEDIDO_TAM_PAGINA:
             {   
                 paquete_cpu_envio_tam_pagina(socketCliente);
                 break;
             }
+
             case PEDIDO_INSTRUCCION:
             {   
                 int pid_solicitado;
@@ -177,6 +185,7 @@ void* manejarClienteCpu(void *arg)
                 paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
                 break;
             }
+
             case MOV_OUT:
             {   
                 //MOV_OUT (Registro Dirección, Registro Datos): 
@@ -184,10 +193,12 @@ void* manejarClienteCpu(void *arg)
                 //int direccion_fisica;
                 break;
             }
+
             case MOV_IN:
             {   
                 break;
             }
+
             case RESIZE:
             {   
                 int nuevo_tamaño;
@@ -207,19 +218,24 @@ void* manejarClienteCpu(void *arg)
                 }                    
                 break;
             }
+
             default:
             {   
                 log_error(loggerMemoria, "Error");
                 break;
             }
+
         }
+
         eliminar_paquete(paquete);
     }
+
 }
 
 
 //-----------------------------conexion kernel y memoria------------------------------------
 void* atenderPeticionesKernel() {
+
     while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
@@ -228,14 +244,18 @@ void* atenderPeticionesKernel() {
         pthread_create(&client_thread, NULL, manejarClienteKernel, pclient);
         pthread_detach(client_thread);
     }
+
     return NULL;
+
 }
 
 void* manejarClienteKernel(void *arg)
 {
     int socketCliente = *((int*)arg);
     free(arg);
+
     while(1){
+
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -245,6 +265,7 @@ void* manejarClienteKernel(void *arg)
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
         
         switch(paquete->codigo_operacion){
+
             case CREAR_PROCESO:
             {
                 Proceso *proceso = malloc(sizeof(Proceso));
@@ -266,6 +287,7 @@ void* manejarClienteKernel(void *arg)
                 printf("se recibio proceso con path:%s\n", proceso->path);
                 break;
             }
+
             case FINALIZAR_PROCESO:
             {   
                 int pid_remover;
@@ -292,6 +314,7 @@ void* manejarClienteKernel(void *arg)
             {
                 //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
             }
+
             default:
             {   
                 log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
@@ -309,6 +332,7 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
 
     int valorInstruccion = 0;
     FILE *file = fopen(path, "r");
+
     if (!file) {
         perror("Error opening file");
         return;
@@ -317,6 +341,7 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
     proceso->instrucciones = list_create();
 
     char line[256];
+    
     while (fgets(line, sizeof(line), file)) {
         // Remove newline character if present
         line[strcspn(line, "\n")] = 0;

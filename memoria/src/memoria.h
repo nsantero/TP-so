@@ -23,7 +23,7 @@ typedef struct{
 // Estructura del Proceso
 typedef struct {
     int pid;
-    char * path;
+    char *path;
     t_list *instrucciones;
     int tam_proceso;
     t_list *tabla_de_paginas;
@@ -47,28 +47,14 @@ extern Memoria memoria;
 
 extern t_bitarray* bitmap_frames;
 
-int server_escuchar(int fd_memoria);
-
-int recv_fetch_instruccion(int fd_modulo, int **pid, int **pc);
-
-void leer_instruccion_por_pc_y_enviar(int *pid, int *pc, int fd) ;
-
-char *armar_path_instruccion(int pid) ;
-
-int calculoDeFrames(int memoria_tam, int pagina_tam);
-
-void obtener_instruccion(char *path_consola, int pc, int fd) ;
-
 void crearListas();
-
-void inicializarMemoria();
 
 void esquemaPaginacion();
 
+int calculoDeFrames(int memoria_tam, int pagina_tam);
+
+void inicializarMemoria();
+
 extern t_list* lista_ProcesosActivos;
-
-extern t_list* lista_frames;
-
-extern t_list* tabla_de_paginas;
 
 #endif

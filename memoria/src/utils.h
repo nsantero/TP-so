@@ -1,3 +1,6 @@
+#ifndef UTILSMEMORIA_H
+#define UTILSMEMORIA_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -7,8 +10,7 @@
 
 char* leer_string(char *buffer, int *desplazamiento);
 
-
-
+#endif
 
 
 
