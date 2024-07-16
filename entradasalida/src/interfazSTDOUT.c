@@ -51,10 +51,11 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion){
 
 void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 	
-    t_paquete* paquete_direccion = crear_paquete(IO_STDOUT_WRITE);
+    t_paquete* paquete_direccion = crear_paquete(IO_MEM_STDOUT_WRITE);
     agregar_entero_a_paquete8(paquete_direccion,peticion->tamanio);
-    agregar_entero_a_paquete(paquete_direccion, peticion->direccion);
+    agregar_entero_a_paquete32(paquete_direccion, peticion->direccion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
+    free(paquete_direccion->buffer);
     free(paquete_direccion);
 
     //TODO, hacer esto con un void* buffer;
@@ -68,9 +69,9 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     printf("El contenido encontrado en la direccion de memoria %u es: %s\n", peticion->direccion, contenido_memoria);
     
 
-    free(paquete_direccion->buffer);
+    
     free(contenido_memoria);
-
+    free(buffer);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDOUT_WRITE",peticion->PID);
 }

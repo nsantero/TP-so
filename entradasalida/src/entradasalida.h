@@ -18,6 +18,7 @@
 #include <interfazDialFS.h>
 #include <loggersIO.h>
 #include <conexiones.h>
+#include <sigInt.h>
 
 
 typedef struct

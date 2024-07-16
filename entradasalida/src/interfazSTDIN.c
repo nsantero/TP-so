@@ -53,7 +53,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	char* texto_leido = NULL;
 
 	
-	t_paquete* paquete_entrada = crear_paquete(IO_STDIN_READ);
+	t_paquete* paquete_entrada = crear_paquete(IO_MEM_STDIN_READ);
 
     //TODO aca el paquete tmb deberia tener la direccion logica de donde se quiere guardar 
     //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico

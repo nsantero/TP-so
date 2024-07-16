@@ -287,16 +287,23 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
     if(tamanioArchivo<(punteroArchivo+tamanio)){
-        //mensaje de error a kernel no entra en el archivo
+        //TODO mensaje de error a kernel no entra en el archivo
     }
     //solicitar info a memoria
-    //recivir info de memoria
+    t_paquete* paquete_direccion = crear_paquete(IO_MEM_FS_WRITE);
+    agregar_entero_a_paquete8(paquete_direccion,tamanio);
+    agregar_entero_a_paquete32(paquete_direccion,direcion);
+    enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
+    free(paquete_direccion->buffer);
+    free(paquete_direccion);
+    //recibir info de memoria
     //recivis un 
     int bytes;//q tiene q ser igual a tamanio
     //y un
-    void* buffer=malloc(bytes);//guarda las cosas
+    void* buffer=recibir_buffer(&bytes,memoria_fd);//guarda las cosas
+    
     if(bytes!=tamanio){
-        //error con el mensaje
+        //TODO error con el mensaje
     }
 
     //abro el FS
@@ -325,7 +332,7 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
     if(tamanioArchivo<(punteroArchivo+tamanio)){
-        //mensaje de error a kernel lee fuera del archivo
+        //TODO mensaje de error a kernel lee fuera del archivo
     }
 
     //abro el FS
@@ -341,7 +348,9 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
     //enviar solicitud a memoria
-    t_paquete *paquete = crear_paquete(CREAR_PROCESO);
+    t_paquete *paquete = crear_paquete(IO_MEM_FS_READ);
+    agregar_entero_a_paquete8(paquete,tamanio);
+    agregar_entero_a_paquete32(paquete,direcion);
     agregar_a_paquete(paquete, buffer, (int)tamanio);
     enviar_paquete(paquete, memoria_fd);
     eliminar_paquete(paquete);
@@ -519,7 +528,7 @@ void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){
 
 
 
-}//TODO
+}
 
 void liberarBloque(off_t offset){
     int fd=open(path_bitmap,O_RDWR);

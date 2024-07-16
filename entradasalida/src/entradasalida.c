@@ -13,6 +13,8 @@ uint32_t recibir_direccion_fisica(){
 
 int main(int argc, char* argv[]) {
 
+	signal(SIGINT,handleSiginitIO);
+
     inicializarLogger();
 	log_info(loggerIO, "Se inicio el main de enrada y salida");
 
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
 	switch (tipo)
 	{
 	case T_GENERICA:
-		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);
 	
 		pthread_t hilo_interfaz_generica;
 		pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
@@ -74,7 +76,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_GEN();
 		break;
 	case T_STDIN:
-		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);
 
 		pthread_t hilo_interfaz_STDIN;
 		pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
@@ -82,7 +84,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_STDIN();
 		break;
 	case T_STDOUT:
-		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);
 
 		pthread_t hilo_interfaz_STDOUT;
 		pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
@@ -90,8 +92,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_STDOUT();
 		break;
 	case T_DFS:
-		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);//TODO path
-
+		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);
 		pthread_t hilo_interfaz_DialFS;
 		pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
 		pthread_join(hilo_interfaz_DialFS,NULL);
@@ -100,21 +101,6 @@ int main(int argc, char* argv[]) {
 	default:
 		break;
 	}
-
-	
-
-
-
-
-
-	
-	
-	
-
-
-	// envio mensajes
-	//enviar_mensaje("soy e/s", memoria_fd);
-    //enviar_mensaje("soy e/s", kernel_fd);
 
     return EXIT_SUCCESS;
 }
