@@ -1,5 +1,6 @@
 #include <interfazGenerica.h>
 #include <unistd.h>
+#include <conexiones.h>
 
 Interfaz interfaz_generica;
 t_list * cola_procesos_ig = NULL;
@@ -23,7 +24,7 @@ void* manejo_interfaz_generica(){
         pthread_mutex_unlock(&mutex_cola_ig);
 
         manejarPeticionInterfazGenerica(peticion_ig->unidades_de_trabajo, interfaz_generica,peticion_ig->PID);
-        //Avisar a kernel que termino 
+        
 
 
     }
@@ -59,5 +60,5 @@ void manejarPeticionInterfazGenerica(unsigned unidadesAEsperar,Interfaz interfaz
     usleep(unidadesAEsperar*interfaz.tiempoUnidadTrabajo*1000);
     log_info(loggerIO,"PID: %d - Operacion: IO_GEN_SLEEP",PID);
 
-    //TODO enviar mensaje a kernel
+    terminoEjecucionInterfaz(interfaz_generica.nombre,PID);
 }

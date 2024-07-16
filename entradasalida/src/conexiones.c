@@ -226,3 +226,28 @@ void recibirPeticionDeIO_DialFS(){
     }
 
 }
+
+void avisarErrorAKernel(char* nombre,int PID){
+    int tamanioNombre=string_length(nombre);
+    
+
+    t_paquete* paquete=crear_paquete(ERROR_EN_INTERFAZ);
+    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
+    agregar_a_paquete(paquete,nombre,tamanioNombre);
+    agregar_a_paquete(paquete,&PID,sizeof(int));
+    enviar_paquete(paquete,kernel_fd);
+    eliminar_paquete(paquete);
+}
+void terminoEjecucionInterfaz(char* nombre,int PID){
+    int tamanioNombre=string_length(nombre);
+    
+
+    t_paquete* paquete=crear_paquete(DESBLOQUEAR_PROCESO_POR_IO);
+    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
+    agregar_a_paquete(paquete,nombre,tamanioNombre);
+    agregar_a_paquete(paquete,&PID,sizeof(int));
+    enviar_paquete(paquete,kernel_fd);
+    eliminar_paquete(paquete);
+}
+
+    

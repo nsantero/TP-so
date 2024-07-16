@@ -58,7 +58,7 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     free(paquete_direccion->buffer);
     free(paquete_direccion);
 
-    //TODO, hacer esto con un void* buffer;
+    //TODO, hacer esto con un void* buffer; CREO Q ESTA HECHO LO DEL BUFFER, SI NO NO SE A Q ME REFERI ACA
     int bytes;
     void* buffer = recibir_buffer(&bytes,memoria_fd);//Recibo el contenido de la direccion por parte de memoria
     //esto lo recibe aca asi? 
@@ -74,4 +74,5 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     free(buffer);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDOUT_WRITE",peticion->PID);
+    terminoEjecucionInterfaz(interfaz_STDOUT.nombre,peticion->PID);
 }

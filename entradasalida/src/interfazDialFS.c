@@ -130,8 +130,8 @@ void EJECUTAR_INTERFAZ_DialFS(Peticion_Interfaz_DialFS* peticion){
         break;
     }
 
-    //TODO avisar a kernel, por ahi deberia hacerlo
-    // internamente cada caso, por q creo q hay un par q toca un registro
+    //avisar a kernel, por ahi deberia hacerlo
+    // internamente cada caso, por q creo q hay un par q toca un registro HECHO
 }
 
 void inicializar_bloques_dat(Interfaz interfaz){
@@ -166,6 +166,19 @@ void inicializar_bitmap_dat(Interfaz interfaz){
 
 void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
     char* nombre=peticion->nombreArchivo;
+    
+    DIR *dir=opendir(interfaz_DialFS.pathBaseDialfs);
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if(entry->d_name==nombre){
+            log_info(loggerIO,"Ya existe el archivo en el FS");
+            //Deberia avisar a kernel?? TODO
+            return;
+        }
+    }
+    close(dir);
+
 
     char* path=generarPathAArchivoFS(nombre);
     FILE*archivoNuevo=txt_open_for_append(path);
@@ -187,26 +200,39 @@ void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
     ocuparBloque(bloqueInicialOffs);
 
     log_info(loggerIO,"PID: %d - Crear Archivo: %s",peticion->PID,nombre);
+    terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
     
 }
 void borrarFile(Peticion_Interfaz_DialFS* peticion){
     
     char* nombre =peticion->nombreArchivo;
+    DIR *dir=opendir(interfaz_DialFS.pathBaseDialfs);
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if(entry->d_name==nombre){
+            off_t bloqueInicial;
+            int tamanioEnbytes;
+            char* path=obtenerInfoDeArchivo(nombre,&bloqueInicial,&tamanioEnbytes);
 
-    off_t bloqueInicial;
-    int tamanioEnbytes;
-    char* path=obtenerInfoDeArchivo(nombre,&bloqueInicial,&tamanioEnbytes);
 
+            int cantBloques=(tamanioEnbytes/interfaz_DialFS.blockSize)+1;
 
-    int cantBloques=(tamanioEnbytes/interfaz_DialFS.blockSize)+1;
+            for(bloqueInicial;bloqueInicial<(cantBloques+bloqueInicial);bloqueInicial++){
+                liberarBloque(bloqueInicial);
+            }
+            
+            remove(path);
 
-    for(bloqueInicial;bloqueInicial<(cantBloques+bloqueInicial);bloqueInicial++){
-        liberarBloque(bloqueInicial);
+            log_info(loggerIO,"PID: %d - Eliminar Archivo: %s",peticion->PID,nombre);
+            terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
+            return;
+        }
     }
-    
-    remove(path);
+    log_info(loggerIO,"No existe el archivo en el FS");
+    //Deberia avisar a kernel?? TODO
 
-    log_info(loggerIO,"PID: %d - Eliminar Archivo: %s",peticion->PID,nombre);
+    
 
 }
 void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
@@ -228,11 +254,14 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
         for(cantbloquesActuales;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
             liberarBloque(cantbloquesActuales);            
         }  
-        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
-
+        cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
+        log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);  
+        log_info(loggerIO,"Caso: necesita menos bloques.");
 
     }else if(cantbloquesActuales==cantBloquesNecesarios){//caso mismos bloques, puede variar la cant de bytes
         cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);
+        log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
+        log_info(loggerIO,"Caso: mismos bloques, pueden variar los bytes.");
     }//caso, no se necesita achicar ni agrandar
     else{//caso se debe agrandar el archivo
         
@@ -240,22 +269,19 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
 
 
         if(!existenBloquesDisponibles(bloquesNuevosNecesarios)){//caso no queda lugar en el FS
-
-            //TODO tirar el error de q no hay lugar para agrandar el archivo
-            /**
-             * 
-             * 
-             * 
-             * 
-             * 
-            */
+            avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
+            log_info(loggerIO,"No hay bloques disponibles para agrandar el archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+            return;
+            //tirar el error de q no hay lugar para agrandar el archivo HECHO
+            
         }else if(hayLugarDespuesDelArchivo(bloquesNuevosNecesarios,bloqueInicial+cantbloquesActuales)){//caso, hay lugar inmediatamentemente despues para argadarlo
             
             for(int i=1;i<=bloquesNuevosNecesarios;i++){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
             }
             cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio);  
-
+            log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
+            log_info(loggerIO,"Caso: se agranda con bloques inmediatamente despues.");
 
 
         }else{// caso, se debe reorganizar el FS para acomodar el archivo
@@ -269,11 +295,12 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
                 ocuparBloque(bloqueInicial+cantbloquesActuales+i);
             }
             cambiarInfoDeArchivo(nombreArchivo,NULL,tamanio); 
-
+            log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
+            log_info(loggerIO,"Caso: necesito compactacion");
         }
 
     }
-    log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);
+    terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
 
 }
 void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
@@ -287,7 +314,9 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
     if(tamanioArchivo<(punteroArchivo+tamanio)){
-        //TODO mensaje de error a kernel no entra en el archivo
+        avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
+        log_info(loggerIO,"No hay espacio sufiente para escribir en el archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+        return;
     }
     //solicitar info a memoria
     t_paquete* paquete_direccion = crear_paquete(IO_MEM_FS_WRITE);
@@ -303,7 +332,10 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     void* buffer=recibir_buffer(&bytes,memoria_fd);//guarda las cosas
     
     if(bytes!=tamanio){
-        //TODO error con el mensaje
+        //error con el mensaje HECHO
+        avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
+        log_info(loggerIO,"Error en el tamaño del buffer solicitado a memoria en escritura del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+        return;
     }
 
     //abro el FS
@@ -319,6 +351,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     close(fdBl);
 
     log_info(loggerIO,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
+    terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
 
 }
 void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
@@ -332,7 +365,10 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     int tamanioArchivo;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialArchivo,&tamanioArchivo);
     if(tamanioArchivo<(punteroArchivo+tamanio)){
-        //TODO mensaje de error a kernel lee fuera del archivo
+        //mensaje de error a kernel lee fuera del archivo HECHO
+        avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
+        log_info(loggerIO,"El contenido a leer se encuentra fuera del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+        return;
     }
 
     //abro el FS
@@ -359,10 +395,16 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     free(buffer);
 
     log_info(loggerIO,"PID: %d - Escribir Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
+    terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
 }
 
-//TODO estas dos no tienen en cuenta q el ultimo byte del bitmap puede q tenga hasta 7 bits de mas, buscar bloque libre tmp
+//estas dos no tienen en cuenta q el ultimo byte del bitmap puede q tenga hasta 7 bits de mas, buscar bloque libre tmp //HECHO
 int hayLugarDespuesDelArchivo(int cantBloques,off_t ultimoBloqueDelArchivo){
+
+    if((ultimoBloqueDelArchivo+cantBloques)>=interfaz_DialFS.blockCount){
+        return 0;
+    }
+
 
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -404,7 +446,7 @@ int existenBloquesDisponibles(int bloquesNecesarios){
     off_t offset=0;
     int contador=0;
 
-    for (offset;offset<(sb.st_size*8);offset++){
+    for (offset;offset<interfaz_DialFS.blockCount;offset++){
         if (!bitarray_test_bit(bitmapAddr,offset)){
             contador++;
             if(contador>=bloquesNecesarios){
@@ -430,7 +472,7 @@ int existenBloquesDisponibles(int bloquesNecesarios){
  * busca el primer bloque vacio en el FS
  * devuelve -1 si no hay lugar
 */
-//TODO tener cuidad con el tamaño del bitmap
+//tener cuidad con el tamaño del bitmap //HECHO
 off_t buscarBloqueLibre(){
     int fd=open(path_bitmap,O_RDWR);
     struct stat sb;
@@ -442,7 +484,7 @@ off_t buscarBloqueLibre(){
     int encontrado=0;
     off_t offset=0;
 
-    for (offset;offset<(sb.st_size*8);offset++){
+    for (offset;offset<interfaz_DialFS.blockCount;offset++){
         if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
