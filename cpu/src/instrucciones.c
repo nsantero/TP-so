@@ -60,32 +60,37 @@ void ejecutar_sum(CPU_Registers *cpu, const char* destino, const char* origen) {
 }
 
 void ejecutar_sub(CPU_Registers *cpu, const char* destino, const char* origen) {
-    uint32_t *reg_destino = NULL;
-    uint32_t *reg_origen = NULL;
+    uint32_t *reg_destino_32 = NULL;
+    uint8_t *reg_destino_8 = NULL;
+    uint32_t *reg_origen_32 = NULL;
+    uint8_t *reg_origen_8 = NULL;
 
     // Asignar punteros a los registros correspondientes
-    if (strcmp(destino, "AX") == 0) reg_destino = (uint32_t*)&cpu->AX;
-    else if (strcmp(destino, "BX") == 0) reg_destino = (uint32_t*)&cpu->BX;
-    else if (strcmp(destino, "CX") == 0) reg_destino = (uint32_t*)&cpu->CX;
-    else if (strcmp(destino, "DX") == 0) reg_destino = (uint32_t*)&cpu->DX;
-    else if (strcmp(destino, "EAX") == 0) reg_destino = &cpu->EAX;
-    else if (strcmp(destino, "EBX") == 0) reg_destino = &cpu->EBX;
-    else if (strcmp(destino, "ECX") == 0) reg_destino = &cpu->ECX;
-    else if (strcmp(destino, "EDX") == 0) reg_destino = &cpu->EDX;
+    if (strcmp(destino, "AX") == 0) reg_destino_32 = &cpu->AX;
+    else if (strcmp(destino, "BX") == 0) reg_destino_32 = &cpu->BX;
+    else if (strcmp(destino, "CX") == 0) reg_destino_32 = &cpu->CX;
+    else if (strcmp(destino, "DX") == 0) reg_destino_32 = &cpu->DX;
+    else if (strcmp(destino, "EAX") == 0) reg_destino_8 = &cpu->EAX;
+    else if (strcmp(destino, "EBX") == 0) reg_destino_8 = &cpu->EBX;
+    else if (strcmp(destino, "ECX") == 0) reg_destino_8 = &cpu->ECX;
+    else if (strcmp(destino, "EDX") == 0) reg_destino_8 = &cpu->EDX;
 
-    if (strcmp(origen, "AX") == 0) reg_origen = (uint32_t*)&cpu->AX;
-    else if (strcmp(origen, "BX") == 0) reg_origen = (uint32_t*)&cpu->BX;
-    else if (strcmp(origen, "CX") == 0) reg_origen = (uint32_t*)&cpu->CX;
-    else if (strcmp(origen, "DX") == 0) reg_origen = (uint32_t*)&cpu->DX;
-    else if (strcmp(origen, "EAX") == 0) reg_origen = &cpu->EAX;
-    else if (strcmp(origen, "EBX") == 0) reg_origen = &cpu->EBX;
-    else if (strcmp(origen, "ECX") == 0) reg_origen = &cpu->ECX;
-    else if (strcmp(origen, "EDX") == 0) reg_origen = &cpu->EDX;
+    if (strcmp(origen, "AX") == 0) reg_origen_32 = &cpu->AX;
+    else if (strcmp(origen, "BX") == 0) reg_origen_32 = &cpu->BX;
+    else if (strcmp(origen, "CX") == 0) reg_origen_32 = &cpu->CX;
+    else if (strcmp(origen, "DX") == 0) reg_origen_32 = &cpu->DX;
+    else if (strcmp(origen, "EAX") == 0) reg_origen_8 = &cpu->EAX;
+    else if (strcmp(origen, "EBX") == 0) reg_origen_8 = &cpu->EBX;
+    else if (strcmp(origen, "ECX") == 0) reg_origen_8 = &cpu->ECX;
+    else if (strcmp(origen, "EDX") == 0) reg_origen_8 = &cpu->EDX;
 
     // Realizar la resta si ambos registros son válidos
-    if (reg_destino && reg_origen) {
-        *reg_destino -= *reg_origen;
-        printf("SUB - %s = %d\n", destino, *reg_destino);
+    if (reg_destino_8 && reg_origen_8) {
+        *reg_destino_8 -= *reg_origen_8;
+        printf("SUB - %s = %d\n", destino, *reg_destino_8);
+    } else if (reg_destino_32 && reg_origen_32) {
+        *reg_destino_32 -= *reg_origen_32;
+        printf("SUB - %s = %d\n", destino, *reg_destino_32);
     } else {
         printf("Registro no reconocido: %s o %s\n", destino, origen);
     }

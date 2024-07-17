@@ -82,11 +82,24 @@ void* conexionesDispatch()
 			}
 			case PROCESO_WAIT:
 			{
-				
+				// Recibir nombre del recurso y PID
+                char nombre_recurso[50];
+                int pid;
+                memcpy(nombre_recurso, stream, 50);
+                stream += 50;
+                memcpy(&pid, stream, sizeof(int));
+                wait_recurso(nombre_recurso, pid);
 				break;
 			}
 			case PROCESO_SIGNAL:
 			{
+				// Recibir nombre del recurso y PID
+                char nombre_recurso[50];
+                int pid;
+                memcpy(nombre_recurso, stream, 50);
+                stream += 50;
+                memcpy(&pid, stream, sizeof(int));
+                signal_recurso(nombre_recurso, pid);
 				break;
 			}
 			case RESIZE_ERROR:
@@ -447,4 +460,44 @@ void InterruptACPU(){
 
     enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
     eliminar_paquete(paquete_CPU_interrupcion);
+}
+
+// MANEJO DE RECURSOS
+
+#define MAX_RECURSOS 10 // esto no va
+Recurso recursos[MAX_RECURSOS];
+int num_recursos = 0;
+
+void wait_recurso(char *nombre_recurso, int pid) {
+    for (int i = 0; i < num_recursos; i++) {
+        if (strcmp(recursos[i].nombre, nombre_recurso) == 0) {
+            sem_wait(&recursos[i].mutex);
+            recursos[i].instancias--;
+            if (recursos[i].instancias < 0) {
+                printf("Proceso %d bloqueado en el recurso %s\n", pid, recursos[i].nombre);
+                sem_post(&recursos[i].mutex);
+                sem_wait(&recursos[i].waitQueue);  // El proceso se bloquea aquí
+            } else {
+                sem_post(&recursos[i].mutex);
+            }
+            return;
+        }
+    }
+    printf("Recurso %s no encontrado\n", nombre_recurso);
+}
+
+void signal_recurso(char *nombre_recurso, int pid) {
+    for (int i = 0; i < num_recursos; i++) {
+        if (strcmp(recursos[i].nombre, nombre_recurso) == 0) {
+            sem_wait(&recursos[i].mutex);
+            recursos[i].instancias++;
+            if (recursos[i].instancias <= 0) {
+                sem_post(&recursos[i].waitQueue);
+                printf("Un proceso desbloqueado en el recurso %s\n", recursos[i].nombre);
+            }
+            sem_post(&recursos[i].mutex);
+            return;
+        }
+    }
+    printf("Recurso %s no encontrado\n", nombre_recurso);
 }

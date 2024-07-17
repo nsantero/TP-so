@@ -380,10 +380,8 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         }
         case JNZ:
         {
-            char registro[3];
-            uint32_t nueva_instruccion;
-            sscanf(instruccion_a_ejecutar.operando1, "JNZ %s %u", registro, &nueva_instruccion);
-            bloqueado = ejecutar_jnz(&procesoEjecutando->cpuRegisters, registro, nueva_instruccion);
+            int valor = atoi(instruccion_a_ejecutar.operando2);
+            ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;
         }
         case WAIT:

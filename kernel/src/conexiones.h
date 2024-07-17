@@ -35,4 +35,11 @@ typedef struct{
     Tipos_Interfaz tipo;
 }Interfaces_conectadas_kernel;
 
+typedef struct {
+    char *nombre;
+    int instancias;
+    sem_t mutex;
+    sem_t waitQueue;
+} Recurso;
+
 #endif // CONEXIONES_H
