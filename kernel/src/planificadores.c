@@ -53,6 +53,9 @@ void* planificadorReady(){
             if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR")){
                 comportamientoRR();
             }
+            if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+                comportamientoVRR();
+            }
         }
         pthread_mutex_unlock(&mutexListaRunning);
         pthread_mutex_unlock(&mutexListaReady);

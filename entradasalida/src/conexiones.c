@@ -187,6 +187,7 @@ void recibirPeticionDeIO_DialFS(){
         case IO_FS_TRUNCATE:
         case IO_FS_READ:
         case IO_FS_WRITE:
+        //TODO separar los casos
             
             Peticion_Interfaz_DialFS peticion;
             int bytes;

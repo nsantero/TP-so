@@ -364,17 +364,18 @@ int execute2(t_instruccion instruccion_a_ejecutar){
     switch(instruccion_a_ejecutar.tipo_instruccion){
         case SET:
         {   
-            char registro[3];
+            /*char registro[3];
             uint8_t valor;
-            sscanf(instruccion_a_ejecutar.operando1, "SET %s %hhu", registro, &valor);
-            ejecutar_set(&procesoEjecutando->cpuRegisters, registro, valor);
+            sscanf(instruccion_a_ejecutar.operando1, "SET %s %hhu", registro, &valor);*/
+            int valor = atoi(instruccion_a_ejecutar.operando2);
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, (uint8_t)valor);
             break;
         }
         case SUM:
         {
             char destino[3], origen[3];
             sscanf(instruccion_a_ejecutar.operando1, "SUM %s %s", destino, origen);
-            ejecutar_sum(&procesoEjecutando->cpuRegisters, destino, origen);
+            ejecutar_sum(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;        
         }
         case SUB:

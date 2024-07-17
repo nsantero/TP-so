@@ -227,8 +227,7 @@ void* manejarClienteIO(void *arg)
 		switch(paquete->codigo_operacion){
         	case AGREGAR_INTERFACES:
             {
-				Interfaces_conectadas_kernel *interfazBuffer;
-				int cantidadDeInterfaces;
+				Interfaces_conectadas_kernel *interfazBuffer = malloc(sizeof(Interfaces_conectadas_kernel));
 				int charTam;
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
@@ -236,10 +235,6 @@ void* manejarClienteIO(void *arg)
 				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
 				stream += charTam;
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
-
-				interfazBuffer->ocupada = 0;
-				interfazBuffer->solicitudesEnCola = 0;
-				interfazBuffer->pidActual = -1;
 
 				list_add(interfacesConectadas, interfazBuffer);
 
@@ -250,6 +245,10 @@ void* manejarClienteIO(void *arg)
 			case TERMINO_INTERFAZ:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+			}
+			case ERROR_EN_INTERFAZ:
+			{
+				break;
 			}
 			default:
 			{
