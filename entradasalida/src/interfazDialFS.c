@@ -346,7 +346,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     char *addrBloques;
     addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
     //ejecuto tarea
-    memcpy(addrBloques+punteroArchivo,buffer,tamanio);
+    memcpy(addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize),buffer,tamanio);
     //cierro todo
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
@@ -380,7 +380,7 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
     //ejecuto tarea
     void* buffer=malloc(tamanio);
-    memcpy(buffer,addrBloques+punteroArchivo,tamanio);
+    memcpy(buffer,addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize),tamanio);//HECHO, esto esta mal, lee del inicio del FS no del inicio del archivo, revisar
     //cierro todo
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
