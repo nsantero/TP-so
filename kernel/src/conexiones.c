@@ -134,7 +134,13 @@ void* conexionesDispatch()
 
 				//MUTEX
 				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
-					enviar_paquete(paquete, socketCliente);
+					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(int));
+					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteIOGen,socketCliente);
+					eliminar_paquete(paqueteIOGen);
+					
 					//bloquear procesos? //TODO
 				}
 				else{
@@ -142,15 +148,131 @@ void* conexionesDispatch()
 					paquete_memoria_finalizar_proceso(proceso->PID);
 					//eliminarProceso(proceso); //TODO
 				}
-				
+				free(interfazGenerica.nombre_interfaz);
 				break;
 			}
 			case IO_STDIN_READ:
 			{
+				/*procesoCPU = recibirProcesoContextoEjecucion(stream);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					terminarHiloQuantum();
+				}
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaBlocked);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				actualizarProceso(procesoCPU, procesoKernel);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					temporal_stop(tiempoVRR);
+					tiempoEjecutando = temporal_gettime(tiempoVRR);
+					temporal_destroy(tiempoVRR);
+					procesoKernel->quantum -= tiempoEjecutando;
+				}
+				procesoKernel->estado = BLOCKED;
+				list_add(lista_BLOCKED, procesoKernel);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				sem_post(&semListaRunning);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+				*/ 
+				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
+				Peticion_Interfaz_STDIN interfazsSTDIN;
+
+				PCB* proceso;
+
+				int pathLength;
+				
+				
+				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
+				stream += sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint8_t));
+				stream += sizeof(uint8_t);
+				memcpy(&interfazsSTDIN.PID, stream, sizeof(int));
+				stream += sizeof(int);
+				memcpy(&pathLength, stream, sizeof(int));
+				interfazsSTDIN.nombre_interfaz = malloc(pathLength);
+				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
+
+				//MUTEX
+				if(existeInterfaz(interfazsSTDIN.nombre_interfaz)){
+					t_paquete* paqueteIOSTDIN=crear_paquete(IO_GEN_SLEEP);
+					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.direccion,sizeof(uint32_t));
+					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.tamanio,sizeof(uint8_t));
+					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.PID,sizeof(int));
+					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteIOSTDIN,socketCliente);
+					eliminar_paquete(paqueteIOSTDIN);
+					
+					//bloquear procesos? //TODO
+				}
+				else{
+					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+					paquete_memoria_finalizar_proceso(proceso->PID);
+					//eliminarProceso(proceso); //TODO
+				}
+				free(interfazsSTDIN.nombre_interfaz);
+
 				break;
 			}
 			case IO_STDOUT_WRITE:
 			{
+				/*procesoCPU = recibirProcesoContextoEjecucion(stream);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					terminarHiloQuantum();
+				}
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaBlocked);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				actualizarProceso(procesoCPU, procesoKernel);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					temporal_stop(tiempoVRR);
+					tiempoEjecutando = temporal_gettime(tiempoVRR);
+					temporal_destroy(tiempoVRR);
+					procesoKernel->quantum -= tiempoEjecutando;
+				}
+				procesoKernel->estado = BLOCKED;
+				list_add(lista_BLOCKED, procesoKernel);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				sem_post(&semListaRunning);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+				*/ 
+				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
+				Peticion_Interfaz_STDOUT interfazsSTDOUT;
+
+				PCB* proceso;
+
+				int pathLength;
+				
+				
+				memcpy(&interfazsSTDOUT.direccion, stream, sizeof(uint32_t));
+				stream += sizeof(uint32_t);
+				memcpy(&interfazsSTDOUT.tamanio, stream, sizeof(uint8_t));
+				stream += sizeof(uint8_t);
+				memcpy(&interfazsSTDOUT.PID, stream, sizeof(int));
+				stream += sizeof(int);
+				memcpy(&pathLength, stream, sizeof(int));
+				interfazsSTDOUT.nombre_interfaz = malloc(pathLength);
+				memcpy(interfazsSTDOUT.nombre_interfaz, stream, pathLength);
+
+				//MUTEX
+				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz)){
+					t_paquete* paqueteIOSTDOUT=crear_paquete(IO_GEN_SLEEP);
+					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.direccion,sizeof(uint32_t));
+					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.tamanio,sizeof(uint8_t));
+					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.PID,sizeof(int));
+					agregar_a_paquete(paqueteIOSTDOUT,interfazsSTDOUT.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteIOSTDOUT,socketCliente);
+					eliminar_paquete(paqueteIOSTDOUT);
+					
+					//bloquear procesos? //TODO
+				}
+				else{
+					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+					paquete_memoria_finalizar_proceso(proceso->PID);
+					//eliminarProceso(proceso); //TODO
+				}
+				free(interfazsSTDOUT.nombre_interfaz);
+
 				break;
 			}
 			case IO_FS_CREATE:
