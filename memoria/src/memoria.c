@@ -21,7 +21,7 @@ void esquemaPaginacion(){
     int cant_fr = memoria.tam/memoria.pagina_tam;
     int calculo_espacio_frames = ceil((double)cant_fr/8);
     void* espacio_frames =malloc(calculo_espacio_frames);
-     
+    
     memoria.bitmap_frames =  bitarray_create_with_mode(espacio_frames,calculo_espacio_frames,LSB_FIRST);
     //int cant_frames = bitarray_get_max_bit(memoria.bitmap_frames);
 

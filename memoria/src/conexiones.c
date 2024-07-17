@@ -333,20 +333,27 @@ void* manejarClienteKernel(void *arg)
                 list_remove_element(lista_ProcesosActivos, &pid_remover);
                 break;
             }
-            
-            case IO_FS_READ:
+            //paquetes de io
+            case IO_MEM_FS_READ:
             {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                //string buffer
                 //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
+                
             }
-            case  IO_FS_WRITE:
+            case  IO_MEM_FS_WRITE:
             {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                
                 //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
             }
-            case  IO_STDIN_READ :
+            case  IO_MEM_STDIN_READ :
             {
                 //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
             }
-            case  IO_STDOUT_WRITE :
+            case  IO_MEM_STDOUT_WRITE :
             {
                 //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
             }
