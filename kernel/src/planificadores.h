@@ -40,5 +40,10 @@ extern void planificar_virtual_round_robin();
 extern void planificar();
 extern void inicializar_planificadores();
 extern int hilosPlanificadores(void);
+// Iniciar y detener planificacion
+
+pthread_mutex_t mutexPlanificacion = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condPlanificacion = PTHREAD_COND_INITIALIZER;
+int planificacionPausada = 0;
 
 #endif

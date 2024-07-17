@@ -1,5 +1,9 @@
 #include <consola.h>
 
+pthread_mutex_t mutexPlanificacion = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condPlanificacion = PTHREAD_COND_INITIALIZER;
+int planificacionPausada = 0;
+
 void* manejadorDeConsola(){
 
     char *linea=NULL;
@@ -44,10 +48,11 @@ void* manejadorDeConsola(){
             }
         }
         else if (!strcmp(comando, "DETENER_PLANIFICACION")) {
-            //detener_planificacion();
+            detener_planificacion();
+
         }
         else if (!strcmp(comando, "INICIAR_PLANIFICACION")) {
-            //iniciar_planificacion();
+            iniciar_planificacion();
         }
         else if (!strcmp(comando, "MULTIPROGRAMACION")) {
             segundoArgumento = strtok(NULL, " ");
@@ -106,4 +111,19 @@ void procesarLinea(char* linea) {
            //log_error("Error: Falta el argumento [PATH] para INICIAR_PROCESO\n");
         }
     }
+}
+
+void detener_planificacion() {
+    pthread_mutex_lock(&mutexPlanificacion);
+    planificacionPausada = 1;
+    pthread_mutex_unlock(&mutexPlanificacion);
+    printf("Planificación detenida\n");
+}
+
+void iniciar_planificacion() {
+    pthread_mutex_lock(&mutexPlanificacion);
+    planificacionPausada = 0;
+    pthread_cond_broadcast(&condPlanificacion);
+    pthread_mutex_unlock(&mutexPlanificacion);
+    printf("Planificación iniciada\n");
 }
