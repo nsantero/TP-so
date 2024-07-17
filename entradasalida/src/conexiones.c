@@ -14,9 +14,9 @@ void enviarNuevaInterfazAKernel(t_config* configNueva,char* nombre){
     Tipos_Interfaz tipoDeLaInterfaz=obtenerTipoConString(config_get_string_value(configNueva,"TIPO_INTERFAZ"));
 
     t_paquete* paquete=crear_paquete(AGREGAR_INTERFACES);
-    agregar_a_paquete(paquete,tamanioNombre,sizeof(int));
+    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
     agregar_a_paquete(paquete,nombre,tamanioNombre);
-    agregar_a_paquete(paquete,tipoDeLaInterfaz,sizeof(Tipos_Interfaz));
+    agregar_a_paquete(paquete,&tipoDeLaInterfaz,sizeof(Tipos_Interfaz));
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
 
@@ -187,6 +187,7 @@ void recibirPeticionDeIO_DialFS(){
         case IO_FS_TRUNCATE:
         case IO_FS_READ:
         case IO_FS_WRITE:
+        //TODO separar los casos
             
             Peticion_Interfaz_DialFS peticion;
             int bytes;
@@ -226,3 +227,28 @@ void recibirPeticionDeIO_DialFS(){
     }
 
 }
+
+void avisarErrorAKernel(char* nombre,int PID){
+    int tamanioNombre=string_length(nombre);
+    
+
+    t_paquete* paquete=crear_paquete(ERROR_EN_INTERFAZ);
+    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
+    agregar_a_paquete(paquete,nombre,tamanioNombre);
+    agregar_a_paquete(paquete,&PID,sizeof(int));
+    enviar_paquete(paquete,kernel_fd);
+    eliminar_paquete(paquete);
+}
+void terminoEjecucionInterfaz(char* nombre,int PID){
+    int tamanioNombre=string_length(nombre);
+    
+
+    t_paquete* paquete=crear_paquete(DESBLOQUEAR_PROCESO_POR_IO);
+    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
+    agregar_a_paquete(paquete,nombre,tamanioNombre);
+    agregar_a_paquete(paquete,&PID,sizeof(int));
+    enviar_paquete(paquete,kernel_fd);
+    eliminar_paquete(paquete);
+}
+
+    

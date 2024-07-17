@@ -18,17 +18,10 @@
 #include <interfazDialFS.h>
 #include <loggersIO.h>
 #include <conexiones.h>
+#include <sigInt.h>
 
 
-typedef struct
-{		
-    
-    char* ip_kernel;
-    char* puerto_kernel;
-    char* ip_memoria;
-    char* puerto_memoria;
-    
-} entradasalida_config;
+
 
 
 

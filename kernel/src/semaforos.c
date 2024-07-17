@@ -7,6 +7,8 @@ pthread_mutex_t mutexListaBlocked = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaRunning= PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaExit = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t mutexHiloQuantum = PTHREAD_MUTEX_INITIALIZER;
+
 sem_t semListaNew;
 sem_t semListaReady;
 sem_t semListaRunning;
@@ -21,7 +23,7 @@ void inicializar_sem_planificadores()
 {
     sem_init(&semListaNew, 0, 0);
     sem_init(&semListaReady, 0, 0);
-    sem_init(&semListaRunning, 0, 0);
+    sem_init(&semListaRunning, 0, 1);
 
 	/*sem_init(&sem_corto_plazo, 0, 0);
 	sem_init(&sem_largo_plazo, 0, 0);

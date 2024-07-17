@@ -14,6 +14,8 @@ extern pthread_mutex_t mutexListaBlocked;
 extern pthread_mutex_t mutexListaRunning;
 extern pthread_mutex_t mutexListaExit;
 
+extern pthread_mutex_t mutexHiloQuantum;
+
 extern sem_t semListaNew;
 extern sem_t semListaReady;
 extern sem_t semListaRunning;

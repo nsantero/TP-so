@@ -15,12 +15,16 @@
 int totalProcesosEnSistema();
 void* planificadorNew();
 void* planificadorReady();
-void comportamientoFIFO();
+
 void* manejadorDeQuantum(void *quantum);
 void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
 PCB* cambiarAExitDesdeRunning(t_list* cola);
+
+void comportamientoFIFO();
 void comportamientoRR();
+void comportamientoVRR();
+void terminarHiloQuantum();
 
 
 extern pthread_t hiloQuantum;

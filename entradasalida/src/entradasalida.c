@@ -13,6 +13,8 @@ uint32_t recibir_direccion_fisica(){
 
 int main(int argc, char* argv[]) {
 
+	signal(SIGINT,handleSiginitIO);
+
     inicializarLogger();
 	log_info(loggerIO, "Se inicio el main de enrada y salida");
 
@@ -42,18 +44,21 @@ int main(int argc, char* argv[]) {
 	inicializarLoggerDeInterfaz(argv[1]);
 	
 	
-	entradasalida_config config_valores;
+	char* ip_kernel;
+    char* puerto_kernel;
+    char* ip_memoria;
+    char* puerto_memoria;
 	
 	
 
 	//Conecto entradasalida con kernel y memoria
-	config_valores.ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
-	config_valores.ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
-	config_valores.puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
-	config_valores.puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
-	kernel_fd = crear_conexion(loggerIO,"KERNEL",config_valores.ip_kernel,config_valores.puerto_kernel);
+	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
+	ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
+	puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
+	puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
+	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
 	log_info(loggerIO, "Me conecte a kernel");
-    memoria_fd = crear_conexion(loggerIO,"MEMORIA",config_valores.ip_memoria,config_valores.puerto_memoria);
+    memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
 	log_info(loggerIO, "Me conecte a memoria");
 
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
@@ -66,7 +71,7 @@ int main(int argc, char* argv[]) {
 	switch (tipo)
 	{
 	case T_GENERICA:
-		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);
 	
 		pthread_t hilo_interfaz_generica;
 		pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
@@ -74,7 +79,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_GEN();
 		break;
 	case T_STDIN:
-		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_STDIN = generarNuevaInterfazSTDIN(argv[1],configCargaInterfaz);
 
 		pthread_t hilo_interfaz_STDIN;
 		pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
@@ -82,7 +87,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_STDIN();
 		break;
 	case T_STDOUT:
-		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);//TODO PATH
+		interfaz_STDOUT = generarNuevaInterfazSTDOUT(argv[1],configCargaInterfaz);
 
 		pthread_t hilo_interfaz_STDOUT;
 		pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
@@ -90,8 +95,7 @@ int main(int argc, char* argv[]) {
 		recibirPeticionDeIO_STDOUT();
 		break;
 	case T_DFS:
-		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);//TODO path
-
+		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);
 		pthread_t hilo_interfaz_DialFS;
 		pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
 		pthread_join(hilo_interfaz_DialFS,NULL);
@@ -100,21 +104,6 @@ int main(int argc, char* argv[]) {
 	default:
 		break;
 	}
-
-	
-
-
-
-
-
-	
-	
-	
-
-
-	// envio mensajes
-	//enviar_mensaje("soy e/s", memoria_fd);
-    //enviar_mensaje("soy e/s", kernel_fd);
 
     return EXIT_SUCCESS;
 }

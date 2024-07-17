@@ -35,28 +35,37 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
 
     aDevolver.nombre=nombre;
     aDevolver.tipoInterfaz=config_get_string_value(configuracion,"TIPO_INTERFAZ");
-    aDevolver.tiempoUnidadTrabajo=NULL;
+    aDevolver.tiempoUnidadTrabajo=-1;
     aDevolver.ipKernel=config_get_string_value(configuracion,"IP_KERNEL");
     aDevolver.puertoKernel=config_get_string_value(configuracion,"PUERTO_KERNEL");
-    aDevolver.blockCount=NULL;
-    aDevolver.blockSize=NULL;
+    aDevolver.blockCount=-1;
+    aDevolver.blockSize=-1;
     aDevolver.ipMemoria=config_get_string_value(configuracion,"IP_MEMORIA");
     aDevolver.puertoMemoria=config_get_string_value(configuracion,"PUERTO_MEMORIA");
     aDevolver.pathBaseDialfs=NULL;
-    aDevolver.retrasoCompactacion=NULL;
+    aDevolver.retrasoCompactacion=-1;
     
 
     return aDevolver;
+}
+
+char* leer_texto_ingresado(uint8_t tamanio) {
+    char *texto = malloc(tamanio+1);
+    printf("Ingrese el texto deseado, tamaño maximo %d: ",tamanio);
+    fgets(texto, tamanio+1, stdin);
+    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
+    return texto;
 }
 
 void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	char* texto_leido = NULL;
 
 	
-	t_paquete* paquete_entrada = crear_paquete(IO_STDIN_READ);
+	t_paquete* paquete_entrada = crear_paquete(IO_MEM_STDIN_READ);
 
     //TODO aca el paquete tmb deberia tener la direccion logica de donde se quiere guardar 
-    //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico
+    //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico 
+    //CREO Q ESTE to do ya esta solucionado
 
 	texto_leido = leer_texto_ingresado(peticion->tamanio);
 	agregar_entero_a_paquete8(paquete_entrada,peticion->tamanio);
@@ -74,14 +83,9 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     free(texto_leido);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDIN_READ",peticion->PID);
+    terminoEjecucionInterfaz(interfaz_STDIN.nombre,peticion->PID);
     
 }
 
-char* leer_texto_ingresado(uint8_t tamanio) {
-    char *texto = malloc(tamanio+1);
-    printf("Ingrese el texto deseado, tamaño maximo %d: ",tamanio);
-    fgets(texto, tamanio+1, stdin);
-    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
-    return texto;
-}
+
 

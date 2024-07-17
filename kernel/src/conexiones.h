@@ -33,9 +33,6 @@ extern t_list *interfacesDFSCola;
 typedef struct{
     char* nombre;
     Tipos_Interfaz tipo;
-    int ocupada;
-    int solicitudesEnCola;
-    int pidActual; //nose si es necesario
 }Interfaces_conectadas_kernel;
 
 #endif // CONEXIONES_H

@@ -47,7 +47,8 @@ void* conexionesDispatch()
 				list_add(lista_EXIT, procesoKernel); 
 				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
 				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaExit);	
+				pthread_mutex_unlock(&mutexListaExit);
+				sem_post(&semListaRunning);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
@@ -74,6 +75,7 @@ void* conexionesDispatch()
 				}
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
+				sem_post(&semListaRunning);
 
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por fin de qunatum\n", procesoKernel->PID);
 				break;
@@ -87,8 +89,34 @@ void* conexionesDispatch()
 			{
 				break;
 			}
+			case RESIZE_ERROR:
+			{
+				break;
+			}
+			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					terminarHiloQuantum();
+				}
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaBlocked);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				actualizarProceso(procesoCPU, procesoKernel);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					temporal_stop(tiempoVRR);
+					tiempoEjecutando = temporal_gettime(tiempoVRR);
+					temporal_destroy(tiempoVRR);
+					procesoKernel->quantum -= tiempoEjecutando;
+				}
+				procesoKernel->estado = BLOCKED;
+				list_add(lista_BLOCKED, procesoKernel);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				sem_post(&semListaRunning);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
 				Peticion_Interfaz_Generica interfazGenerica;
 
 				PCB* proceso;
@@ -115,6 +143,34 @@ void* conexionesDispatch()
 					//eliminarProceso(proceso); //TODO
 				}
 				
+				break;
+			}
+			case IO_STDIN_READ:
+			{
+				break;
+			}
+			case IO_STDOUT_WRITE:
+			{
+				break;
+			}
+			case IO_FS_CREATE:
+			{
+				break;
+			}
+			case IO_FS_DELETE:
+			{
+				break;
+			}
+			case IO_FS_TRUNCATE:
+			{
+				break;
+			}
+			case IO_FS_WRITE:
+			{
+				break;
+			}
+			case IO_FS_READ:
+			{
 				break;
 			}
 				
@@ -171,8 +227,7 @@ void* manejarClienteIO(void *arg)
 		switch(paquete->codigo_operacion){
         	case AGREGAR_INTERFACES:
             {
-				Interfaces_conectadas_kernel *interfazBuffer;
-				int cantidadDeInterfaces;
+				Interfaces_conectadas_kernel *interfazBuffer = malloc(sizeof(Interfaces_conectadas_kernel));
 				int charTam;
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
@@ -180,10 +235,6 @@ void* manejarClienteIO(void *arg)
 				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
 				stream += charTam;
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
-
-				interfazBuffer->ocupada = 0;
-				interfazBuffer->solicitudesEnCola = 0;
-				interfazBuffer->pidActual = -1;
 
 				list_add(interfacesConectadas, interfazBuffer);
 
@@ -194,6 +245,10 @@ void* manejarClienteIO(void *arg)
 			case TERMINO_INTERFAZ:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+			}
+			case ERROR_EN_INTERFAZ:
+			{
+				break;
 			}
 			default:
 			{
@@ -271,32 +326,3 @@ void InterruptACPU(){
     enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
     eliminar_paquete(paquete_CPU_interrupcion);
 }
-
-/*
-Recurso recursos[10];  
-int num_recursos = 0;
-
-// Función para manejar la solicitud de WAIT
-void manejar_wait(const char* recurso, PCB *proceso) { // acá tendría que tener el contexto de ejecucion de CPU con el PID
-    for (int i = 0; i < num_recursos; i++) {
-        if (strcmp(recursos[i].nombre, recurso) == 0) {
-            recursos[i].instancias--;
-            if (recursos[i].instancias < 0) {
-                // Bloquear el proceso
-                printf("Proceso %d bloqueado esperando recurso %s\n", proceso->pid, recurso);
-                // Añadir el proceso a la cola de bloqueados del recurso
-                // Implementar la lógica para gestionar la cola de bloqueados
-            } else {
-                // Asignar el recurso al proceso
-				printf("Recurso %s asignado al proceso %d\n", recurso, proceso->pid);
-            }
-            return;
-        }
-    }
-    // Si el recurso no existe, enviar el proceso a EXIT
-    printf("Recurso %s no existe. Proceso %d enviado a EXIT\n", recurso, proceso->pid);
-}
-
-*/
-
-
