@@ -362,6 +362,43 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion){
 int execute2(t_instruccion instruccion_a_ejecutar){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
+        case SET:
+        {   
+            char registro[3];
+            uint8_t valor;
+            sscanf(instruccion_a_ejecutar.operando1, "SET %s %hhu", registro, &valor);
+            ejecutar_set(&procesoEjecutando->cpuRegisters, registro, valor);
+            break;
+        }
+        case SUM:
+        {
+            char destino[3], origen[3];
+            sscanf(instruccion_a_ejecutar.operando1, "SUM %s %s", destino, origen);
+            ejecutar_sum(&procesoEjecutando->cpuRegisters, destino, origen);
+            break;        
+        }
+        case SUB:
+        {
+            char destino[3], origen[3];
+            sscanf(instruccion_a_ejecutar.operando1, "SUB %s %s", destino, origen);
+            ejecutar_sub(&procesoEjecutando->cpuRegisters, destino, origen);
+            break;
+        }
+        case JNZ:
+        {
+            char registro[3];
+            uint32_t nueva_instruccion;
+            sscanf(instruccion_a_ejecutar.operando1, "JNZ %s %u", registro, &nueva_instruccion);
+            bloqueado = ejecutar_jnz(&procesoEjecutando->cpuRegisters, registro, nueva_instruccion);
+            break;
+        }
+        case WAIT:
+        {
+            char recurso[20];
+            sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
+            bloqueado = ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
+            break;
+        }
         case IO_GEN_SLEEP:
         {
             mandarPaqueteaKernel(IO_GEN_SLEEP);
@@ -376,41 +413,6 @@ int execute2(t_instruccion instruccion_a_ejecutar){
 
     }
     return bloqueado;     
-}
-
-void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar) {
-
-    //printf("EXECUTE - Instrucción: %s\n", instruccion_a_ejecutar);
-
-    
-    if (strncmp(instruccion_a_ejecutar.operando1, "SET ", 4) == 0) {
-        char registro[3];
-        uint8_t valor;
-        sscanf(instruccion_a_ejecutar.operando1, "SET %s %hhu", registro, &valor);
-        ejecutar_set(cpu, registro, valor);
-    } else if (strncmp(instruccion_a_ejecutar.operando1, "SUM ", 4) == 0) {
-        char destino[3], origen[3];
-        sscanf(instruccion_a_ejecutar.operando1, "SUM %s %s", destino, origen);
-        ejecutar_sum(cpu, destino, origen);
-    }  else if (strncmp(instruccion_a_ejecutar.operando1, "SUB ", 4) == 0) {
-        char destino[4], origen[4];
-        sscanf(instruccion_a_ejecutar.operando1, "SUB %s %s", destino, origen);
-        ejecutar_sub(cpu, destino, origen);
-    }   else if (strncmp(instruccion_a_ejecutar.operando1, "JNZ ", 4) == 0) {
-        char registro[4];
-        uint32_t nueva_instruccion;
-        sscanf(instruccion_a_ejecutar.operando1, "JNZ %s %u", registro, &nueva_instruccion);
-        ejecutar_jnz(cpu, registro, nueva_instruccion);
-    }   else if (strncmp(instruccion_a_ejecutar.operando1, "WAIT ", 5) == 0) {
-        char recurso[20];
-        sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
-        ejecutar_wait(cpu, recurso);
-    }   else if (strncmp(instruccion_a_ejecutar.operando1, "WAIT ", 5) == 0) {
-        char recurso[20];
-        sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
-        ejecutar_wait(cpu, recurso);
-    }
-    
 }
 
 void recv_instruccion(int memoria_fd){
