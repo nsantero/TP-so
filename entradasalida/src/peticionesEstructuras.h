@@ -41,6 +41,7 @@ typedef struct
     char* nombreArchivo;
     uint32_t direcion;
     uint8_t tamanio;
+    //uint32_t tamanioExtendido; ?? va? //TODO
     uint32_t punteroArchivo;
     int PID;
     char *nombre_interfaz;
