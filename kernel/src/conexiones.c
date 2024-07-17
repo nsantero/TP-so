@@ -18,8 +18,11 @@ void* conexionesDispatch()
 	while (1)
 	{
 
-		t_paquete* paquete = malloc(sizeof(t_paquete));
+		t_paquete* paquete = NULL;
+		paquete = malloc(sizeof(t_paquete));
+		paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+		paquete->buffer->stream = NULL;
 
         recv(cpu_dispatch_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(cpu_dispatch_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -316,6 +319,10 @@ void* conexionesDispatch()
 			}
 			eliminar_paquete(paquete);
 		}
+		free(procesoCPU);
+		free(paquete->buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 	}
 }
 

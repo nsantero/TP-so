@@ -252,10 +252,12 @@ t_list* recibir_paquete(int socket_cliente){
 }
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente){
-	int bytes = paquete->buffer->size + sizeof(int) + sizeof(op_code);
-	void* a_enviar = serializar_paquete(paquete, bytes);
+    int tam = 0;
+    tam = paquete->buffer->size + sizeof(int) + sizeof(op_code);
+    void * a_enviar = NULL;
+    a_enviar = serializar_paquete(paquete, tam);
 
-	send(socket_cliente, a_enviar, bytes, 0);
+    send(socket_cliente, a_enviar, tam, 0);
 
-	free(a_enviar);
+    free(a_enviar);
 }
