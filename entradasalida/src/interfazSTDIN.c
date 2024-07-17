@@ -20,7 +20,8 @@ void* manejo_interfaz_STDIN(){
         pthread_mutex_unlock(&mutex_cola_STDIN);
 
         EJECUTAR_INTERFAZ_STDIN(peticion_STDIN);
-
+        free(peticion_STDIN->nombre_interfaz);
+        free(peticion_STDIN);
     }
 
 }

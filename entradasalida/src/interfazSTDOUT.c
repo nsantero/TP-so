@@ -20,7 +20,8 @@ void* manejo_interfaz_STDOUT(){
         pthread_mutex_unlock(&mutex_cola_STDOUT);
 
         EJECUTAR_INTERFAZ_STDOUT(peticion_STDOUT);
-
+        free(peticion_STDOUT->nombre_interfaz);
+        free(peticion_STDOUT);
     }
 
 }

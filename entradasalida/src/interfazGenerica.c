@@ -24,9 +24,8 @@ void* manejo_interfaz_generica(){
         pthread_mutex_unlock(&mutex_cola_ig);
 
         manejarPeticionInterfazGenerica(peticion_ig->unidades_de_trabajo, interfaz_generica,peticion_ig->PID);
-        
-
-
+        free(peticion_ig->nombre_interfaz);
+        free(peticion_ig);
     }
 
 }

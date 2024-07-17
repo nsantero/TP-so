@@ -17,9 +17,6 @@ void inicializar_sem_cola_DialFS(){
 
 void* manejo_interfaz_DialFS(){
     Peticion_Interfaz_DialFS* peticion_DialFS;
-
-    
-
     while(1){
         sem_wait(&sem_hay_en_DialFS);
         pthread_mutex_lock(&mutex_cola_DialFS);
@@ -27,14 +24,10 @@ void* manejo_interfaz_DialFS(){
         pthread_mutex_unlock(&mutex_cola_DialFS);
 
         EJECUTAR_INTERFAZ_DialFS(peticion_DialFS);
-
-
-
+        free(peticion_DialFS->nombreArchivo);
+        free(peticion_DialFS->nombre_interfaz);
+        free(peticion_DialFS);
     }
-
-
-
-
 }
 
 Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion){
@@ -196,7 +189,7 @@ void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
 
     config_save(archivo);
     config_destroy(archivo);
-
+    free(path);
     //aca deberia poner el bloque q elije como ocupado en el bit map
     ocuparBloque(bloqueInicialOffs);
 
@@ -227,6 +220,7 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
 
             log_info(loggerIO,"PID: %d - Eliminar Archivo: %s",peticion->PID,nombre);
             terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
+            free(path);
             return;
         }
     }
@@ -239,7 +233,7 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
 void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
     
     char* nombreArchivo=peticion->nombreArchivo;
-    uint8_t tamanio=peticion->tamanio;
+    uint8_t tamanio=peticion->tamanio;//Puede ser de 32 TODO
     
     
     
@@ -336,6 +330,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
         //error con el mensaje HECHO
         avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
         log_info(loggerIO,"Error en el tamaño del buffer solicitado a memoria en escritura del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+        free(buffer);
         return;
     }
 
@@ -353,6 +348,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
 
     log_info(loggerIO,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
     terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
+    free(buffer);
 
 }
 void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
@@ -669,7 +665,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
     //mueve todos los archivos posteriores al final del archivo
     int ultimoBloqueAControlar=interfaz_DialFS.blockCount-1;
     int hayArchivosParaMover=0;
-    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i--){
+    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i++){
                                                                                               // si es menor va a tirar false en la primera iteracion y listo       
         if(bitarray_test_bit(bitmapAddr,i)){
             hayArchivosParaMover=1;
@@ -704,7 +700,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 
     munmap(addr,sb.st_size);
     close(fd);
-
+    free(nombreAMover);
 //espera pedida en el enunciado
     usleep(interfaz_DialFS.retrasoCompactacion*1000);
 }
@@ -724,6 +720,7 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
 
     }
     closedir(dir);
+    free(nombre);
     return NULL;
 }
 void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
@@ -747,7 +744,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
 
     cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,-1);
 
-    if(bloqueInicialOriginal<nuevoBloqueInicialOFinal){//caso mueve para "atras"
+    if(bloqueInicialOriginal>nuevoBloqueInicialOFinal){//caso mueve para "atras"
         
         for(int i=0;i<cantidadDeBloques;i++){
             moverBloque(bloqueInicialOriginal+i,nuevoBloqueInicialOFinal+i);
@@ -755,7 +752,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
             bitarray_clean_bit(bitmapAddr,bloqueInicialOriginal+i);
         }
         
-    }else if(bloqueInicialOriginal>nuevoBloqueInicialOFinal){//caso mueve para "adelante"
+    }else if(bloqueInicialOriginal<nuevoBloqueInicialOFinal){//caso mueve para "adelante"
         
         off_t bloqueFinalOriginal=bloqueInicialOriginal+cantidadDeBloques-1;
         for(int i=0;i<cantidadDeBloques;i++){

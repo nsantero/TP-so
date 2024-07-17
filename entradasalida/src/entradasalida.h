@@ -18,12 +18,12 @@
 #include <interfazDialFS.h>
 #include <loggersIO.h>
 #include <conexiones.h>
-#include <sigInt.h>
+#include <signal.h>
 
 
 
 
-
+extern t_config *configCargaInterfaz;
 
 
 

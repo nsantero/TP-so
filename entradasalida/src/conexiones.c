@@ -40,31 +40,34 @@ void recibirPeticionDeIO_GEN(){
         {
         case IO_GEN_SLEEP:
 
-            Peticion_Interfaz_Generica peticion;
+            Peticion_Interfaz_Generica *peticion=malloc(sizeof(Peticion_Interfaz_Generica));
             int bytes;
             
-            memcpy(&peticion.unidades_de_trabajo, stream, sizeof(int));
+            memcpy(peticion->unidades_de_trabajo, stream, sizeof(int));
             stream += sizeof(int);
-            memcpy(&peticion.PID, stream, sizeof(int));
+            memcpy(peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
-            peticion.nombre_interfaz = malloc(bytes);
-            memcpy(peticion.nombre_interfaz, stream, bytes);
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
            
 
             pthread_mutex_lock(&mutex_cola_ig);
-            list_add(cola_procesos_ig,&peticion);
+            list_add(cola_procesos_ig,peticion);
             pthread_mutex_unlock(&mutex_cola_ig);
             sem_post(&sem_hay_en_cola_ig);
+
+            
 
             break;
         default:
             log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
-
-
+        free(paquete->buffer->stream);
+        free(paquete->buffer);
+        free(paquete);
 
     }
 }
@@ -85,18 +88,18 @@ void recibirPeticionDeIO_STDIN(){
         {
         case IO_STDIN_READ:
             
-            Peticion_Interfaz_STDIN peticion;
+            Peticion_Interfaz_STDIN *peticion=malloc(sizeof(Peticion_Interfaz_STDIN));
             int bytes;
             
-            memcpy(&peticion.direccion, stream, sizeof(uint32_t));
+            memcpy(peticion->direccion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion.tamanio, stream, sizeof(uint8_t));
+            memcpy(peticion->tamanio, stream, sizeof(uint8_t));
             stream += sizeof(uint8_t);
-            memcpy(&peticion.PID, stream, sizeof(int));
+            memcpy(peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
-            peticion.nombre_interfaz = malloc(bytes);
-            memcpy(peticion.nombre_interfaz, stream, bytes);
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
            
 
@@ -112,8 +115,9 @@ void recibirPeticionDeIO_STDIN(){
             log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
-
-
+        free(paquete->buffer->stream);
+        free(paquete->buffer);
+        free(paquete);
 
     }
 
@@ -135,18 +139,18 @@ void recibirPeticionDeIO_STDOUT(){
         {
         case IO_STDOUT_WRITE:
             
-            Peticion_Interfaz_STDOUT peticion;
+            Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
             int bytes;
             
-            memcpy(&peticion.direccion, stream, sizeof(uint32_t));
+            memcpy(peticion->direccion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion.tamanio, stream, sizeof(uint8_t));
+            memcpy(peticion->tamanio, stream, sizeof(uint8_t));
             stream += sizeof(uint8_t);
-            memcpy(&peticion.PID, stream, sizeof(int));
+            memcpy(peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
-            peticion.nombre_interfaz = malloc(bytes);
-            memcpy(peticion.nombre_interfaz, stream, bytes);
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
            
 
@@ -161,7 +165,9 @@ void recibirPeticionDeIO_STDOUT(){
             log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
-
+        free(paquete->buffer->stream);
+        free(paquete->buffer);
+        free(paquete);
 
 
     }
@@ -180,7 +186,7 @@ void recibirPeticionDeIO_DialFS(){
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
         void *stream = paquete->buffer->stream;
 
-        Peticion_Interfaz_DialFS peticion;
+        Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
         int bytes;
 
         switch (paquete->codigo_operacion)  
@@ -188,12 +194,15 @@ void recibirPeticionDeIO_DialFS(){
         case IO_FS_CREATE:
             
             
-            memcpy(&peticion.operacion, stream, sizeof(OperacionesDeDialFS));
+            memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
             stream += sizeof(OperacionesDeDialFS);
             memcpy(&bytes, stream, sizeof(int));
             stream += sizeof(int);
-            peticion.nombreArchivo = malloc(bytes);
-            memcpy(peticion.nombreArchivo, stream, bytes);
+            peticion->nombreArchivo = malloc(bytes);
+            memcpy(peticion->nombreArchivo, stream, bytes);
+            memcpy(&bytes, stream, sizeof(int));
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
             pthread_mutex_lock(&mutex_cola_DialFS);
             list_add(cola_procesos_DialFS,&peticion);
@@ -202,12 +211,15 @@ void recibirPeticionDeIO_DialFS(){
             break;
         case IO_FS_DELETE:
             
-            memcpy(&peticion.operacion, stream, sizeof(OperacionesDeDialFS));
+            memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
             stream += sizeof(OperacionesDeDialFS);
             memcpy(&bytes, stream, sizeof(int));
             stream += sizeof(int);
-            peticion.nombreArchivo = malloc(bytes);
-            memcpy(peticion.nombreArchivo, stream, bytes);
+            peticion->nombreArchivo = malloc(bytes);
+            memcpy(peticion->nombreArchivo, stream, bytes);
+            memcpy(&bytes, stream, sizeof(int));
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
             pthread_mutex_lock(&mutex_cola_DialFS);
             list_add(cola_procesos_DialFS,&peticion);
@@ -215,19 +227,19 @@ void recibirPeticionDeIO_DialFS(){
             sem_post(&sem_hay_en_DialFS);
             break;
         case IO_FS_TRUNCATE:
-            memcpy(&peticion.operacion, stream, sizeof(OperacionesDeDialFS));
+            memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
             stream += sizeof(OperacionesDeDialFS);
             memcpy(&bytes, stream, sizeof(int));
             stream += sizeof(int);
-            peticion.nombreArchivo = malloc(bytes);
-            memcpy(peticion.nombreArchivo, stream, bytes);
-            memcpy(&peticion.tamanio, stream, sizeof(uint8_t));//TODO, aca necesito q sea uint32.
+            peticion->nombreArchivo = malloc(bytes);
+            memcpy(peticion->nombreArchivo, stream, bytes);
+            memcpy(peticion->tamanio, stream, sizeof(uint8_t));//TODO, aca necesito q sea uint32.
             stream += sizeof(uint8_t);
-            memcpy(&peticion.PID, stream, sizeof(int));
+            memcpy(peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
-            peticion.nombre_interfaz = malloc(bytes);
-            memcpy(peticion.nombre_interfaz, stream, bytes);
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
             pthread_mutex_lock(&mutex_cola_DialFS);
             list_add(cola_procesos_DialFS,&peticion);
@@ -238,23 +250,23 @@ void recibirPeticionDeIO_DialFS(){
         case IO_FS_WRITE:
         //TODO separar los casos +- esta
             
-            memcpy(&peticion.operacion, stream, sizeof(OperacionesDeDialFS));
+            memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
             stream += sizeof(OperacionesDeDialFS);
             memcpy(&bytes, stream, sizeof(int));
             stream += sizeof(int);
-            peticion.nombreArchivo = malloc(bytes);
-            memcpy(peticion.nombreArchivo, stream, bytes);
-            memcpy(&peticion.direcion, stream, sizeof(uint32_t));
+            peticion->nombreArchivo = malloc(bytes);
+            memcpy(peticion->nombreArchivo, stream, bytes);
+            memcpy(peticion->direcion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion.tamanio, stream, sizeof(uint8_t));
+            memcpy(peticion->tamanio, stream, sizeof(uint8_t));
             stream += sizeof(uint8_t);
-            memcpy(&peticion.punteroArchivo, stream, sizeof(uint32_t));
+            memcpy(peticion->punteroArchivo, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion.PID, stream, sizeof(int));
+            memcpy(peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
-            peticion.nombre_interfaz = malloc(bytes);
-            memcpy(peticion.nombre_interfaz, stream, bytes);
+            peticion->nombre_interfaz = malloc(bytes);
+            memcpy(peticion->nombre_interfaz, stream, bytes);
 
            
 
@@ -268,7 +280,9 @@ void recibirPeticionDeIO_DialFS(){
             log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
-
+        free(paquete->buffer->stream);
+        free(paquete->buffer);
+        free(paquete);
 
 
     }

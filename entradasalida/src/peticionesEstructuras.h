@@ -39,9 +39,9 @@ typedef struct
 
     OperacionesDeDialFS operacion;
     char* nombreArchivo;
-    uint32_t direcion;
+    uint32_t direcion;// puede usar este en el truncate para el tamaño
     uint8_t tamanio;
-    //uint32_t tamanioExtendido; ?? va? //TODO
+    //uint32_t tamanioExtendido; ?? va? para truncate //TODO
     uint32_t punteroArchivo;
     int PID;
     char *nombre_interfaz;
