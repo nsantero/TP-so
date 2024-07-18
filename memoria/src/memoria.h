@@ -27,6 +27,7 @@ typedef struct {
     t_list *instrucciones;
     int tam_proceso;
     t_list *tabla_de_paginas;
+    int cantidad_paginas_asiganadas;
 } Proceso;
 
 typedef struct {
