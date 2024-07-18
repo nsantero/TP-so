@@ -121,9 +121,6 @@ void* conexionesDispatch()
 				procesoKernel = list_remove(lista_RUNNING, 0);
 				actualizarProceso(procesoCPU, procesoKernel);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					temporal_stop(tiempoVRR);
-					tiempoEjecutando = temporal_gettime(tiempoVRR);
-					temporal_destroy(tiempoVRR);
 					procesoKernel->quantum -= tiempoEjecutando;
 				}
 				procesoKernel->estado = BLOCKED;

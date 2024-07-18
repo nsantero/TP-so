@@ -388,7 +388,7 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         {
             char recurso[20];
             sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
-            bloqueado = ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
+            ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
             break;
         }
         case IO_GEN_SLEEP:
