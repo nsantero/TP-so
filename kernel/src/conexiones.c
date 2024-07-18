@@ -141,6 +141,7 @@ void* conexionesDispatch()
 
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz);
+				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(uint32_t));
