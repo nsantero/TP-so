@@ -287,7 +287,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             
             instruccion.tipo_instruccion = IO_GEN_SLEEP;
             instruccion.operando1 = cadena_instruccion[1];
-            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operandoNumero = atoi(cadena_instruccion[2]);
 
 
         }
@@ -352,6 +352,30 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion){
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
 }
+void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo){
+    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+
+    //ESPECIFICO PARA GENERICA
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
+    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
+    agregar_entero_a_paquete32(paquete_Kernel, tiempo);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
 
 int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
@@ -387,7 +411,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_GEN_SLEEP:
         {
-            mandarPaqueteaKernel(IO_GEN_SLEEP);
+            mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             bloqueado = 1;
             break;
         }

@@ -35,7 +35,7 @@ void* conexionesDispatch()
 		{
 			case PROCESO_EXIT:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				procesoCPU = recibirProcesoContextoEjecucion(&stream);
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaExit);
 				procesoKernel = list_remove(lista_RUNNING, 0);
@@ -62,7 +62,7 @@ void* conexionesDispatch()
 			}
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				procesoCPU = recibirProcesoContextoEjecucion(&stream);
 				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
@@ -112,7 +112,8 @@ void* conexionesDispatch()
 			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				procesoCPU = recibirProcesoContextoEjecucion(&stream);
+				stream += sizeof(uint32_t); // como recibe mas cosas se suma el el registri DI
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					terminarHiloQuantum();
 				}
@@ -136,14 +137,12 @@ void* conexionesDispatch()
 
 				int pathLength;
 				
-				
-				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&interfazGenerica.PID, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&pathLength, stream, sizeof(int));
+				memcpy(&pathLength, stream, sizeof(uint32_t));
 				interfazGenerica.nombre_interfaz = malloc(pathLength);
+				stream += sizeof(uint32_t);
 				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
+				stream += pathLength;
+				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));				
 
 				//MUTEX
 				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
@@ -400,33 +399,33 @@ void* manejarClienteIO(void *arg)
 
 ////////////////////////////////////////////////////////// EMPAQUETACION //////////////////////////////////////////////////////////
 
-PCB *recibirProcesoContextoEjecucion(void *stream){
+PCB *recibirProcesoContextoEjecucion(void **stream){
 	PCB* proceso = malloc(sizeof(PCB));
 	proceso->estado = RUNNING;
 	memcpy(&proceso->PID, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.AX, stream, sizeof(uint8_t));
-	stream += sizeof(uint8_t);
+	*stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.BX, stream, sizeof(uint8_t));
-	stream += sizeof(uint8_t);
+	*stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.CX, stream, sizeof(uint8_t));
-	stream += sizeof(uint8_t);
+	*stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.DX, stream, sizeof(uint8_t));
-	stream += sizeof(uint8_t);
+	*stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.EAX, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.EBX, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.ECX, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.EDX, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+	*stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+
 
 	return proceso;
 }

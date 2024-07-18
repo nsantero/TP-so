@@ -24,6 +24,7 @@ typedef struct {
     char* operando3; 
     char* operando4; 
     char* operando5;
+    int operandoNumero;
 } t_instruccion;
 
 extern int memoria_fd;
