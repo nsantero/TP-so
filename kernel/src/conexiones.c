@@ -128,15 +128,24 @@ void* conexionesDispatch()
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_Generica interfazGenerica;
-
+				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				interfazGenerica.nombre_interfaz = malloc(pathLength);
 				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));
+				
 
+
+				interfazGenerica.PID=procesoKernel->PID;
 				//MUTEX
-				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz);
+				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_GENERICA){
+					//error no es una intruccion compatible //TODO
+				}
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
@@ -182,7 +191,7 @@ void* conexionesDispatch()
 				*/ 
 				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
 				Peticion_Interfaz_STDIN interfazsSTDIN;
-
+				Tipos_Interfaz tipoDeLaInterfaz;
 				int pathLength;
 				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
 				stream += sizeof(uint32_t);
@@ -195,7 +204,7 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
 
 				//MUTEX
-				if(existeInterfaz(interfazsSTDIN.nombre_interfaz)){
+				if(existeInterfaz(interfazsSTDIN.nombre_interfaz,&tipoDeLaInterfaz)){
 					t_paquete* paqueteIOSTDIN=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.direccion,sizeof(uint32_t));
 					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.tamanio,sizeof(uint8_t));
@@ -240,7 +249,7 @@ void* conexionesDispatch()
 				*/ 
 				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
 				Peticion_Interfaz_STDOUT interfazsSTDOUT;
-
+				Tipos_Interfaz tipoDeLaInterfaz;
 				PCB* proceso;
 
 				int pathLength;
@@ -257,7 +266,7 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDOUT.nombre_interfaz, stream, pathLength);
 
 				//MUTEX
-				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz)){
+				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz,&tipoDeLaInterfaz)){
 					t_paquete* paqueteIOSTDOUT=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.direccion,sizeof(uint32_t));
 					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.tamanio,sizeof(uint8_t));
@@ -312,7 +321,7 @@ void* conexionesDispatch()
 	}
 }
 
-int existeInterfaz(char *nombre){
+int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
 	//mutex lista
 	Interfaces_conectadas_kernel *interfazBuffer;
 	if(list_size(interfacesConectadas) != 0){
@@ -320,6 +329,7 @@ int existeInterfaz(char *nombre){
 		{
 			interfazBuffer=list_get(interfacesConectadas, i);
 			if(!strcmp(interfazBuffer->nombre, nombre)){
+				*tipo= interfazBuffer->tipo;
 				return interfazBuffer->socketCliente;
 			}
 		}
@@ -359,11 +369,13 @@ void* manejarClienteIO(void *arg)
             {
 				Interfaces_conectadas_kernel *interfazBuffer = malloc(sizeof(Interfaces_conectadas_kernel));
 				int charTam;
+				stream+=sizeof(int);
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
 				interfazBuffer->nombre = malloc(charTam);
 				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
 				stream += charTam;
+				stream += sizeof(int);
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
 				interfazBuffer->socketCliente = socketCliente;
 				list_add(interfacesConectadas, interfazBuffer);
