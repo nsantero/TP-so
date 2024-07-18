@@ -23,7 +23,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
 
-int execute2(t_instruccion instruccion_a_ejecutar);
+int execute2(t_instruccion instruccion_a_ejecutar,int pid);
 
 void* ciclo_de_instruccion();
 

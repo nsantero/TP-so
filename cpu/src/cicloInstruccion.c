@@ -43,7 +43,7 @@ void* ciclo_de_instruccion() {
 
         instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
 
-        int bloqueado = execute2(instruccion);
+        int bloqueado = execute2(instruccion,procesoEjecutando->PID);
 
         if(bloqueado == 1){
             return;
@@ -128,11 +128,8 @@ void recibir_confirmacion_memoria_resize(){
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-
     paquete->buffer->stream = malloc(paquete->buffer->size);
-
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
- 
 
     switch(paquete->codigo_operacion){
             case OK:
@@ -306,11 +303,8 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
 
             //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
             //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            int tam_nuevo = atoi(instruccion.operando1);
-
-            paquete_memoria_resize(pid,tam_nuevo);
-            recibir_confirmacion_memoria_resize();
+            //direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            
             //enviar a kernel
         }
 
@@ -359,7 +353,7 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion){
     eliminar_paquete(paquete_Kernel);
 }
 
-int execute2(t_instruccion instruccion_a_ejecutar){
+int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
         case SET:
@@ -395,6 +389,15 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         {
             mandarPaqueteaKernel(IO_GEN_SLEEP);
             bloqueado = 1;
+            break;
+        }
+        case RESIZE:
+        {
+            int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
+
+            paquete_memoria_resize(pid,tam_nuevo);
+            recibir_confirmacion_memoria_resize();
+            printf("Instrucción resize realizada!! \n");
             break;
         }
         default:

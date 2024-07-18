@@ -8,6 +8,20 @@ int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
 
+void liberarFrame(int frame){
+
+    bitarray_clean_bit(memoria.bitmap_frames, frame);
+    printf(" se libero el frame: %d\n",frame);
+
+}
+
+void destroy_page_entry(void *element) {
+
+    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
+    liberarFrame(reg_tp_proceso->numero_de_frame); 
+    free(reg_tp_proceso); 
+}
+
 int cantidadFrameLibre(){
 
     int cant_frames_libres = 0;
@@ -21,10 +35,9 @@ int cantidadFrameLibre(){
         if(!valor){
             cant_frames_libres ++;
         }
-        
 
     }
-
+    printf("cantidad de frames libres : %d\n",cant_frames_libres-diferencia);
     return cant_frames_libres-diferencia;
 }
 
@@ -68,58 +81,114 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
         if (proceso->pid == pid_a_cambiar) {
             
             int cantidad_paginas = ceil(tam_a_cambiar/memoria.pagina_tam);
+            printf("paginas del nuevo tamanio: %d\n",cantidad_paginas );
             int tam_actual = proceso->tam_proceso;
 
             if (cantidadFrameLibre() == 0 || cantidad_paginas>cantidadFrameLibre()){
 
-                return false;
+                return OUT_OF_MEMORY;
 
             }
+
             else{
 
-            //Caso Ampliacion de un proceso
-            if(proceso->tam_proceso == 0){
+                //Caso Ampliacion de un proceso
+                if(proceso->tam_proceso == 0){
 
-                proceso->tam_proceso = tam_a_cambiar;
+
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                    
+
+                    for (int i = 0; i < cantidad_paginas; i++) {
+
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                        
+                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                        reg_tp_proceso->numero_de_pagina = i;
+                        
+                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                        reg_tp_proceso->modificado = false;
+
+                        printf("se agrego la pagina: %d\n",reg_tp_proceso->numero_de_pagina);
+                        printf("con el frame: %d\n",reg_tp_proceso->numero_de_frame);
+                        printf("modificado: %s\n",reg_tp_proceso->modificado);
+
+                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+
+                    }
+                    printf("Se amplio el proceso\n");
+                    return OK;
+
+                }
+            
+                if(tam_actual != 0 && tam_actual<tam_a_cambiar){
+
+                    //Agregar paginas
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+
+                    int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+
+                    for (int i = 0; i < dif_cantidad; i++) {
+
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                        
+                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                        reg_tp_proceso->numero_de_pagina ++ ;
+                        
+                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                        reg_tp_proceso->modificado = false;
+                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+                        printf("se agrego la pagina: %d\n",reg_tp_proceso->numero_de_pagina);
+                        printf("con el frame: %d\n",reg_tp_proceso->numero_de_frame);
+                        printf("modificado: %s\n",reg_tp_proceso->modificado);
+
+                    }
+
+                    printf("Se amplio el proceso\n");
+                    cantidadFrameLibre();
+                    return OK;
                 
-
-                for (int i = 0; i < cantidad_paginas; i++) {
-
-                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
-                    
-                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                    reg_tp_proceso->numero_de_pagina = i;
-                    
-                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                    reg_tp_proceso->modificado = false;
-                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-
-                    i ++;
                 }
 
-                return OK;
+                if(tam_actual != 0 && tam_actual>tam_a_cambiar){
 
-            }
-            
-            if(tam_actual<tam_a_cambiar){
+                    //Remover paginas
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
 
-                //Agregar paginas
-                //int dif_tamaño = tam_actual-tam_a_cambiar;
-            
+                    int dif_cantidad = proceso->cantidad_paginas_asiganadas-cantidad_paginas;
+                    // cant pag actuales 4
+                    // cant pag a cambiar 3
+                    // dif 1
 
-            }
+                    // for i= 3; i== 2;i--
 
-            if(tam_actual>tam_a_cambiar){
+                    for (int i = list_size(proceso->tabla_de_paginas)-1; i == (list_size(proceso->tabla_de_paginas)-dif_cantidad -1); i--) {
 
-                //Remover paginas
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(lista_ProcesosActivos,i);
 
-            }
+                        printf("se removio la pagina: %d\n",reg_tp_proceso->numero_de_pagina);
+                        printf("con el frame: %d\n",reg_tp_proceso->numero_de_frame);
+                        printf("modificado: %s\n",reg_tp_proceso->modificado);
+
+                        list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+
+                    }
+                    printf("Se reducio el proceso\n");
+                    return OK;
+
+                }
+
             }
 
         }
     }
 
 }
+
+
 
 
 
@@ -146,6 +215,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
         }
     }
 }
+
 
 void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cliente){
 

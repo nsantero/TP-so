@@ -23,7 +23,17 @@ void esquemaPaginacion(){
     void* espacio_frames =malloc(calculo_espacio_frames);
     
     memoria.bitmap_frames =  bitarray_create_with_mode(espacio_frames,calculo_espacio_frames,LSB_FIRST);
+
     //int cant_frames = bitarray_get_max_bit(memoria.bitmap_frames);
+
+    int cant_frames_bitarray = bitarray_get_max_bit(memoria.bitmap_frames);
+    int diferencia = cant_frames_bitarray-memoria.cantidad_frames;
+
+    for (int i = 0; i < memoria.cantidad_frames; i++) {
+    
+        bitarray_clean_bit(memoria.bitmap_frames, i);
+        
+    }
 
 }
 
