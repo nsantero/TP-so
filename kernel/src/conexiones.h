@@ -23,7 +23,7 @@ void* atenderPeticionesIO();
 void paquete_CPU_ejecutar_proceso(PCB* proceso);
 void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 void InterruptACPU();
-PCB *recibirProcesoContextoEjecucion(void *stream);
+PCB *recibirProcesoContextoEjecucion(void **stream);
 
 extern t_list *interfacesConectadas;
 extern t_list *interfacesGenericasCola;
@@ -32,7 +32,15 @@ extern t_list *interfacesStdoutCola;
 extern t_list *interfacesDFSCola;
 typedef struct{
     char* nombre;
+    int socketCliente;
     Tipos_Interfaz tipo;
 }Interfaces_conectadas_kernel;
+
+typedef struct {
+    char *nombre;
+    int instancias;
+    sem_t mutex;
+    sem_t waitQueue;
+} Recurso;
 
 #endif // CONEXIONES_H

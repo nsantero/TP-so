@@ -96,6 +96,9 @@ void comportamientoVRR(){
     tiempoVRR = temporal_create();
 
     comportamientoRR();
+    temporal_stop(tiempoVRR);
+	tiempoEjecutando = temporal_gettime(tiempoVRR);
+	temporal_destroy(tiempoVRR);
    
 }
 

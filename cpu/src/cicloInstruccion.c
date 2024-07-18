@@ -43,7 +43,7 @@ void* ciclo_de_instruccion() {
 
         instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
 
-        int bloqueado = execute2(instruccion);
+        int bloqueado = execute2(instruccion,procesoEjecutando->PID);
 
         if(bloqueado == 1){
             return;
@@ -128,11 +128,8 @@ void recibir_confirmacion_memoria_resize(){
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-
     paquete->buffer->stream = malloc(paquete->buffer->size);
-
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
- 
 
     switch(paquete->codigo_operacion){
             case OK:
@@ -290,7 +287,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             
             instruccion.tipo_instruccion = IO_GEN_SLEEP;
             instruccion.operando1 = cadena_instruccion[1];
-            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operandoNumero = atoi(cadena_instruccion[2]);
 
 
         }
@@ -306,11 +303,8 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
 
             //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
             //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            int tam_nuevo = atoi(instruccion.operando1);
-
-            paquete_memoria_resize(pid,tam_nuevo);
-            recibir_confirmacion_memoria_resize();
+            //direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            
             //enviar a kernel
         }
 
@@ -358,8 +352,32 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion){
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
 }
+void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo){
+    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
+    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
+    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
 
-int execute2(t_instruccion instruccion_a_ejecutar){
+    //ESPECIFICO PARA GENERICA
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
+    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
+    agregar_entero_a_paquete32(paquete_Kernel, tiempo);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
+
+int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
         case SET:
@@ -380,23 +398,30 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         }
         case JNZ:
         {
-            char registro[3];
-            uint32_t nueva_instruccion;
-            sscanf(instruccion_a_ejecutar.operando1, "JNZ %s %u", registro, &nueva_instruccion);
-            bloqueado = ejecutar_jnz(&procesoEjecutando->cpuRegisters, registro, nueva_instruccion);
+            int valor = atoi(instruccion_a_ejecutar.operando2);
+            ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;
         }
         case WAIT:
         {
             char recurso[20];
             sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
-            bloqueado = ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
+            ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
             break;
         }
         case IO_GEN_SLEEP:
         {
-            mandarPaqueteaKernel(IO_GEN_SLEEP);
+            mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             bloqueado = 1;
+            break;
+        }
+        case RESIZE:
+        {
+            int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
+
+            paquete_memoria_resize(pid,tam_nuevo);
+            recibir_confirmacion_memoria_resize();
+            printf("Instrucción resize realizada!! \n");
             break;
         }
         default:

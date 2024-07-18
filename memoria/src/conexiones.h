@@ -4,6 +4,10 @@
 #include <../../shared/src/shared.h>
 #include <memoria.h>
 
+void liberarFrame(int frame);
+
+void destroy_page_entry(void *element);
+
 int cantidadFrameLibre();
 
 int asignarFrameLibre();

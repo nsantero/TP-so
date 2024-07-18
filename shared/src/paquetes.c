@@ -3,16 +3,16 @@
 // CREACION DE PAQUETES //
 
 t_paquete* crear_paquete(op_code codigo_op){
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = codigo_op;
-	crear_buffer(paquete);
-	return paquete;
+    t_paquete* paquete = malloc(sizeof(op_code)+sizeof(t_buffer));
+    paquete->codigo_operacion = codigo_op;
+    crear_buffer(paquete);
+    return paquete;
 }
 
 void crear_buffer(t_paquete* paquete){
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = 0;
-	paquete->buffer->stream = NULL;
+    paquete->buffer = malloc(sizeof(t_buffer));
+    paquete->buffer->size = 0;
+    paquete->buffer->stream = NULL;
 }
 
 t_buffer* crear_buffer_aislado(void* data, int data_size){ //
@@ -26,33 +26,56 @@ t_buffer* crear_buffer_aislado(void* data, int data_size){ //
 // AGREGAR DATOS A PAQUETES //
 
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio){
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+    void* newStream = NULL;
+    newStream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+    if(newStream == NULL){
+        free(paquete->buffer->stream);
+        exit(EXIT_FAILURE);
+    }
+    paquete->buffer->stream = newStream;
 
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
+    memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
+    memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
 
-	paquete->buffer->size += tamanio + sizeof(int);
+    paquete->buffer->size += tamanio + sizeof(int);
 }
 
 void agregar_entero_a_paquete32(t_paquete *paquete, uint32_t x)
 {
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint32_t));
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint32_t));
-	paquete->buffer->size += sizeof(uint32_t);
+    void* newStream = NULL;
+    newStream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint32_t));
+    if(newStream == NULL){
+        free(paquete->buffer->stream);
+        exit(EXIT_FAILURE);
+    }
+    paquete->buffer->stream = newStream;
+    memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint32_t));
+    paquete->buffer->size += sizeof(uint32_t);
 }
 void agregar_entero_a_paquete8(t_paquete *paquete, uint8_t x)
 {
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint8_t));
-	memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint8_t));
-	paquete->buffer->size += sizeof(uint8_t);
+    void* newStream = NULL;
+    newStream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(uint8_t));
+    if(newStream == NULL){
+        free(paquete->buffer->stream);
+        exit(EXIT_FAILURE);
+    }
+    paquete->buffer->stream = newStream;
+    memcpy(paquete->buffer->stream + paquete->buffer->size, &x, sizeof(uint8_t));
+    paquete->buffer->size += sizeof(uint8_t);
 }
 
 void agregar_string_a_paquete(t_paquete *paquete, char* palabra)
-{	
-	size_t palabra_lenght = strlen(palabra) + 1;
-	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + palabra_lenght);
-	memcpy(paquete->buffer->stream + paquete->buffer->size, palabra, palabra_lenght);
-	paquete->buffer->size += (palabra_lenght);
+{    void* newStream = NULL;
+    size_t palabra_lenght = strlen(palabra) + 1;
+    newStream = realloc(paquete->buffer->stream, paquete->buffer->size + palabra_lenght);
+    if(newStream == NULL){
+        free(paquete->buffer->stream);
+        exit(EXIT_FAILURE);
+    }
+    paquete->buffer->stream = newStream;
+    memcpy(paquete->buffer->stream + paquete->buffer->size, palabra, palabra_lenght);
+    paquete->buffer->size += (palabra_lenght);
 }
 
 // ELIMINAR PAQUETES //
@@ -76,18 +99,16 @@ uint32_t leer_entero(char *buffer, int *desplazamiento) {
 // SERIALIZACION DE PAQUETES //
 
 void* serializar_paquete(t_paquete* paquete, int bytes) {
-	int size_paquete = sizeof(int) + sizeof(int) + paquete->buffer->size;
-    void* paquete_serializado = NULL;
+    void * magic = NULL;
+    magic = malloc(bytes);
+    int desplazamiento = 0;
 
-	paquete_serializado = malloc(size_paquete); // TODO: need free (3)
-	int offset = 0;
-	memcpy(paquete_serializado + offset, &(paquete->codigo_operacion), sizeof(int));
+    memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(op_code));
+    desplazamiento+= sizeof(op_code);
+    memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
+    desplazamiento+= sizeof(int);
+    memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
+    desplazamiento+= paquete->buffer->size;
 
-	offset += sizeof(int);
-	memcpy(paquete_serializado + offset, &(paquete->buffer->size), sizeof(int));
-
-	offset += sizeof(int);
-	memcpy(paquete_serializado + offset, paquete->buffer->stream, paquete->buffer->size);
-
-	return paquete_serializado; 
+    return magic; 
 }

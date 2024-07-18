@@ -45,12 +45,10 @@ typedef struct {
 } CPU_Registers;
 
 typedef struct {
-    int PID; //id del proceso
-    int pc; //direccionamiento
+    uint32_t PID;
     int quantum;
-    Estado estado; // duración del quantum 
-    CPU_Registers cpuRegisters; // puntero a cantidad de registros de la cpu (el valor lo tendría la cpu)
-    char* path;
+    Estado estado;
+    CPU_Registers cpuRegisters;
 } PCB;
 
 
