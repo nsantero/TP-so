@@ -133,38 +133,27 @@ void* conexionesDispatch()
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				interfazGenerica.nombre_interfaz = malloc(pathLength);
-				stream += sizeof(uint32_t);
 				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
-				stream += pathLength;
-				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));
-				interfazGenerica.PID = procesoKernel->PID;
 
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz);
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
-					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(uint32_t));
-					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(uint32_t));
-					agregar_a_paquete(paqueteIOGen,&pathLength,sizeof(uint32_t));
-					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);
-					int error = enviar_paquete_interfaces(paqueteIOGen, socketClienteInterfaz);					
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(int));
+					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteIOGen,socketCliente);
 					eliminar_paquete(paqueteIOGen);
-					if(error == 1){
-						paquete_memoria_finalizar_proceso(procesoKernel->PID);
-						log_info(loggerKernel, "Se elimino el proceso con pid: %d, No existe la interfaz\n", procesoKernel->PID);
-						//mandar a exit procesoKernel
-						//Eliminar Interfaz de la lista de interfaces
-					}
-					else{
-						pthread_mutex_lock(&mutexListaBlocked);
-						procesoKernel->estado = BLOCKED;
-						list_add(lista_BLOCKED, procesoKernel);
-						pthread_mutex_unlock(&mutexListaBlocked);
-					}
 					
+					//bloquear procesos? //TODO
 				}
-
+				else{
+					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+					paquete_memoria_finalizar_proceso(proceso->PID);
+					//eliminarProceso(proceso); //TODO
+				}
+				free(interfazGenerica.nombre_interfaz);
 				break;
 			}
 
