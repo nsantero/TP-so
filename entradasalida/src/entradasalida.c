@@ -74,6 +74,7 @@ int main(int argc, char* argv[]) {
 	switch (tipo)
 	{
 	case T_GENERICA:
+
 		interfaz_generica = generarNuevaInterfazGenerica(argv[1],configCargaInterfaz);
 	
 		pthread_t hilo_interfaz_generica;

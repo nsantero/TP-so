@@ -4,8 +4,17 @@
 #include <consola.h>
 #include <configs.h>
 #include <planificadores.h>
+#include <signal.h>
+void handleSiginitKernel(){
+    close(cpu_dispatch_fd);
+    close(cpu_interrupt_fd);
+    close(memoria_fd);
+    close(server_fd);
+}
 
 int main(int argc, char *argv[]) {
+
+    signal(SIGINT,handleSiginitKernel);
     
 	iniciarLogger();
     armarConfig();

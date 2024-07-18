@@ -1,6 +1,7 @@
 #include <utils.h>
 #include <cicloInstruccion.h>
 #include <cpu.h>
+#include <signal.h>
 
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
@@ -49,8 +50,15 @@ int pedir_tam_pagina_memoria(){
     return 0;
 }
 int socketCliente;
+void handleSiginitCPU(){
+    close(fd_cpu_dispatch);
+    close(fd_cpu_interrupt);
+    close(memoria_fd);
+}
 
 int main(int argc, char* argv[]) {
+
+    signal(SIGINT,handleSiginitCPU);
 
     iniciarLogger();
     armarConfig();

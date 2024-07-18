@@ -23,7 +23,8 @@ void* atenderPeticionesIO();
 void paquete_CPU_ejecutar_proceso(PCB* proceso);
 void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 void InterruptACPU();
-PCB *recibirProcesoContextoEjecucion(void **stream);
+PCB *recibirProcesoContextoEjecucion(void *stream);
+PCB* procesoBloqueado(uint32_t pid);
 
 
 

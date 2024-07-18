@@ -1,6 +1,7 @@
 #include <memoria.h>
 #include <conexiones.h>
 #include <semaforos.h>
+#include <signal.h>
 
 Memoria memoria;
 t_list *lista_frames;
@@ -52,9 +53,14 @@ void inicializarMemoria(){
 
 }
 
+void handleSiginitMemoria(){
+    close(server_fd);
+}
+
 
 int main(int argc, char *argv[])
 {
+    signal(SIGINT,handleSiginitMemoria);
     
     printf("Modulo Memoria\n");
 

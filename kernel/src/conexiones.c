@@ -71,13 +71,13 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
-					sem_post(&semListaReady);
 				}
 				else{
 					log_error(loggerKernel,"Solo se tienen que interrumpir los procesos que usan RR o VRR");
 				}
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
+				sem_post(&semListaReady);
 				sem_post(&semListaRunning);
 
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por fin de qunatum\n", procesoKernel->PID);
@@ -112,8 +112,9 @@ void* conexionesDispatch()
 			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(&stream);
-				stream += sizeof(uint32_t); // como recibe mas cosas se suma el el registri DI
+
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					terminarHiloQuantum();
 				}
@@ -154,13 +155,17 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
 					enviar_paquete(paqueteIOGen,socketCliente);
 					eliminar_paquete(paqueteIOGen);
-					
-					//bloquear procesos? //TODO
+					pthread_mutex_lock(&mutexListaBlocked);
+					procesoKernel->estado = BLOCKED;
+					list_add(lista_BLOCKED, procesoKernel);
+					pthread_mutex_unlock(&mutexListaBlocked);
 				}
 				else{
-					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
-					paquete_memoria_finalizar_proceso(proceso->PID);
-					//eliminarProceso(proceso); //TODO
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel);
+					pthread_mutex_unlock(&mutexListaExit);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
@@ -337,6 +342,23 @@ int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
 	
 	return 0;
 }
+PCB* procesoBloqueado(uint32_t pid){
+	pthread_mutex_lock(&mutexListaBlocked);
+	PCB *proceso;
+	if(list_size(lista_BLOCKED) != 0){
+		for (int i = 0; i < list_size(lista_BLOCKED); i++)
+		{
+			proceso=list_get(lista_BLOCKED, i);
+			if(proceso->PID == pid){
+				proceso = list_remove(lista_BLOCKED, i);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				return proceso;
+			}
+		}
+	}
+	pthread_mutex_unlock(&mutexListaBlocked);
+	return NULL;
+}
 
 void* atenderPeticionesIO() {
     while (1) {
@@ -386,6 +408,28 @@ void* manejarClienteIO(void *arg)
 			case TERMINO_INTERFAZ:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+				char *nombre;
+				int charTam;
+				uint32_t pid;
+				PCB* proceso =NULL;
+				memcpy(&charTam, stream, sizeof(int));
+				stream += sizeof(int);
+				nombre = malloc(charTam);
+				memcpy(nombre,stream, charTam);
+				stream += charTam;
+				memcpy(&pid,stream,sizeof(uint32_t));
+				proceso=procesoBloqueado(pid);
+				if(proceso == NULL){
+					//logger
+				}
+				else{
+					proceso->estado = READY;
+					pthread_mutex_lock(&mutexListaReady);
+					list_add(lista_READY, proceso);
+					pthread_mutex_unlock(&mutexListaReady);
+					sem_post(&semListaReady);
+				}
+				break;
 			}
 			case ERROR_EN_INTERFAZ:
 			{
@@ -402,31 +446,31 @@ void* manejarClienteIO(void *arg)
 
 ////////////////////////////////////////////////////////// EMPAQUETACION //////////////////////////////////////////////////////////
 
-PCB *recibirProcesoContextoEjecucion(void **stream){
+PCB *recibirProcesoContextoEjecucion(void *stream){
 	PCB* proceso = malloc(sizeof(PCB));
 	proceso->estado = RUNNING;
 	memcpy(&proceso->PID, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.PC, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.AX, stream, sizeof(uint8_t));
-	*stream += sizeof(uint8_t);
+	stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.BX, stream, sizeof(uint8_t));
-	*stream += sizeof(uint8_t);
+	stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.CX, stream, sizeof(uint8_t));
-	*stream += sizeof(uint8_t);
+	stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.DX, stream, sizeof(uint8_t));
-	*stream += sizeof(uint8_t);
+	stream += sizeof(uint8_t);
 	memcpy(&proceso->cpuRegisters.EAX, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.EBX, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.ECX, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.EDX, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
-	*stream += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
 
 
