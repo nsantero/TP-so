@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
 	// envio mensajes
 	//enviar_mensaje("soy Kernel", memoria_fd);
-    enviar_mensaje("soy Kernel", cpu_dispatch_fd);
+    //enviar_mensaje("soy Kernel", cpu_dispatch_fd);//Esto cpu creo q lo loggea como error
 
 	//levanto servidor
     char * server_name = "Kernel";
