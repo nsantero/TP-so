@@ -42,4 +42,7 @@ typedef struct {
     sem_t waitQueue;
 } Recurso;
 
+void wait_recurso(char *nombre_recurso, int pid);
+void signal_recurso(char *nombre_recurso, int pid);
+
 #endif // CONEXIONES_H

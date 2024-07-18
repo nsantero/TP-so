@@ -1,9 +1,5 @@
 #include <consola.h>
 
-pthread_mutex_t mutexPlanificacion = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t condPlanificacion = PTHREAD_COND_INITIALIZER;
-int planificacionPausada = 0;
-
 void* manejadorDeConsola(){
 
     char *linea=NULL;

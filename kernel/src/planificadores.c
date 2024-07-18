@@ -4,6 +4,10 @@
 
 //INICIALIZAR PLANIFICADORES
 
+pthread_mutex_t mutexPlanificacion = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condPlanificacion = PTHREAD_COND_INITIALIZER;
+int planificacionPausada = 0;
+
 pthread_t hiloQuantum;
 t_temporal* tiempoVRR;
 int64_t tiempoEjecutando;
@@ -58,7 +62,7 @@ void* planificadorReady(){
             pthread_cond_wait(&condPlanificacion, &mutexPlanificacion);
         }
         pthread_mutex_unlock(&mutexPlanificacion);
-        
+
         pthread_mutex_lock(&mutexListaReady);
         pthread_mutex_lock(&mutexListaRunning);
         if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {
