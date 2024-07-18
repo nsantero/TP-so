@@ -10,11 +10,12 @@ int memoria_fd;
 
 void enviarNuevaInterfazAKernel(t_config* configNueva,char* nombre){
 
-    int tamanioNombre=string_length(nombre);
+    int tamanioNombre=strlen(nombre)+1;//+1
     Tipos_Interfaz tipoDeLaInterfaz=obtenerTipoConString(config_get_string_value(configNueva,"TIPO_INTERFAZ"));
 
     t_paquete* paquete=crear_paquete(AGREGAR_INTERFACES);
-    agregar_a_paquete(paquete,nombre,tamanioNombre);
+    agregar_entero_a_paquete32(paquete,tamanioNombre);
+    agregar_string_a_paquete(paquete,nombre);
     agregar_a_paquete(paquete,&tipoDeLaInterfaz,sizeof(Tipos_Interfaz));
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
@@ -43,10 +44,10 @@ void recibirPeticionDeIO_GEN(){
             int bytes;
             
             stream+=sizeof(int);
-            memcpy(peticion->unidades_de_trabajo, stream, sizeof(int));
+            memcpy(&peticion->unidades_de_trabajo, stream, sizeof(int));
             stream += sizeof(int);
             stream += sizeof(int);
-            memcpy(peticion->PID, stream, sizeof(int));
+            memcpy(&peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
             stream += sizeof(int);
@@ -196,7 +197,7 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_CREATE:
                 
                 
-                memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
+                memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -217,7 +218,7 @@ void recibirPeticionDeIO_DialFS(){
                 break;
             case IO_FS_DELETE:
                 
-                memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
+                memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -237,7 +238,7 @@ void recibirPeticionDeIO_DialFS(){
                 sem_post(&sem_hay_en_DialFS);
                 break;
             case IO_FS_TRUNCATE:
-                memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
+                memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -262,7 +263,7 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_WRITE:
             //TODO separar los casos +- esta
                 
-                memcpy(peticion->operacion, stream, sizeof(OperacionesDeDialFS));
+                memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);

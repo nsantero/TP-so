@@ -11,6 +11,7 @@ void inicializarListas();
     extern t_list* lista_EXIT;
     extern t_list* lista_BLOCKED;
     extern t_list* lista_RUNNING;
+    extern t_list *interfacesConectadas;
 
 // PCB
 

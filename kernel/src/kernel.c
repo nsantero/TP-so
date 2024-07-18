@@ -12,6 +12,7 @@ t_list* lista_READY;
 t_list* lista_BLOCKED;
 t_list* lista_EXIT;
 t_list* lista_RUNNING;
+t_list* interfacesConectadas;
 
 void inicializarListas() {
     lista_NEW = list_create();
@@ -19,6 +20,7 @@ void inicializarListas() {
     lista_EXIT = list_create();
     lista_BLOCKED = list_create();
     lista_RUNNING = list_create();
+    interfacesConectadas = list_create();
 }
 
 //Generar PID

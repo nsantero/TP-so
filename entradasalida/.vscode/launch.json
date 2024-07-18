@@ -8,7 +8,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
-      "args": ["entradasalida"],
+      "args": ["SLP1"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

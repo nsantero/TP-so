@@ -16,7 +16,7 @@ void* conexionesDispatch();
 void inicializar_servidor();
 //static void procesar_conexion(void *void_args);
 extern int server_escuchar(int fd_memoria);
-int existeInterfaz(char *nombre);
+int existeInterfaz(char *nombre,Tipos_Interfaz* tipo);
 void* manejarClienteIO(void *arg);
 void* atenderPeticionesIO();
 
@@ -25,11 +25,8 @@ void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 void InterruptACPU();
 PCB *recibirProcesoContextoEjecucion(void **stream);
 
-extern t_list *interfacesConectadas;
-extern t_list *interfacesGenericasCola;
-extern t_list *interfacesStdinCola;
-extern t_list *interfacesStdoutCola;
-extern t_list *interfacesDFSCola;
+
+
 typedef struct{
     char* nombre;
     int socketCliente;

@@ -8,7 +8,7 @@ int server_fd;
 char* server_name = "kernel";
 int socketCliente;
 
-t_list *interfacesConectadas;
+
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
@@ -369,11 +369,10 @@ void* manejarClienteIO(void *arg)
             {
 				Interfaces_conectadas_kernel *interfazBuffer = malloc(sizeof(Interfaces_conectadas_kernel));
 				int charTam;
-				stream+=sizeof(int);
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
 				interfazBuffer->nombre = malloc(charTam);
-				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
+				memcpy(interfazBuffer->nombre,stream, charTam);
 				stream += charTam;
 				stream += sizeof(int);
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));

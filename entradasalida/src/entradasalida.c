@@ -127,7 +127,8 @@ void handleSiginitIO(){
 	list_destroy_and_destroy_elements(cola_procesos_STDOUT,);
 	list_destroy_and_destroy_elements(cola_procesos_DialFS,);*/
 	
-
+	close(memoria_fd);
+	close(kernel_fd);
     config_destroy(configCargaInterfaz);
     log_info(loggerIO,"Se desconecta la interfaz.");
     cerrarLogger();
