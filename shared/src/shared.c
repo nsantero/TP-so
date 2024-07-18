@@ -261,3 +261,19 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente){
 
     free(a_enviar);
 }
+
+int enviar_paquete_interfaces(t_paquete* paquete, int socket_cliente){
+	int tam = 0;
+    tam = paquete->buffer->size + sizeof(int) + sizeof(op_code);
+    void * a_enviar = NULL;
+    a_enviar = serializar_paquete(paquete, tam);
+	int error = 0;
+
+    if(send(socket_cliente, a_enviar, tam, 0) == -1){
+		error = 1;
+		return error;
+	}
+
+    free(a_enviar);
+	return error;
+}

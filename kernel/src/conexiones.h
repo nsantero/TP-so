@@ -32,6 +32,7 @@ extern t_list *interfacesStdoutCola;
 extern t_list *interfacesDFSCola;
 typedef struct{
     char* nombre;
+    int socketCliente;
     Tipos_Interfaz tipo;
 }Interfaces_conectadas_kernel;
 

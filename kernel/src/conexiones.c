@@ -118,22 +118,16 @@ void* conexionesDispatch()
 					terminarHiloQuantum();
 				}
 				pthread_mutex_lock(&mutexListaRunning);
-				pthread_mutex_lock(&mutexListaBlocked);
 				procesoKernel = list_remove(lista_RUNNING, 0);
 				actualizarProceso(procesoCPU, procesoKernel);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					procesoKernel->quantum -= tiempoEjecutando;
 				}
-				procesoKernel->estado = BLOCKED;
-				list_add(lista_BLOCKED, procesoKernel);
 				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaBlocked);
 				sem_post(&semListaRunning);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_Generica interfazGenerica;
-
-				PCB* proceso;
 
 				int pathLength;
 				
@@ -142,27 +136,37 @@ void* conexionesDispatch()
 				stream += sizeof(uint32_t);
 				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
 				stream += pathLength;
-				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));				
+				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));
+				interfazGenerica.PID = procesoKernel->PID;
 
 				//MUTEX
-				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
+				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz);
+				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
-					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
-					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(int));
-					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteIOGen,socketCliente);
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(uint32_t));
+					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(uint32_t));
+					agregar_a_paquete(paqueteIOGen,&pathLength,sizeof(uint32_t));
+					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);
+					int error = enviar_paquete_interfaces(paqueteIOGen, socketClienteInterfaz);					
 					eliminar_paquete(paqueteIOGen);
+					if(error == 1){
+						paquete_memoria_finalizar_proceso(procesoKernel->PID);
+						log_info(loggerKernel, "Se elimino el proceso con pid: %d, No existe la interfaz\n", procesoKernel->PID);
+						//mandar a exit procesoKernel
+						//Eliminar Interfaz de la lista de interfaces
+					}
+					else{
+						pthread_mutex_lock(&mutexListaBlocked);
+						procesoKernel->estado = BLOCKED;
+						list_add(lista_BLOCKED, procesoKernel);
+						pthread_mutex_unlock(&mutexListaBlocked);
+					}
 					
-					//bloquear procesos? //TODO
 				}
-				else{
-					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
-					paquete_memoria_finalizar_proceso(proceso->PID);
-					//eliminarProceso(proceso); //TODO
-				}
-				free(interfazGenerica.nombre_interfaz);
+
 				break;
 			}
+
 			case IO_STDIN_READ:
 			{
 				/*procesoCPU = recibirProcesoContextoEjecucion(stream);
@@ -189,11 +193,7 @@ void* conexionesDispatch()
 				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 
-				PCB* proceso;
-
 				int pathLength;
-				
-				
 				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
 				stream += sizeof(uint32_t);
 				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint8_t));
@@ -325,14 +325,16 @@ void* conexionesDispatch()
 int existeInterfaz(char *nombre){
 	//mutex lista
 	Interfaces_conectadas_kernel *interfazBuffer;
-	for (int i = 0; i < list_size(interfacesConectadas); i++)
-	{
-		interfazBuffer=list_get(interfacesConectadas, i);
-		if(!strcmp(interfazBuffer->nombre, nombre)){
-			return 1;
+	if(list_size(interfacesConectadas) != 0){
+		for (int i = 0; i < list_size(interfacesConectadas); i++)
+		{
+			interfazBuffer=list_get(interfacesConectadas, i);
+			if(!strcmp(interfazBuffer->nombre, nombre)){
+				return interfazBuffer->socketCliente;
+			}
 		}
-
 	}
+	
 	return 0;
 }
 
@@ -373,7 +375,7 @@ void* manejarClienteIO(void *arg)
 				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
 				stream += charTam;
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
-
+				interfazBuffer->socketCliente = socketCliente;
 				list_add(interfacesConectadas, interfazBuffer);
 
 				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
