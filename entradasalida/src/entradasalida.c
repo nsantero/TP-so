@@ -57,12 +57,12 @@ int main(int argc, char* argv[]) {
 
 	//Conecto entradasalida con kernel y memoria
 	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
-	ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
 	puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
-	puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
 	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
 	log_info(loggerIO, "Me conecte a kernel");
 	if(tipo!=T_GENERICA){
+		ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
+		puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
 		memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
 		log_info(loggerIO, "Me conecte a memoria");
 	}
