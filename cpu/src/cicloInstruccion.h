@@ -12,7 +12,7 @@ extern char* instruccionRecibida;
 
 char* fetch(Proceso *proceso);
 
-void recibir_confirmacion_memoria_resize();
+op_code recibir_confirmacion_memoria_resize();
 
 int buscar_frame(int pagina);
 

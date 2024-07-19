@@ -121,26 +121,25 @@ char* fetch(Proceso *procesoEjecutando) {
 }
 
 
-void recibir_confirmacion_memoria_resize(){
+op_code recibir_confirmacion_memoria_resize(){
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-
     switch(paquete->codigo_operacion){
             case OK:
             {
                 printf("Instrucción resize realizada!! \n");
+                return OK;
                 break;
             }
             case OUT_OF_MEMORY:
             {
                 //enviar a kernel 
                 printf("Instrucción resize: OUT OF MEMORYY ! \n");
+                return OUT_OF_MEMORY;
                 break;
             }
             default:
@@ -149,7 +148,8 @@ void recibir_confirmacion_memoria_resize(){
                 break;
             }
 
-    }       
+    }
+    return PROCESO_EXIT;   
 
 }
 
@@ -369,19 +369,7 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion){
     eliminar_paquete(paquete_Kernel);
 }
 void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo){
-    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
 
     //ESPECIFICO PARA GENERICA
 
@@ -457,7 +445,12 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
 
             paquete_memoria_resize(pid,tam_nuevo);
-            recibir_confirmacion_memoria_resize();
+            op_code operacion;
+            operacion=recibir_confirmacion_memoria_resize();
+            if(operacion == OUT_OF_MEMORY){
+                mandarPaqueteaKernel(EXIT);
+                bloqueado = 1;
+            }
             printf("Instrucción resize realizada!! \n");
             break;
         }
