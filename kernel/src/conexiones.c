@@ -229,7 +229,7 @@ void* conexionesDispatch()
 				stream+=sizeof(uint32_t);
 				registroAleer=malloc(registroLen);
 				memcpy(registroAleer, stream, registroLen);
-				stream += sizeof(registroLen);
+				stream += registroLen;
 				interfazsSTDIN.direccion=leerValorDelRegistro(registroAleer,procesoKernel->cpuRegisters);
 				free(registroAleer);
 				//segundoRegistro
