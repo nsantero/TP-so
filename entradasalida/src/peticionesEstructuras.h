@@ -6,7 +6,7 @@
 typedef struct
 {
     uint32_t direccion;
-    uint8_t tamanio;
+    uint32_t tamanio;
     int PID;
     char *nombre_interfaz;
 }Peticion_Interfaz_STDOUT;
@@ -14,7 +14,7 @@ typedef struct
 typedef struct
 {
     uint32_t direccion;
-    uint8_t tamanio;
+    uint32_t tamanio;
     int PID;
     char *nombre_interfaz;
 }Peticion_Interfaz_STDIN;
@@ -40,7 +40,7 @@ typedef struct
     OperacionesDeDialFS operacion;
     char* nombreArchivo;
     uint32_t direcion;// puede usar este en el truncate para el tamaño
-    uint8_t tamanio;
+    uint32_t tamanio;
     //uint32_t tamanioExtendido; ?? va? para truncate //TODO
     uint32_t punteroArchivo;
     int PID;
