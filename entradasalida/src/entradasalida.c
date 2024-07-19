@@ -52,7 +52,8 @@ int main(int argc, char* argv[]) {
     char* ip_memoria;
     char* puerto_memoria;
 	
-	
+	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
+	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
 
 	//Conecto entradasalida con kernel y memoria
 	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
@@ -61,15 +62,14 @@ int main(int argc, char* argv[]) {
 	puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
 	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
 	log_info(loggerIO, "Me conecte a kernel");
-	//TODO agregar if para q la generica no conecte.
-    memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
-	log_info(loggerIO, "Me conecte a memoria");
-
+	if(tipo!=T_GENERICA){
+		memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
+		log_info(loggerIO, "Me conecte a memoria");
+	}
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
 	log_info(loggerIO, "Se conecto la interfaz con kernel");
 
-	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
-	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
+	
 
 
 	switch (tipo)
