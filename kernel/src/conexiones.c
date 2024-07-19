@@ -400,7 +400,7 @@ void* manejarClienteIO(void *arg)
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
 				interfazBuffer->socketCliente = socketCliente;
 				list_add(interfacesConectadas, interfazBuffer);
-
+				//TODO agregar q si se vuelve a conectar una interfaz actualice en vez de hacer un nodo nuevo.
 				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
 				
 				break;
@@ -433,6 +433,7 @@ void* manejarClienteIO(void *arg)
 			}
 			case ERROR_EN_INTERFAZ:
 			{
+				//TODO
 				break;
 			}
 			default:

@@ -14,5 +14,6 @@ void inicializarLoggerDeInterfaz(char* nombreDeInterfaz){
 }
 
 void cerrarLogger(){
+    free(path);
     log_destroy(loggerIO);
 }
