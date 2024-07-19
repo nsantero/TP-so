@@ -386,7 +386,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_STDIN_READ:
         {
-            mandarPaqueteaKernelRead(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
+            mandarPaqueteaKernelSTD(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
