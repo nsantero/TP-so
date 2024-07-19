@@ -98,11 +98,11 @@ void recibirPeticionDeIO_STDIN(){
             Peticion_Interfaz_STDIN *peticion=malloc(sizeof(Peticion_Interfaz_STDIN));
             int bytes;
             
-            memcpy(peticion->direccion, stream, sizeof(uint32_t));
+            memcpy(&peticion->direccion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(peticion->tamanio, stream, sizeof(uint32_t));
+            memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(peticion->PID, stream, sizeof(int));
+            memcpy(&peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
             stream+=sizeof(int);
