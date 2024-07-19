@@ -15,8 +15,6 @@ void armarConfig(){
     configuracionKernel.ALGORITMO_PLANIFICACION = config_get_string_value(configKernel, "ALGORITMO_PLANIFICACION");
     configuracionKernel.QUANTUM = config_get_int_value(configKernel, "QUANTUM");
     configuracionKernel.GRADO_MULTIPROGRAMACION = config_get_int_value(configKernel, "GRADO_MULTIPROGRAMACION");
-    configuracionKernel.RECURSOS = config_get_array_value(configKernel, "RECURSOS");
-    configuracionKernel.INSTANCIAS_RECURSOS = config_get_array_value(configKernel, "INSTANCIAS_RECURSOS");
 
     inicializarRecursos(&configuracionKernel, configKernel);
 

@@ -462,51 +462,45 @@ void InterruptACPU(){
 
 // MANEJO DE RECURSOS
 
-void wait_recurso(t_configKernel *listaRecursos, char *nombre_recurso, int pid) {
-    int recurso_index = -1;
-    for (int i = 0; RECURSOS[i] != NULL; i++) {
-        if (strcmp(config->RECURSOS[i], nombre_recurso) == 0) {
-            recurso_index = i;
-            break;
-        }
-    }
-
-    if (recurso_index == -1) {
-        // El recurso no existe, terminar el proceso
-        printf("Recurso %s no encontrado. Terminando proceso %d\n", nombre_recurso, pid);
-        // EXIT
-        return;
-    }
-
-    if (config->INSTANCIAS_RECURSOS[recurso_index] <= 0) {
-        // No hay instancias disponibles, terminar el proceso
-        printf("No hay instancias disponibles para el recurso %s. Terminando proceso %d\n", nombre_recurso, pid);
-        // EXIT
-        return;
-    }
-
-    // Disminuir la instancia del recurso
-    config->INSTANCIAS_RECURSOS[recurso_index]--;
-    printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", pid, nombre_recurso, config->INSTANCIAS_RECURSOS[recurso_index]);
+void wait_recurso(CPU_Registers *cpu, const char* recurso)  {
+	// Validar si la lista de recursos posee el recurso 
+	Recurso *recursoEncontrado = NULL;
+	for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
+		Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
+		if (strcmp(recursoActual->nombre, recurso) == 0) {
+			recursoEncontrado = recursoActual;
+			break;
+		}
+	}
+	if (recursoEncontrado == NULL) {
+		printf("Recurso %s no encontrado. Terminando proceso %d\n");
+		// EXIT
+		return;
+	}
+	if (recursoEncontrado->instancias > 0) {
+		recursoEncontrado->instancias--;
+		printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
+	} else {
+		// Bloquear el proceso
+	}
 }
 
-void signal_recurso(t_configKernel *config, char *nombre_recurso, int pid) {
-    int recurso_index = -1;
-    for (int i = 0; i < config->num_recursos; i++) {
-        if (strcmp(config->RECURSOS[i], nombre_recurso) == 0) {
-            recurso_index = i;
-            break;
-        }
-    }
+void signal_recurso(const char* recurso) {
+	// Validar si la lista de recursos posee el recurso
+	Recurso *recursoEncontrado = NULL;
+	for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
+		Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
+		if (strcmp(recursoActual->nombre, recurso) == 0) {
+			recursoEncontrado = recursoActual;
+			break;
+		}
+	}
+	if (recursoEncontrado == NULL) {
+		printf("Recurso %s no encontrado. Terminando proceso %d\n");
+		// EXIT
+		return;
+	}
+	recursoEncontrado->instancias++;
+	printf("Proceso %d hizo SIGNAL en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
 
-    if (recurso_index == -1) {
-        // El recurso no existe, terminar el proceso
-        printf("Recurso %s no encontrado. Terminando proceso %d\n", nombre_recurso, pid);
-        // Aquí debes incluir la lógica para terminar el proceso
-        return;
-    }
-
-    // Aumentar la instancia del recurso
-    config->INSTANCIAS_RECURSOS[recurso_index]++;
-    printf("Proceso %d hizo SIGNAL en el recurso %s. Instancias restantes: %d\n", pid, nombre_recurso, config->INSTANCIAS_RECURSOS[recurso_index]);
 }
