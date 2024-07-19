@@ -324,9 +324,8 @@ void terminoEjecucionInterfaz(char* nombre,int PID){
     
 
     t_paquete* paquete=crear_paquete(DESBLOQUEAR_PROCESO_POR_IO);
-    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
     agregar_a_paquete(paquete,nombre,tamanioNombre);
-    agregar_a_paquete(paquete,&PID,sizeof(int));
+    agregar_entero_a_paquete32(paquete,PID);
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
 }

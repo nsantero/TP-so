@@ -7,6 +7,7 @@ sem_t sem_hay_en_cola_STDIN;
 
 void inicializar_sem_cola_STDIN()
 {
+    cola_procesos_STDIN=list_create();
     sem_init(&sem_hay_en_cola_STDIN, 0, 0);
 }
 

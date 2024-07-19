@@ -7,6 +7,7 @@ sem_t sem_hay_en_cola_STDOUT;
 
 void inicializar_sem_cola_STDOUT()
 {
+    cola_procesos_STDOUT=list_create();
     sem_init(&sem_hay_en_cola_STDOUT, 0, 0);
 }
 
