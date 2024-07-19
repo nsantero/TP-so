@@ -30,6 +30,10 @@ void* manejarClienteKernel(void *arg);
 
 void* atenderPeticionesKernel();
 
+void* atenderPeticionesEntradaSalida();
+
+void* manejarClienteEntradaSalida(void *arg);
+
 void cargarInstrucciones(Proceso *proceso, const char *path);
 
 extern int server_fd;

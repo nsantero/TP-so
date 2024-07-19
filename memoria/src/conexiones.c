@@ -404,30 +404,6 @@ void* manejarClienteKernel(void *arg)
                 break;
             }
             //paquetes de io
-            case IO_MEM_FS_READ:
-            {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
-                //string buffer
-                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
-                
-            }
-            case  IO_MEM_FS_WRITE:
-            {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
-                
-                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
-            }
-            case  IO_MEM_STDIN_READ :
-            {
-                //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
-            }
-            case  IO_MEM_STDOUT_WRITE :
-            {
-                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
-            }
-
             default:
             {   
                 log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
@@ -471,4 +447,71 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
     }
 
     fclose(file);
+}
+
+//-----------------------------conexion EntradaSalida------------------------------------
+
+void* atenderPeticionesEntradaSalida() {
+
+    while (1) {
+        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
+        pthread_t client_thread;
+        int* pclient = malloc(sizeof(int));
+        *pclient = socketCliente;
+        pthread_create(&client_thread, NULL, manejarClienteEntradaSalida, pclient);
+        pthread_detach(client_thread);
+    }
+
+    return NULL;
+}
+
+void* manejarClienteEntradaSalida(void *arg)
+{
+    int socketCliente = *((int*)arg);
+    free(arg);
+
+    while(1){
+
+        t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        
+        switch(paquete->codigo_operacion){
+
+            case IO_MEM_FS_READ:
+            {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                //string buffer
+                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
+                
+            }
+            case  IO_MEM_FS_WRITE:
+            {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                
+                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
+            }
+            case  IO_MEM_STDIN_READ :
+            {
+                //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
+            }
+            case  IO_MEM_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+            }
+
+            default:
+            {   
+                log_error(loggerMemoria, "Error");
+                break;
+            }
+
+        }
+
+        eliminar_paquete(paquete);
+    }
+
 }
