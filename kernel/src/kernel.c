@@ -58,7 +58,7 @@ PCB* crearPCB(char* path) {
     nuevoPCB -> cpuRegisters.EDX = 0;
     nuevoPCB -> cpuRegisters.SI = 0;
     nuevoPCB -> cpuRegisters.DI = 0;
-    nuevoPCB -> quantum = quantum;
+    nuevoPCB -> quantum = configuracionKernel.QUANTUM;
     nuevoPCB -> estado = NEW;
     pthread_mutex_lock(&mutexListaNew);
     list_add(lista_NEW, nuevoPCB);

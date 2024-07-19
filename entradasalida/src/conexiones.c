@@ -102,8 +102,8 @@ void recibirPeticionDeIO_STDIN(){
             stream += sizeof(uint32_t);
             memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion->PID, stream, sizeof(int));
-            stream += sizeof(int);
+            memcpy(&peticion->PID, stream, sizeof(uint32_t));
+            stream += sizeof(uint32_t);
             memcpy(&bytes, stream, sizeof(int));
             stream+=sizeof(int);
             peticion->nombre_interfaz = malloc(bytes);
@@ -112,7 +112,7 @@ void recibirPeticionDeIO_STDIN(){
            
 
             pthread_mutex_lock(&mutex_cola_STDIN);
-            list_add(cola_procesos_STDIN,&peticion);
+            list_add(cola_procesos_STDIN,peticion);
             pthread_mutex_unlock(&mutex_cola_STDIN);
             sem_post(&sem_hay_en_cola_STDIN);
 
@@ -150,11 +150,11 @@ void recibirPeticionDeIO_STDOUT(){
             Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
             int bytes;
             
-            memcpy(peticion->direccion, stream, sizeof(uint32_t));
+            memcpy(&peticion->direccion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(peticion->tamanio, stream, sizeof(uint8_t));
+            memcpy(&peticion->tamanio, stream, sizeof(uint8_t));
             stream += sizeof(uint8_t);
-            memcpy(peticion->PID, stream, sizeof(int));
+            memcpy(&peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
             peticion->nombre_interfaz = malloc(bytes);
@@ -163,7 +163,7 @@ void recibirPeticionDeIO_STDOUT(){
            
 
             pthread_mutex_lock(&mutex_cola_STDOUT);
-            list_add(cola_procesos_STDOUT,&peticion);
+            list_add(cola_procesos_STDOUT,peticion);
             pthread_mutex_unlock(&mutex_cola_STDOUT);
             sem_post(&sem_hay_en_cola_STDOUT);
             
@@ -209,7 +209,7 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(peticion->PID, stream, sizeof(int));
+                memcpy(&peticion->PID, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -217,7 +217,7 @@ void recibirPeticionDeIO_DialFS(){
                 memcpy(peticion->nombre_interfaz, stream, bytes);
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
-                list_add(cola_procesos_DialFS,&peticion);
+                list_add(cola_procesos_DialFS,peticion);
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
@@ -230,7 +230,7 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(peticion->PID, stream, sizeof(int));
+                memcpy(&peticion->PID, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -238,7 +238,7 @@ void recibirPeticionDeIO_DialFS(){
                 memcpy(peticion->nombre_interfaz, stream, bytes);
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
-                list_add(cola_procesos_DialFS,&peticion);
+                list_add(cola_procesos_DialFS,peticion);
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
@@ -250,9 +250,9 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(peticion->tamanio, stream, sizeof(uint8_t));//TODO, aca necesito q sea uint32.
+                memcpy(&peticion->tamanio, stream, sizeof(uint8_t));//TODO, aca necesito q sea uint32.
                 stream += sizeof(uint8_t);
-                memcpy(peticion->PID, stream, sizeof(int));
+                memcpy(&peticion->PID, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -260,7 +260,7 @@ void recibirPeticionDeIO_DialFS(){
                 memcpy(peticion->nombre_interfaz, stream, bytes);
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
-                list_add(cola_procesos_DialFS,&peticion);
+                list_add(cola_procesos_DialFS,peticion);
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
@@ -275,13 +275,13 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(peticion->direcion, stream, sizeof(uint32_t));
+                memcpy(&peticion->direcion, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(peticion->tamanio, stream, sizeof(uint8_t));
+                memcpy(&peticion->tamanio, stream, sizeof(uint8_t));
                 stream += sizeof(uint8_t);
-                memcpy(peticion->punteroArchivo, stream, sizeof(uint32_t));
+                memcpy(&peticion->punteroArchivo, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(peticion->PID, stream, sizeof(int));
+                memcpy(&peticion->PID, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&bytes, stream, sizeof(int));
                 stream += sizeof(int);
@@ -291,7 +291,7 @@ void recibirPeticionDeIO_DialFS(){
             
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
-                list_add(cola_procesos_DialFS,&peticion);
+                list_add(cola_procesos_DialFS,peticion);
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
 

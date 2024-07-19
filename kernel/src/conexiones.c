@@ -250,9 +250,9 @@ void* conexionesDispatch()
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOSTDIN=crear_paquete(IO_STDIN_READ);
-					agregar_entero_a_paquete32(paqueteIOSTDIN,&interfazsSTDIN.direccion);
-					agregar_entero_a_paquete32(paqueteIOSTDIN,&interfazsSTDIN.tamanio);
-					agregar_entero_a_paquete32(paqueteIOSTDIN,&interfazsSTDIN.PID);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamanio);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.PID);
 					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);

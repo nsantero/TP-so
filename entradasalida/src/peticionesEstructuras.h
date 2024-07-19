@@ -15,7 +15,7 @@ typedef struct
 {
     uint32_t direccion;
     uint32_t tamanio;
-    int PID;
+    uint32_t PID;
     char *nombre_interfaz;
 }Peticion_Interfaz_STDIN;
 
