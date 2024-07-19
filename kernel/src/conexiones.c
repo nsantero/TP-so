@@ -464,40 +464,51 @@ void InterruptACPU(){
 
 // MANEJO DE RECURSOS
 
-#define MAX_RECURSOS 10 // esto no va
-Recurso recursos[MAX_RECURSOS];
-int num_recursos = 0;
-
-void wait_recurso(char *nombre_recurso, int pid) {
-    for (int i = 0; i < num_recursos; i++) {
-        if (strcmp(recursos[i].nombre, nombre_recurso) == 0) {
-            sem_wait(&recursos[i].mutex);
-            recursos[i].instancias--;
-            if (recursos[i].instancias < 0) {
-                printf("Proceso %d bloqueado en el recurso %s\n", pid, recursos[i].nombre);
-                sem_post(&recursos[i].mutex);
-                sem_wait(&recursos[i].waitQueue);  // El proceso se bloquea aquí
-            } else {
-                sem_post(&recursos[i].mutex);
-            }
-            return;
+void wait_recurso(t_configKernel *config, char *nombre_recurso, int pid) {
+    int recurso_index = -1;
+    for (int i = 0; config->RECURSOS[i] != NULL; i++) {
+        if (strcmp(config->RECURSOS[i], nombre_recurso) == 0) {
+            recurso_index = i;
+            break;
         }
     }
-    printf("Recurso %s no encontrado\n", nombre_recurso);
+
+    if (recurso_index == -1) {
+        // El recurso no existe, terminar el proceso
+        printf("Recurso %s no encontrado. Terminando proceso %d\n", nombre_recurso, pid);
+        // EXIT
+        return;
+    }
+
+    if (config->INSTANCIAS_RECURSOS[recurso_index] <= 0) {
+        // No hay instancias disponibles, terminar el proceso
+        printf("No hay instancias disponibles para el recurso %s. Terminando proceso %d\n", nombre_recurso, pid);
+        // EXIT
+        return;
+    }
+
+    // Disminuir la instancia del recurso
+    config->INSTANCIAS_RECURSOS[recurso_index]--;
+    printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", pid, nombre_recurso, config->INSTANCIAS_RECURSOS[recurso_index]);
 }
 
-void signal_recurso(char *nombre_recurso, int pid) {
-    for (int i = 0; i < num_recursos; i++) {
-        if (strcmp(recursos[i].nombre, nombre_recurso) == 0) {
-            sem_wait(&recursos[i].mutex);
-            recursos[i].instancias++;
-            if (recursos[i].instancias <= 0) {
-                sem_post(&recursos[i].waitQueue);
-                printf("Un proceso desbloqueado en el recurso %s\n", recursos[i].nombre);
-            }
-            sem_post(&recursos[i].mutex);
-            return;
+void signal_recurso(t_configKernel *config, char *nombre_recurso, int pid) {
+    int recurso_index = -1;
+    for (int i = 0; i < config->num_recursos; i++) {
+        if (strcmp(config->RECURSOS[i], nombre_recurso) == 0) {
+            recurso_index = i;
+            break;
         }
     }
-    printf("Recurso %s no encontrado\n", nombre_recurso);
+
+    if (recurso_index == -1) {
+        // El recurso no existe, terminar el proceso
+        printf("Recurso %s no encontrado. Terminando proceso %d\n", nombre_recurso, pid);
+        // Aquí debes incluir la lógica para terminar el proceso
+        return;
+    }
+
+    // Aumentar la instancia del recurso
+    config->INSTANCIAS_RECURSOS[recurso_index]++;
+    printf("Proceso %d hizo SIGNAL en el recurso %s. Instancias restantes: %d\n", pid, nombre_recurso, config->INSTANCIAS_RECURSOS[recurso_index]);
 }
