@@ -1,0 +1,19 @@
+==9403== Memcheck, a memory error detector
+==9403== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==9403== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==9403== Command: ./bin/entradasalida Interfaz1
+==9403== Parent PID: 3680
+==9403== 
+==9403== Argument 'size' of function malloc has a fishy (possibly negative) value: -72539124
+==9403==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==9403==    by 0x10B675: recibirPeticionDeIO_GEN (conexiones.c:39)
+==9403==    by 0x10AECD: main (entradasalida.c:84)
+==9403== 
+==9403== Syscall param socketcall.recvfrom(buf) points to unaddressable byte(s)
+==9403==    at 0x499C6BE: __libc_recv (recv.c:28)
+==9403==    by 0x499C6BE: recv (recv.c:23)
+==9403==    by 0x10B6A4: recibirPeticionDeIO_GEN (conexiones.c:40)
+==9403==    by 0x10AECD: main (entradasalida.c:84)
+==9403==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+==9403== 
+==9403== Warning: set address range perms: large range [0x0, 0xfffffffffbad240c) (defined)

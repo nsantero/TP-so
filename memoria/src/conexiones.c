@@ -448,6 +448,8 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
 
     if (!file) {
         perror("Error opening file");
+        //TODO ESTO ACA HABRIA Q LOGGEARLO O Q ESCRIBA POR PANTALLA O ALGO
+        //ME ESTABA TIRANDO SEGMENTATION FAULT POR Q ESTABA MAL EL PATH Y NUNCA ME ENTERE
         return;
     }
     
