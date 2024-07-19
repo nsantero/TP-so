@@ -48,7 +48,7 @@ void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfa
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
 }
-void mandarPaqueteaKernelRead(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
+void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
     t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
 
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));

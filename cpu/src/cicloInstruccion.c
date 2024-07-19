@@ -129,6 +129,19 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     while ((cadena_instruccion)[tamanio_array] != NULL) {
         tamanio_array++;
     }
+    if(tamanio_array == 6){
+        if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_WRITE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+            instruccion.operando4 = cadena_instruccion[4];
+            instruccion.operando5 = cadena_instruccion[5];
+
+        }
+
+    }
     if(tamanio_array == 4){
         if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
         
@@ -137,6 +150,21 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.operando2 = cadena_instruccion[2];
             instruccion.operando3 = cadena_instruccion[3];
 
+        }
+        if (strcmp(cadena_instruccion[0], "IO_STDIN_WRITE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_STDOUT_WRITE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_TRUNCATE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_TRUNCATE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
 
         }
     }
@@ -200,6 +228,20 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = IO_GEN_SLEEP;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operandoNumero = atoi(cadena_instruccion[2]);
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_CREATE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_CREATE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_DELETE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_DELETE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
 
         }
        
@@ -345,6 +387,11 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         case IO_STDIN_READ:
         {
             mandarPaqueteaKernelRead(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_STDOUT_WRITE:{
+            mandarPaqueteaKernelSTD(IO_STDOUT_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
