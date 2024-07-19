@@ -82,7 +82,6 @@ void* conexionesDispatch()
 			}
 			case PROCESO_WAIT:
 			{
-				// Recibir nombre del recurso y PID
                 char nombre_recurso[50];
                 int pid;
                 memcpy(nombre_recurso, stream, 50);
@@ -93,7 +92,6 @@ void* conexionesDispatch()
 			}
 			case PROCESO_SIGNAL:
 			{
-				// Recibir nombre del recurso y PID
                 char nombre_recurso[50];
                 int pid;
                 memcpy(nombre_recurso, stream, 50);
@@ -464,9 +462,9 @@ void InterruptACPU(){
 
 // MANEJO DE RECURSOS
 
-void wait_recurso(t_configKernel *config, char *nombre_recurso, int pid) {
+void wait_recurso(t_configKernel *listaRecursos, char *nombre_recurso, int pid) {
     int recurso_index = -1;
-    for (int i = 0; config->RECURSOS[i] != NULL; i++) {
+    for (int i = 0; RECURSOS[i] != NULL; i++) {
         if (strcmp(config->RECURSOS[i], nombre_recurso) == 0) {
             recurso_index = i;
             break;

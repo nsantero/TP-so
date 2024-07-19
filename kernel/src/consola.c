@@ -119,7 +119,8 @@ void detener_planificacion() {
 void iniciar_planificacion() {
     pthread_mutex_lock(&mutexPlanificacion);
     planificacionPausada = 0;
-    pthread_cond_broadcast(&condPlanificacion);
     pthread_mutex_unlock(&mutexPlanificacion);
+    pthread_cond_broadcast(&condPlanificacion);
+    
     printf("Planificación iniciada\n");
 }
