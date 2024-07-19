@@ -119,105 +119,6 @@ char* fetch(Proceso *procesoEjecutando) {
     return NULL;
 
 }
-
-
-op_code recibir_confirmacion_memoria_resize(){
-
-    t_paquete* paquete = malloc(sizeof(t_paquete));
-    paquete->buffer = malloc(sizeof(t_buffer));
-
-    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    switch(paquete->codigo_operacion){
-            case OK:
-            {
-                printf("Instrucción resize realizada!! \n");
-                return OK;
-                break;
-            }
-            case OUT_OF_MEMORY:
-            {
-                //enviar a kernel 
-                printf("Instrucción resize: OUT OF MEMORYY ! \n");
-                return OUT_OF_MEMORY;
-                break;
-            }
-            default:
-            {   
-                log_error(loggerCpu, "Error");
-                break;
-            }
-
-    }
-    return PROCESO_EXIT;   
-
-}
-
-
-int buscar_frame(int pagina){
-
-    //buscar en tlb
-
-    //buscar en memoria
-
-    return 1;
-}
-
-direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
-
-    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
-
-    int direccion_logica = atoi(dl);
-    int nro_pagina;
-
-    nro_pagina = floor(direccion_logica / tam_pagina); 
-
-    direccion->PID = pid;
-
-    //logica de paginas divido el tamaño de pagina
-
-    // buscar en memoria el frame y en tlb
-
-    direccion->numero_frame = buscar_frame(nro_pagina);
-
-    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
-
-    return direccion;
-}
-
-
-void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
-
-        //DL
-        
-        
-        if(instruccion_memoria.tipo_instruccion = MOV_IN){
-
-            //MOV_IN (Registro Datos, Registro Dirección): 
-            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
-            
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_datos_leer = instruccion_memoria.operando1;
-            char* registro_direccion_dl = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
-
-        }
-
-        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
-            //MOV_OUT (Registro Dirección, Registro Datos): 
-            //Lee el valor del Registro Datos y 
-            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
-    
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_direccion = instruccion_memoria.operando1;
-            char* registro_datos = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
-        }
-
-        //traduccion_mmu(t_instruccion instruccion_memoria);
-
-}
-
 t_instruccion decode(char *instruccionDecodificar, int pid) {
 
     t_instruccion instruccion;
@@ -343,59 +244,66 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     return instruccion;
     
 }
+direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
 
-t_paquete * paqueteProceso(op_code codigoDeOperacion){
-    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
-    return paquete_Kernel;
+    int direccion_logica = atoi(dl);
+    int nro_pagina;
+
+    nro_pagina = floor(direccion_logica / tam_pagina); 
+
+    direccion->PID = pid;
+
+    //logica de paginas divido el tamaño de pagina
+
+    // buscar en memoria el frame y en tlb
+
+    direccion->numero_frame = buscar_frame(nro_pagina);
+
+    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+
+    return direccion;
+}
+int buscar_frame(int pagina){
+
+    //buscar en tlb
+
+    //buscar en memoria
+
+    return 1;
+}
+void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
+
+        //DL
+        
+        
+        if(instruccion_memoria.tipo_instruccion = MOV_IN){
+
+            //MOV_IN (Registro Datos, Registro Dirección): 
+            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
+            
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_datos_leer = instruccion_memoria.operando1;
+            char* registro_direccion_dl = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+
+        }
+
+        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
+            //MOV_OUT (Registro Dirección, Registro Datos): 
+            //Lee el valor del Registro Datos y 
+            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+    
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_direccion = instruccion_memoria.operando1;
+            char* registro_datos = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
+        }
+
+        //traduccion_mmu(t_instruccion instruccion_memoria);
 
 }
-
-void mandarPaqueteaKernel(op_code codigoDeOperacion){
-    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
-    enviar_paquete(paquete_Kernel, socketCliente);
-    eliminar_paquete(paquete_Kernel);
-}
-void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo){
-    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
-
-    //ESPECIFICO PARA GENERICA
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
-    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
-    agregar_entero_a_paquete32(paquete_Kernel, tiempo);
-
-    enviar_paquete(paquete_Kernel, socketCliente);
-    eliminar_paquete(paquete_Kernel);
-}
-void mandarPaqueteaKernelRead(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
-    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
-    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro1);
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro2)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro2);
-
-    enviar_paquete(paquete_Kernel, socketCliente);
-    eliminar_paquete(paquete_Kernel);
-}
-
 int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
@@ -462,6 +370,37 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
 
     }
     return bloqueado;     
+}
+op_code recibir_confirmacion_memoria_resize(){
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                printf("Instrucción resize realizada!! \n");
+                return OK;
+                break;
+            }
+            case OUT_OF_MEMORY:
+            {
+                //enviar a kernel 
+                printf("Instrucción resize: OUT OF MEMORYY ! \n");
+                return OUT_OF_MEMORY;
+                break;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+
+    }
+    return PROCESO_EXIT;   
+
 }
 
 void recv_instruccion(int memoria_fd){

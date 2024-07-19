@@ -42,4 +42,9 @@ void procesar_conexion_interrupt(void* void_args);
 void procesar_conexion_dispatch(void* void_args);
 void* escucharInterrupciones();
 
+void mandarPaqueteaKernel(op_code codigoDeOperacion);
+t_paquete * paqueteProceso(op_code codigoDeOperacion);
+void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo);
+void mandarPaqueteaKernelRead(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2);
+
 #endif

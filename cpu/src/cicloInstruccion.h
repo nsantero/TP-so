@@ -30,10 +30,7 @@ void* ciclo_de_instruccion();
 
 void recv_instruccion(int memoria_fd);
 
-void mandarPaqueteaKernel(op_code codigoDeOperacion);
-t_paquete * paqueteProceso(op_code codigoDeOperacion);
-void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo);
-void mandarPaqueteaKernelRead(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2);
+
 
 #endif // CICLOINSTRUCCION_H
 

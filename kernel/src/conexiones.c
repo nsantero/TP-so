@@ -35,7 +35,7 @@ void* conexionesDispatch()
 		{
 			case PROCESO_EXIT:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(&stream);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaExit);
 				procesoKernel = list_remove(lista_RUNNING, 0);
@@ -62,7 +62,7 @@ void* conexionesDispatch()
 			}
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(&stream);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
