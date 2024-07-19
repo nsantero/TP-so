@@ -476,6 +476,9 @@ void* manejarClienteEntradaSalida(void *arg)
         paquete->buffer = malloc(sizeof(t_buffer));
         recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+        void *stream = paquete->buffer->stream;
         
         switch(paquete->codigo_operacion){
 
@@ -496,7 +499,19 @@ void* manejarClienteEntradaSalida(void *arg)
             }
             case  IO_MEM_STDIN_READ :
             {
-                //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
+                uint32_t tamanio;
+                uint32_t direccion;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,sizeof(tamanio));
+
+                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
+                
+                free(buffer);
             }
             case  IO_MEM_STDOUT_WRITE :
             {
