@@ -52,7 +52,8 @@ int main(int argc, char* argv[]) {
     char* ip_memoria;
     char* puerto_memoria;
 	
-	
+	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
+	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
 
 	//Conecto entradasalida con kernel y memoria
 	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
@@ -61,14 +62,14 @@ int main(int argc, char* argv[]) {
 	puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
 	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
 	log_info(loggerIO, "Me conecte a kernel");
-    memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
-	log_info(loggerIO, "Me conecte a memoria");
-
+	if(tipo!=T_GENERICA){
+		memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
+		log_info(loggerIO, "Me conecte a memoria");
+	}
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
 	log_info(loggerIO, "Se conecto la interfaz con kernel");
 
-	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
-	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
+	
 
 
 	switch (tipo)
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]) {
 	
 		pthread_t hilo_interfaz_generica;
 		pthread_create(&hilo_interfaz_generica,NULL,manejo_interfaz_generica,NULL);
-		pthread_join(hilo_interfaz_generica,NULL);
+		pthread_detach(hilo_interfaz_generica);
 		recibirPeticionDeIO_GEN();
 		break;
 	case T_STDIN:
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
 
 		pthread_t hilo_interfaz_STDIN;
 		pthread_create(&hilo_interfaz_STDIN,NULL,manejo_interfaz_STDIN,NULL);
-		pthread_join(hilo_interfaz_STDIN,NULL);
+		pthread_detach(hilo_interfaz_STDIN);
 		recibirPeticionDeIO_STDIN();
 		break;
 	case T_STDOUT:
@@ -95,14 +96,14 @@ int main(int argc, char* argv[]) {
 
 		pthread_t hilo_interfaz_STDOUT;
 		pthread_create(&hilo_interfaz_STDOUT,NULL,manejo_interfaz_STDOUT,NULL);
-		pthread_join(hilo_interfaz_STDOUT,NULL);
+		pthread_detach(hilo_interfaz_STDOUT);
 		recibirPeticionDeIO_STDOUT();
 		break;
 	case T_DFS:
 		interfaz_DialFS = generarNuevaInterfazDialFS(argv[1],configCargaInterfaz);
 		pthread_t hilo_interfaz_DialFS;
 		pthread_create(&hilo_interfaz_DialFS,NULL,manejo_interfaz_DialFS,NULL);
-		pthread_join(hilo_interfaz_DialFS,NULL);
+		pthread_detach(hilo_interfaz_DialFS);
 		recibirPeticionDeIO_DialFS();
 		break;
 	default:

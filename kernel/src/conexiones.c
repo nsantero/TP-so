@@ -153,7 +153,7 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(int));
 					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteIOGen,socketCliente);
+					enviar_paquete(paqueteIOGen,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOGen);
 					pthread_mutex_lock(&mutexListaBlocked);
 					procesoKernel->estado = BLOCKED;
@@ -405,7 +405,7 @@ void* manejarClienteIO(void *arg)
 				
 				break;
 			}
-			case TERMINO_INTERFAZ:
+			case DESBLOQUEAR_PROCESO_POR_IO:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
 				char *nombre;

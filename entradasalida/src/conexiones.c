@@ -27,8 +27,12 @@ void recibirPeticionDeIO_GEN(){
     while(1){
     
         
-        t_paquete* paquete = malloc(sizeof(t_paquete));
+        t_paquete* paquete = NULL;
+		paquete = malloc(sizeof(t_paquete));
+		paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+		paquete->buffer->stream = NULL;
+
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -320,9 +324,8 @@ void terminoEjecucionInterfaz(char* nombre,int PID){
     
 
     t_paquete* paquete=crear_paquete(DESBLOQUEAR_PROCESO_POR_IO);
-    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
     agregar_a_paquete(paquete,nombre,tamanioNombre);
-    agregar_a_paquete(paquete,&PID,sizeof(int));
+    agregar_entero_a_paquete32(paquete,PID);
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
 }
