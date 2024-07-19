@@ -390,8 +390,33 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             bloqueado = 1;
             break;
         }
-        case IO_STDOUT_WRITE:{
+        case IO_STDOUT_WRITE:
+        {
             mandarPaqueteaKernelSTD(IO_STDOUT_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_CREATE:
+        {
+            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_DELETE:
+        {
+            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_TRUNCATE:
+        {
+            mandarPaqueteaKernelFStrun(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_WRITE:
+        {
+            mandarPaqueteaKernelFSWR(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }

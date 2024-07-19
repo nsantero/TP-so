@@ -46,5 +46,8 @@ void mandarPaqueteaKernel(op_code codigoDeOperacion);
 t_paquete * paqueteProceso(op_code codigoDeOperacion);
 void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo);
 void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2);
+void mandarPaqueteaKernelFScrdel(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo);
+void mandarPaqueteaKernelFStrun(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1);
+void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1, char *registro2, char* registro3);
 
 #endif

@@ -63,3 +63,51 @@ void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, ch
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
 }
+void mandarPaqueteaKernelFScrdel(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo){
+    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
+    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(archivo)+1));
+    agregar_string_a_paquete(paquete_Kernel, archivo);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
+void mandarPaqueteaKernelFStrun(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1){
+    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
+    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(archivo)+1));
+    agregar_string_a_paquete(paquete_Kernel, archivo);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
+    agregar_string_a_paquete(paquete_Kernel, registro1);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
+void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1, char *registro2, char* registro3){
+    t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
+    agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(archivo)+1));
+    agregar_string_a_paquete(paquete_Kernel, archivo);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
+    agregar_string_a_paquete(paquete_Kernel, registro1);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro2)+1));
+    agregar_string_a_paquete(paquete_Kernel, registro2);
+
+    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro3)+1));
+    agregar_string_a_paquete(paquete_Kernel, registro3);
+
+    enviar_paquete(paquete_Kernel, socketCliente);
+    eliminar_paquete(paquete_Kernel);
+}
