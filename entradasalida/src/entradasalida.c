@@ -34,8 +34,9 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-
-	configCargaInterfaz=config_create(string_from_format("%s%s%s",pathADirectorio,argv[1],".config"));
+	char* pathConfig=string_from_format("%s%s%s",pathADirectorio,argv[1],".config");
+	configCargaInterfaz=config_create(pathConfig);
+	free(pathConfig);
 	if(configCargaInterfaz==NULL){
 		log_info(loggerIO,"No se encuentra el archivo de congiguracion, se finaliza el programa");
 		cerrarLogger();
