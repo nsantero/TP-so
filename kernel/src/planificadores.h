@@ -26,7 +26,6 @@ void comportamientoRR();
 void comportamientoVRR();
 void terminarHiloQuantum();
 
-
 extern pthread_t hiloQuantum;
 extern t_temporal* tiempoVRR;
 extern int64_t tiempoEjecutando;
@@ -40,5 +39,11 @@ extern void planificar_virtual_round_robin();
 extern void planificar();
 extern void inicializar_planificadores();
 extern int hilosPlanificadores(void);
+
+// Iniciar y detener planificacion
+
+extern pthread_mutex_t mutexPlanificacion;
+extern pthread_cond_t condPlanificacion;
+extern int planificacionPausada;
 
 #endif

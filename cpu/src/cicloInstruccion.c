@@ -8,8 +8,6 @@ extern int program_counter;
 //t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
 int interrumpir = 0;
-// Memoria ficticia para almacenar instrucciones
- // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
 void* ciclo_de_instruccion() {
     char *instruccion_a_decodificar;
@@ -373,11 +371,12 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case WAIT:
         {
-            char recurso[20];
-            sscanf(instruccion_a_ejecutar.operando1, "WAIT %s", recurso);
-            ejecutar_wait(&procesoEjecutando->cpuRegisters, recurso);
+            ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
+
             break;
         }
+        case SIGNAL:
+            ejecutar_signal(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1);
         case IO_GEN_SLEEP:
         {
             mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);

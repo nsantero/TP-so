@@ -44,10 +44,11 @@ void* manejadorDeConsola(){
             }
         }
         else if (!strcmp(comando, "DETENER_PLANIFICACION")) {
-            //detener_planificacion();
+            detener_planificacion();
+
         }
         else if (!strcmp(comando, "INICIAR_PLANIFICACION")) {
-            //iniciar_planificacion();
+            iniciar_planificacion();
         }
         else if (!strcmp(comando, "MULTIPROGRAMACION")) {
             segundoArgumento = strtok(NULL, " ");
@@ -106,4 +107,19 @@ void procesarLinea(char* linea) {
            //log_error("Error: Falta el argumento [PATH] para INICIAR_PROCESO\n");
         }
     }
+}
+
+void detener_planificacion() {
+    pthread_mutex_lock(&mutexPlanificacion);
+    planificacionPausada = 1;
+    pthread_mutex_unlock(&mutexPlanificacion);
+    printf("Planificación detenida\n");
+}
+
+void iniciar_planificacion() {
+    pthread_mutex_lock(&mutexPlanificacion);
+    planificacionPausada = 0;
+    pthread_mutex_unlock(&mutexPlanificacion);
+    pthread_cond_broadcast(&condPlanificacion);
+    printf("Planificación iniciada\n");
 }

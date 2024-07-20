@@ -8,6 +8,7 @@
 #include <readline/history.h>
 #include <kernel.h>
 #include <mostrarProcesos.h>
+#include <planificadores.h>
 
 void *manejadorDeConsola();
 void ejecutarScript(char* path);
