@@ -70,14 +70,9 @@ void* conexionesDispatch()
 					list_add(lista_READY, procesoKernel);
 					sem_post(&semListaReady);
 				}
-				else{
-					log_error(loggerKernel,"Solo se tienen que interrumpir los procesos que usan RR o VRR");
-				}
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
 				sem_post(&semListaRunning);
-
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por fin de qunatum\n", procesoKernel->PID);
 				break;
 			}
 			case PROCESO_WAIT:
@@ -91,7 +86,6 @@ void* conexionesDispatch()
                 memcpy(recursoRecibido, stream, recursoLength);
 				printf("Recurso recibido. Recurso: %s\n: ", recursoRecibido);
 				Recurso *recursoEncontrado = NULL;
-				// wait_recurso(&procesoCPU->cpuRegisters, Recurso);	
 					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
     					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
     					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
@@ -127,6 +121,7 @@ void* conexionesDispatch()
 
 				break;
    				}
+
 				// Si el recurso existe y tiene instancias
 				if (recursoEncontrado->instancias > 0) {
 				recursoEncontrado->instancias--;
@@ -134,7 +129,7 @@ void* conexionesDispatch()
 				} 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
-					// Bloquear el proceso
+					// Bloquear el proceso 
 					procesoCPU = recibirProcesoContextoEjecucion(stream);
 					pthread_mutex_lock(&mutexListaRunning);
 					pthread_mutex_lock(&mutexListaBlocked);
