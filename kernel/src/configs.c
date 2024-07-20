@@ -26,6 +26,8 @@ void iniciarLogger(){
     log_info(loggerKernel,"Logger creado");
 }
 
+t_recurso* recursos_config; // variable global
+
 void inicializarRecursos(t_configKernel* config, t_config* configFile) {
     config->RECURSOS = list_create();
     char** recursos_config = config_get_array_value(configFile, "RECURSOS");
