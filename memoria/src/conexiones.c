@@ -8,6 +8,26 @@ int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
 
+void liberarFrame(int frame){
+
+    bitarray_clean_bit(memoria.bitmap_frames, frame);
+
+    log_info(loggerMemoria, "Se liberó el frame:%d", frame);
+
+}
+
+void destroy_page_entry(void *element) {
+
+    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
+    free(reg_tp_proceso); 
+}
+
+void destroy_process_entry(void *element) {
+
+    Proceso *proceso = (Proceso *)element;
+    free(proceso); 
+}
+
 int cantidadFrameLibre(){
 
     int cant_frames_libres = 0;
@@ -21,10 +41,10 @@ int cantidadFrameLibre(){
         if(!valor){
             cant_frames_libres ++;
         }
-        
 
     }
 
+    log_info(loggerMemoria, "Cantidad de frames libres:%d",cant_frames_libres-diferencia);
     return cant_frames_libres-diferencia;
 }
 
@@ -38,7 +58,8 @@ int asignarFrameLibre(){
 
             bitarray_set_bit(memoria.bitmap_frames, i);
 
-            printf("valor nuevo del bitarray: %d\n", bitarray_test_bit(memoria.bitmap_frames, i));
+            log_info(loggerMemoria, "Se asigno el frame:%d",i);
+            log_info(loggerMemoria, "El frame esta en :%d",bitarray_test_bit(memoria.bitmap_frames, i));
             
             return i;
         }
@@ -52,6 +73,8 @@ void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente){
     t_paquete *paquete_cpu = crear_paquete(resultado);
     
     enviar_paquete(paquete_cpu, socket_cliente);
+
+    log_info(loggerMemoria, "Se envio a CPU el resultado del resize.");
 
     eliminar_paquete(paquete_cpu);
 }
@@ -67,59 +90,130 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
         if (proceso->pid == pid_a_cambiar) {
             
-            int cantidad_paginas = ceil(tam_a_cambiar/memoria.pagina_tam);
+            //int cantidad_paginas = ceil(tam_a_cambiar/memoria.pagina_tam);
+
+            double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
+
+            int cantidad_paginas = round(calculo_paginas);
+            
+            log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
+
             int tam_actual = proceso->tam_proceso;
+            
+            log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
             if (cantidadFrameLibre() == 0 || cantidad_paginas>cantidadFrameLibre()){
 
-                return false;
+                return OUT_OF_MEMORY;
 
             }
+
             else{
 
-            //Caso Ampliacion de un proceso
-            if(proceso->tam_proceso == 0){
+                //Caso Ampliacion de un proceso
+                if(proceso->tam_proceso == 0){
 
-                proceso->tam_proceso = tam_a_cambiar;
+                    log_info(loggerMemoria, "Se amplia el proceso.");
+
+                    for (int i = 0; i < cantidad_paginas; i++) {
+
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                        
+                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                        reg_tp_proceso->numero_de_pagina = i;
+                        log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                        reg_tp_proceso->modificado = false;
+
+                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+
+                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+
+                    }
+
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                    log_info(loggerMemoria, "Se amplio el proceso.");
+
+                    return OK;
+
+                }
+            
+                if(tam_actual != 0 && tam_actual<tam_a_cambiar){
+
+                    //Agregar paginas
+                    int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+
+                    log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+
+                    for (int i = 0; i < dif_cantidad; i++) {
+
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                        
+                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                        reg_tp_proceso->numero_de_pagina ++ ;
+                        log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                        reg_tp_proceso->modificado = false;
+                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+
+                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+
+                    }
+
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                    log_info(loggerMemoria, "Se amplio el proceso.");
+                    cantidadFrameLibre();
+                    return OK;
                 
-
-                for (int i = 0; i < cantidad_paginas; i++) {
-
-                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
-                    
-                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                    reg_tp_proceso->numero_de_pagina = i;
-                    
-                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                    reg_tp_proceso->modificado = false;
-                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-
-                    i ++;
                 }
 
-                return OK;
+                if(tam_actual != 0 && tam_actual>tam_a_cambiar){
 
-            }
-            
-            if(tam_actual<tam_a_cambiar){
+                    //Remover paginas
+                    
+                    int dif_cantidad = proceso->cantidad_paginas_asiganadas-cantidad_paginas;
 
-                //Agregar paginas
-                //int dif_tamaño = tam_actual-tam_a_cambiar;
-            
+                    log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                    // cant pag actuales 4
+                    // cant pag a cambiar 3
+                    // dif 1
 
-            }
+                    // for i= 3; i== 2;i--
+                    int size = list_size(proceso->tabla_de_paginas)-1; //3
+                    int hasta = list_size(proceso->tabla_de_paginas)-dif_cantidad; //1
 
-            if(tam_actual>tam_a_cambiar){
+                    for (int i = size; i >= hasta; i--) {
 
-                //Remover paginas
+                        Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
 
-            }
+                        log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
+                    
+                        liberarFrame(reg_tp_proceso->numero_de_frame); 
+                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                         
+                        list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+
+                    }
+                    log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
+                    proceso->tam_proceso = tam_a_cambiar;
+                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                    log_info(loggerMemoria, "Se reducio el proceso.");
+                
+                    cantidadFrameLibre();
+                    return OK;
+
+                }
+
             }
 
         }
     }
 
 }
+
+
 
 
 
@@ -147,6 +241,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
     }
 }
 
+
 void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cliente){
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
@@ -157,6 +252,9 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
     agregar_string_a_paquete(paquete_cpu, instruccion);
     
     enviar_paquete(paquete_cpu, socket_cliente);
+
+    log_info(loggerMemoria, "Se envio a CPU la instruccion: %s",instruccion);
+
     eliminar_paquete(paquete_cpu);
 
 }
@@ -168,9 +266,46 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente){
     agregar_entero_a_paquete32(paquete_cpu, memoria.pagina_tam );
     
     enviar_paquete(paquete_cpu, socket_cliente);
+
+    log_info(loggerMemoria, "Se envio el tamaño de pagina a CPU: %d",memoria.pagina_tam);
+
     eliminar_paquete(paquete_cpu);
 
 }
+
+void remover_proceso(int pid_remover){
+
+    Proceso *proceso = NULL;
+
+    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+
+        proceso = list_get(lista_ProcesosActivos,i);
+
+        if (proceso->pid == pid_remover) {
+
+            //liberar frames
+
+            for (int i = (proceso->cantidad_paginas_asiganadas-1); i >=0; i--) {
+                
+                Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
+                
+                log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);
+                int frame_liberar = reg_tp_proceso->numero_de_frame;
+                liberarFrame(frame_liberar); 
+                list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+
+            }
+            
+            list_remove_and_destroy_element(lista_ProcesosActivos, i,destroy_process_entry);
+            cantidadFrameLibre();
+            
+            break;
+
+        }
+    }
+}
+
+                
 
 void* atenderPeticionesCpu() {
 
@@ -202,6 +337,7 @@ void* manejarClienteCpu(void *arg)
 
             case PEDIDO_TAM_PAGINA:
             {   
+                log_info(loggerMemoria, "CPU solicito el tamaño de pagina. \n");
                 paquete_cpu_envio_tam_pagina(socketCliente);
                 break;
             }
@@ -216,8 +352,8 @@ void* manejarClienteCpu(void *arg)
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pc_solicitado, stream, sizeof(int));
-                printf("pedido de instruccion del pid: %d\n", pid_solicitado );
-                printf("pedido de instruccion del pc: %d\n", pc_solicitado );
+                log_info(loggerMemoria, "Se solicita la intruccion del PID:%d", pid_solicitado);
+                log_info(loggerMemoria, "Se solicita el PC:%d", pc_solicitado);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
                 break;
@@ -248,8 +384,10 @@ void* manejarClienteCpu(void *arg)
                 memcpy(&pid_a_cambiar, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
-                printf("Se recibio cambiar el tamanio a: %d\n", nuevo_tamaño );
+                log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
+                log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
                 resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
                 break;
             }
@@ -314,50 +452,25 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 proceso->path = malloc(pathLenght);
                 memcpy(proceso->path, stream, pathLenght);
+                log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
+                log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
                 cargarInstrucciones(proceso, proceso->path);
+                log_info(loggerMemoria, "Se cargaron las instrucciones");
                 proceso->tam_proceso = 0;
                 proceso->tabla_de_paginas = list_create();
                 list_add(lista_ProcesosActivos,proceso);
-                printf("se recibio proceso PID:%d\n", proceso->pid);
-                printf("se recibio proceso con path:%s\n", proceso->path);
                 break;
             }
-
             case FINALIZAR_PROCESO:
             {   
                 //CHECK
                 int pid_remover;
                 void *stream = paquete->buffer->stream;
                 memcpy(&pid_remover, stream, sizeof(int));
-                printf("finalizar proceso:%d\n", pid_remover);
-                list_remove_element(lista_ProcesosActivos, &pid_remover);
+                remover_proceso(pid_remover);
+                log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
                 break;
             }
-            //paquetes de io
-            case IO_MEM_FS_READ:
-            {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
-                //string buffer
-                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
-                
-            }
-            case  IO_MEM_FS_WRITE:
-            {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
-                
-                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
-            }
-            case  IO_MEM_STDIN_READ :
-            {
-                //RECIBE TAMAÑO DIRECCION Y UN STRING, LUEGO DEBE GUARDARSE EN DIRECCION
-            }
-            case  IO_MEM_STDOUT_WRITE :
-            {
-                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
-            }
-
             default:
             {   
                 log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
@@ -378,6 +491,8 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
 
     if (!file) {
         perror("Error opening file");
+        //TODO ESTO ACA HABRIA Q LOGGEARLO O Q ESCRIBA POR PANTALLA O ALGO
+        //ME ESTABA TIRANDO SEGMENTATION FAULT POR Q ESTABA MAL EL PATH Y NUNCA ME ENTERE
         return;
     }
     
@@ -397,6 +512,88 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
         list_add(proceso->instrucciones, instruccion);
         valorInstruccion ++;
     }
-
+    
     fclose(file);
+}
+
+//-----------------------------conexion EntradaSalida------------------------------------
+
+void* atenderPeticionesEntradaSalida() {
+
+    while (1) {
+        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
+        pthread_t client_thread;
+        int* pclient = malloc(sizeof(int));
+        *pclient = socketCliente;
+        pthread_create(&client_thread, NULL, manejarClienteEntradaSalida, pclient);
+        pthread_detach(client_thread);
+    }
+
+    return NULL;
+}
+
+void* manejarClienteEntradaSalida(void *arg)
+{
+    int socketCliente = *((int*)arg);
+    free(arg);
+
+    while(1){
+
+        t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = malloc(sizeof(t_buffer));
+        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+        void *stream = paquete->buffer->stream;
+        
+        switch(paquete->codigo_operacion){
+
+            case IO_MEM_FS_READ:
+            {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                //string buffer
+                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
+                
+            }
+            case  IO_MEM_FS_WRITE:
+            {
+                //Registro Tamaño -> 8 bytes
+                //Registro Dirección -> dl unit_32
+                
+                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
+            }
+            case  IO_MEM_STDIN_READ :
+            {
+                uint32_t tamanio;
+                uint32_t direccion;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,sizeof(tamanio));
+
+                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
+                
+                free(buffer);
+            }
+            case  IO_MEM_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+            }
+
+            default:
+            {   
+                log_error(loggerMemoria, "Error");
+                break;
+            }
+
+        }
+
+        eliminar_paquete(paquete);
+    }
+
 }

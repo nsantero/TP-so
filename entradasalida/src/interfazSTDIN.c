@@ -7,6 +7,7 @@ sem_t sem_hay_en_cola_STDIN;
 
 void inicializar_sem_cola_STDIN()
 {
+    cola_procesos_STDIN=list_create();
     sem_init(&sem_hay_en_cola_STDIN, 0, 0);
 }
 
@@ -50,9 +51,9 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
     return aDevolver;
 }
 
-char* leer_texto_ingresado(uint8_t tamanio) {
+char* leer_texto_ingresado(uint32_t tamanio,int PID) {
     char *texto = malloc(tamanio+1);
-    printf("Ingrese el texto deseado, tamaño maximo %d: ",tamanio);
+    printf("Ingrese el texto deseado para el proceso de PID=%d. Tamaño maximo %d: \n",PID,tamanio);
     fgets(texto, tamanio+1, stdin);
     texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
     return texto;
@@ -68,8 +69,9 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico 
     //CREO Q ESTE to do ya esta solucionado
 
-	texto_leido = leer_texto_ingresado(peticion->tamanio);
-	agregar_entero_a_paquete8(paquete_entrada,peticion->tamanio);
+	texto_leido = leer_texto_ingresado(peticion->tamanio,peticion->PID);
+    peticion->tamanio=strlen(texto_leido)+1;
+	agregar_entero_a_paquete32(paquete_entrada,peticion->tamanio);
     agregar_entero_a_paquete32(paquete_entrada,peticion->direccion);
     agregar_string_a_paquete(paquete_entrada,texto_leido); 
 

@@ -24,6 +24,7 @@ typedef struct {
     char* operando3; 
     char* operando4; 
     char* operando5;
+    int operandoNumero;
 } t_instruccion;
 
 extern int memoria_fd;
@@ -40,5 +41,13 @@ int server_escuchar(int fd_cpu_interrupt, int fd_cpu_dispatch);
 void procesar_conexion_interrupt(void* void_args);
 void procesar_conexion_dispatch(void* void_args);
 void* escucharInterrupciones();
+
+void mandarPaqueteaKernel(op_code codigoDeOperacion);
+t_paquete * paqueteProceso(op_code codigoDeOperacion);
+void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfaz, int tiempo);
+void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2);
+void mandarPaqueteaKernelFScrdel(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo);
+void mandarPaqueteaKernelFStrun(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1);
+void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1, char *registro2, char* registro3);
 
 #endif

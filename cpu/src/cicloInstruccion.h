@@ -3,6 +3,7 @@
 
 #include <utils.h>
 #include <cpu.h>
+#include <instrucciones.h>
 #define MEM_SIZE 256
 // Memoria ficticia para almacenar instrucciones
 extern char memoria[MEM_SIZE][20]; // Cada instrucción tiene un tamaño máximo de 20 caracteres
@@ -11,7 +12,7 @@ extern char* instruccionRecibida;
 
 char* fetch(Proceso *proceso);
 
-void recibir_confirmacion_memoria_resize();
+op_code recibir_confirmacion_memoria_resize();
 
 int buscar_frame(int pagina);
 
@@ -23,13 +24,13 @@ t_instruccion decode(char *instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
 
-int execute2(t_instruccion instruccion_a_ejecutar);
+int execute2(t_instruccion instruccion_a_ejecutar,int pid);
 
 void* ciclo_de_instruccion();
 
 void recv_instruccion(int memoria_fd);
 
-void mandarPaqueteaKernel(op_code codigoDeOperacion);
+
 
 #endif // CICLOINSTRUCCION_H
 

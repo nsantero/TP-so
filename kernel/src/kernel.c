@@ -12,6 +12,7 @@ t_list* lista_READY;
 t_list* lista_BLOCKED;
 t_list* lista_EXIT;
 t_list* lista_RUNNING;
+t_list* interfacesConectadas;
 
 void inicializarListas() {
     lista_NEW = list_create();
@@ -19,6 +20,7 @@ void inicializarListas() {
     lista_EXIT = list_create();
     lista_BLOCKED = list_create();
     lista_RUNNING = list_create();
+    interfacesConectadas = list_create();
 }
 
 //Generar PID
@@ -40,17 +42,24 @@ int generarPID() {
 
 PCB* crearPCB(char* path) {
     printf("Creando PCB... \n");
-    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
-	 if (nuevoPCB == NULL) {
-        // Manejar error de asignación de memoria
-        return NULL;
-     }
-
-    nuevoPCB -> PID = generarPID(); // asigno pid - al hacerlo incremental me aseguro de que sea único el pid
-    nuevoPCB -> cpuRegisters.PC = 0; // contador en 0
-    nuevoPCB -> quantum = quantum;//quantum generico tomado de kernel.config
-	nuevoPCB -> estado = NEW;
-    nuevoPCB->  path = strdup(path); // guardo el path 
+    PCB* nuevoPCB = malloc(2*sizeof(int)+sizeof(Estado)+sizeof(CPU_Registers)); //reserva de memoria
+     if (nuevoPCB == NULL) {
+        return NULL; 
+    }
+    nuevoPCB -> PID = generarPID();
+    nuevoPCB -> cpuRegisters.PC = 0;
+    nuevoPCB -> cpuRegisters.AX = 0;
+    nuevoPCB -> cpuRegisters.BX = 0;
+    nuevoPCB -> cpuRegisters.CX = 0;
+    nuevoPCB -> cpuRegisters.DX = 0;
+    nuevoPCB -> cpuRegisters.EAX = 0;
+    nuevoPCB -> cpuRegisters.EBX = 0;
+    nuevoPCB -> cpuRegisters.ECX = 0;
+    nuevoPCB -> cpuRegisters.EDX = 0;
+    nuevoPCB -> cpuRegisters.SI = 0;
+    nuevoPCB -> cpuRegisters.DI = 0;
+    nuevoPCB -> quantum = configuracionKernel.QUANTUM;
+    nuevoPCB -> estado = NEW;
     pthread_mutex_lock(&mutexListaNew);
     list_add(lista_NEW, nuevoPCB);
     sem_post(&semListaNew);
@@ -58,16 +67,10 @@ PCB* crearPCB(char* path) {
 
     paquete_memoria_crear_proceso(nuevoPCB->PID, path);
     
-    printf("Tamaño de la lista: %d\n", list_size(lista_NEW));
-	// Logueo la creación del PCB
-    //char mensaje[100];
-    printf("Se creó el PCB del nuevo proceso y se agrego a la lista, PID %d \n", nuevoPCB->PID);
-    //log_info(logger, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
-    
+    log_info(loggerKernel, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
     return nuevoPCB;
 }
 void eliminarProceso(PCB* proceso){
-    free(proceso->path);
     free(proceso);
 }
 void actualizarProceso(PCB* procesoCPU, PCB* procesoKernel){

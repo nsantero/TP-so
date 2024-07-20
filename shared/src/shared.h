@@ -46,6 +46,7 @@ int esperarClienteV2(t_log* logger, int socketServidor);
 void liberar_conexion(int socket_cliente);
 
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
+int enviar_paquete_interfaces(t_paquete* paquete, int socket_cliente);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 
 void* recibir_buffer(int* size, int socket_cliente);

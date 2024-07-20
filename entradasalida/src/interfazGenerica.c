@@ -10,6 +10,7 @@ sem_t sem_hay_en_cola_ig;
 
 void inicializar_sem_cola_ig()
 {
+    cola_procesos_ig=list_create();
 	sem_init(&sem_hay_en_cola_ig, 0, 0);
 }
 

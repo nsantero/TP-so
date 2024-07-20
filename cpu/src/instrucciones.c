@@ -66,23 +66,23 @@ void ejecutar_sub(CPU_Registers *cpu, const char* destino, const char* origen) {
     uint8_t *reg_origen_8 = NULL;
 
     // Asignar punteros a los registros correspondientes
-    if (strcmp(destino, "AX") == 0) reg_destino_32 = &cpu->AX;
-    else if (strcmp(destino, "BX") == 0) reg_destino_32 = &cpu->BX;
-    else if (strcmp(destino, "CX") == 0) reg_destino_32 = &cpu->CX;
-    else if (strcmp(destino, "DX") == 0) reg_destino_32 = &cpu->DX;
-    else if (strcmp(destino, "EAX") == 0) reg_destino_8 = &cpu->EAX;
-    else if (strcmp(destino, "EBX") == 0) reg_destino_8 = &cpu->EBX;
-    else if (strcmp(destino, "ECX") == 0) reg_destino_8 = &cpu->ECX;
-    else if (strcmp(destino, "EDX") == 0) reg_destino_8 = &cpu->EDX;
+    if (strcmp(destino, "AX") == 0) reg_destino_8 = &cpu->AX;
+    else if (strcmp(destino, "BX") == 0) reg_destino_8 = &cpu->BX;
+    else if (strcmp(destino, "CX") == 0) reg_destino_8 = &cpu->CX;
+    else if (strcmp(destino, "DX") == 0) reg_destino_8 = &cpu->DX;
+    else if (strcmp(destino, "EAX") == 0) reg_destino_32 = &cpu->EAX;
+    else if (strcmp(destino, "EBX") == 0) reg_destino_32 = &cpu->EBX;
+    else if (strcmp(destino, "ECX") == 0) reg_destino_32 = &cpu->ECX;
+    else if (strcmp(destino, "EDX") == 0) reg_destino_32 = &cpu->EDX;
 
-    if (strcmp(origen, "AX") == 0) reg_origen_32 = &cpu->AX;
-    else if (strcmp(origen, "BX") == 0) reg_origen_32 = &cpu->BX;
-    else if (strcmp(origen, "CX") == 0) reg_origen_32 = &cpu->CX;
-    else if (strcmp(origen, "DX") == 0) reg_origen_32 = &cpu->DX;
-    else if (strcmp(origen, "EAX") == 0) reg_origen_8 = &cpu->EAX;
-    else if (strcmp(origen, "EBX") == 0) reg_origen_8 = &cpu->EBX;
-    else if (strcmp(origen, "ECX") == 0) reg_origen_8 = &cpu->ECX;
-    else if (strcmp(origen, "EDX") == 0) reg_origen_8 = &cpu->EDX;
+    if (strcmp(origen, "AX") == 0) reg_origen_8 = &cpu->AX;
+    else if (strcmp(origen, "BX") == 0) reg_origen_8 = &cpu->BX;
+    else if (strcmp(origen, "CX") == 0) reg_origen_8 = &cpu->CX;
+    else if (strcmp(origen, "DX") == 0) reg_origen_8 = &cpu->DX;
+    else if (strcmp(origen, "EAX") == 0) reg_origen_32 = &cpu->EAX;
+    else if (strcmp(origen, "EBX") == 0) reg_origen_32 = &cpu->EBX;
+    else if (strcmp(origen, "ECX") == 0) reg_origen_32 = &cpu->ECX;
+    else if (strcmp(origen, "EDX") == 0) reg_origen_32 = &cpu->EDX;
 
     // Realizar la resta si ambos registros son válidos
     if (reg_destino_8 && reg_origen_8) {

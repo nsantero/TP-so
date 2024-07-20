@@ -41,7 +41,7 @@ void* ciclo_de_instruccion() {
 
         instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
 
-        int bloqueado = execute2(instruccion);
+        int bloqueado = execute2(instruccion,procesoEjecutando->PID);
 
         if(bloqueado == 1){
             return;
@@ -117,108 +117,6 @@ char* fetch(Proceso *procesoEjecutando) {
     return NULL;
 
 }
-
-
-void recibir_confirmacion_memoria_resize(){
-
-    t_paquete* paquete = malloc(sizeof(t_paquete));
-    paquete->buffer = malloc(sizeof(t_buffer));
-
-    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-
-    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
- 
-
-    switch(paquete->codigo_operacion){
-            case OK:
-            {
-                printf("Instrucción resize realizada!! \n");
-                break;
-            }
-            case OUT_OF_MEMORY:
-            {
-                //enviar a kernel 
-                printf("Instrucción resize: OUT OF MEMORYY ! \n");
-                break;
-            }
-            default:
-            {   
-                log_error(loggerCpu, "Error");
-                break;
-            }
-
-    }       
-
-}
-
-
-int buscar_frame(int pagina){
-
-    //buscar en tlb
-
-    //buscar en memoria
-
-    return 1;
-}
-
-direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
-
-    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
-
-    int direccion_logica = atoi(dl);
-    int nro_pagina;
-
-    nro_pagina = floor(direccion_logica / tam_pagina); 
-
-    direccion->PID = pid;
-
-    //logica de paginas divido el tamaño de pagina
-
-    // buscar en memoria el frame y en tlb
-
-    direccion->numero_frame = buscar_frame(nro_pagina);
-
-    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
-
-    return direccion;
-}
-
-
-void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
-
-        //DL
-        
-        
-        if(instruccion_memoria.tipo_instruccion = MOV_IN){
-
-            //MOV_IN (Registro Datos, Registro Dirección): 
-            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
-            
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_datos_leer = instruccion_memoria.operando1;
-            char* registro_direccion_dl = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
-
-        }
-
-        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
-            //MOV_OUT (Registro Dirección, Registro Datos): 
-            //Lee el valor del Registro Datos y 
-            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
-    
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_direccion = instruccion_memoria.operando1;
-            char* registro_datos = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
-        }
-
-        //traduccion_mmu(t_instruccion instruccion_memoria);
-
-}
-
 t_instruccion decode(char *instruccionDecodificar, int pid) {
 
     t_instruccion instruccion;
@@ -228,6 +126,45 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     int tamanio_array = 0;
     while ((cadena_instruccion)[tamanio_array] != NULL) {
         tamanio_array++;
+    }
+    if(tamanio_array == 6){
+        if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_WRITE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+            instruccion.operando4 = cadena_instruccion[4];
+            instruccion.operando5 = cadena_instruccion[5];
+
+        }
+
+    }
+    if(tamanio_array == 4){
+        if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
+        
+            instruccion.tipo_instruccion = IO_STDIN_READ;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_STDIN_WRITE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_STDOUT_WRITE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_TRUNCATE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_TRUNCATE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+
+        }
     }
 
     if(tamanio_array == 3){
@@ -288,8 +225,21 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             
             instruccion.tipo_instruccion = IO_GEN_SLEEP;
             instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operandoNumero = atoi(cadena_instruccion[2]);
+
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_CREATE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_CREATE;
+            instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
 
+        }
+        if (strcmp(cadena_instruccion[0], "IO_FS_DELETE") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_DELETE;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
 
         }
        
@@ -304,11 +254,8 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
 
             //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
             //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            int tam_nuevo = atoi(instruccion.operando1);
-
-            paquete_memoria_resize(pid,tam_nuevo);
-            recibir_confirmacion_memoria_resize();
+            //direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            
             //enviar a kernel
         }
 
@@ -337,33 +284,73 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     return instruccion;
     
 }
+direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
 
-void mandarPaqueteaKernel(op_code codigoDeOperacion){
-    t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->PID);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.PC);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.AX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.BX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.CX);
-    agregar_entero_a_paquete8(paquete_Kernel, procesoEjecutando->cpuRegisters.DX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EAX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EBX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.ECX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.EDX);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.SI);
-    agregar_entero_a_paquete32(paquete_Kernel, procesoEjecutando->cpuRegisters.DI);
+    direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
-    enviar_paquete(paquete_Kernel, socketCliente);
-    eliminar_paquete(paquete_Kernel);
+    int direccion_logica = atoi(dl);
+    int nro_pagina;
+
+    nro_pagina = floor(direccion_logica / tam_pagina); 
+
+    direccion->PID = pid;
+
+    //logica de paginas divido el tamaño de pagina
+
+    // buscar en memoria el frame y en tlb
+
+    direccion->numero_frame = buscar_frame(nro_pagina);
+
+    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+
+    return direccion;
 }
+int buscar_frame(int pagina){
 
-int execute2(t_instruccion instruccion_a_ejecutar){
+    //buscar en tlb
+
+    //buscar en memoria
+
+    return 1;
+}
+void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
+
+        //DL
+        
+        
+        if(instruccion_memoria.tipo_instruccion = MOV_IN){
+
+            //MOV_IN (Registro Datos, Registro Dirección): 
+            //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
+            
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_datos_leer = instruccion_memoria.operando1;
+            char* registro_direccion_dl = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+
+        }
+
+        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
+            //MOV_OUT (Registro Dirección, Registro Datos): 
+            //Lee el valor del Registro Datos y 
+            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+    
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            char* registro_direccion = instruccion_memoria.operando1;
+            char* registro_datos = instruccion_memoria.operando2;
+            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
+        }
+
+        //traduccion_mmu(t_instruccion instruccion_memoria);
+
+}
+int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
         case SET:
         {   
             int valor = atoi(instruccion_a_ejecutar.operando2);
-            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, (uint8_t)valor);
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
             break;
         }
         case SUM:
@@ -385,14 +372,65 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         case WAIT:
         {
             ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
+
             break;
         }
         case SIGNAL:
             ejecutar_signal(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1);
         case IO_GEN_SLEEP:
         {
-            mandarPaqueteaKernel(IO_GEN_SLEEP);
+            mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             bloqueado = 1;
+            break;
+        }
+        case IO_STDIN_READ:
+        {
+            mandarPaqueteaKernelSTD(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_STDOUT_WRITE:
+        {
+            mandarPaqueteaKernelSTD(IO_STDOUT_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_CREATE:
+        {
+            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_DELETE:
+        {
+            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_TRUNCATE:
+        {
+            mandarPaqueteaKernelFStrun(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
+            bloqueado = 1;
+            break;
+        }
+        case IO_FS_WRITE:
+        {
+            mandarPaqueteaKernelFSWR(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
+            bloqueado = 1;
+            break;
+        }
+        case RESIZE:
+        {
+            int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
+
+            paquete_memoria_resize(pid,tam_nuevo);
+            op_code operacion;
+            operacion=recibir_confirmacion_memoria_resize();
+            if(operacion == OUT_OF_MEMORY){
+                mandarPaqueteaKernel(EXIT);
+                bloqueado = 1;
+            }
+            printf("Instrucción resize realizada!! \n");
             break;
         }
         default:
@@ -403,6 +441,37 @@ int execute2(t_instruccion instruccion_a_ejecutar){
 
     }
     return bloqueado;     
+}
+op_code recibir_confirmacion_memoria_resize(){
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                printf("Instrucción resize realizada!! \n");
+                return OK;
+                break;
+            }
+            case OUT_OF_MEMORY:
+            {
+                //enviar a kernel 
+                printf("Instrucción resize: OUT OF MEMORYY ! \n");
+                return OUT_OF_MEMORY;
+                break;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+
+    }
+    return PROCESO_EXIT;   
+
 }
 
 void recv_instruccion(int memoria_fd){

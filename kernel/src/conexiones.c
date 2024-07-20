@@ -11,7 +11,32 @@ int server_fd;
 char* server_name = "kernel";
 int socketCliente;
 
-t_list *interfacesConectadas;
+//TODO mover esto a donde este comodo
+uint32_t leerValorDelRegistro(char *registroAleer,CPU_Registers registros){
+	if (strcmp(registroAleer,"PC")==0){
+		return registros.PC;
+	}else if (strcmp(registroAleer,"AX")==0){
+		return registros.AX;
+	}else if (strcmp(registroAleer,"BX")==0){
+		return registros.BX;
+	}else if (strcmp(registroAleer,"CX")==0){
+		return registros.CX;
+	}else if (strcmp(registroAleer,"DC")==0){
+		return registros.DX;
+	}else if (strcmp(registroAleer,"EAX")==0){
+		return registros.EAX;
+	}else if (strcmp(registroAleer,"EBX")==0){
+		return registros.EBX;
+	}else if (strcmp(registroAleer,"ECX")==0){
+		return registros.ECX;
+	}else if (strcmp(registroAleer,"EDX")==0){
+		return registros.EDX;
+	}else if (strcmp(registroAleer,"SI")==0){
+		return registros.SI;
+	}else if (strcmp(registroAleer,"DI")==0){
+		return registros.DI;
+	}else {/*TODO ERROR*/}
+}
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
 
@@ -21,8 +46,11 @@ void* conexionesDispatch()
 	while (1)
 	{
 
-		t_paquete* paquete = malloc(sizeof(t_paquete));
+		t_paquete* paquete = NULL;
+		paquete = malloc(sizeof(t_paquete));
+		paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+		paquete->buffer->stream = NULL;
 
         recv(cpu_dispatch_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(cpu_dispatch_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -71,10 +99,10 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
-					sem_post(&semListaReady);
 				}
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
+				sem_post(&semListaReady);
 				sem_post(&semListaRunning);
 				break;
 			}
@@ -170,117 +198,139 @@ void* conexionesDispatch()
 			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
+
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					terminarHiloQuantum();
 				}
 				pthread_mutex_lock(&mutexListaRunning);
-				pthread_mutex_lock(&mutexListaBlocked);
 				procesoKernel = list_remove(lista_RUNNING, 0);
 				actualizarProceso(procesoCPU, procesoKernel);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					temporal_stop(tiempoVRR);
-					tiempoEjecutando = temporal_gettime(tiempoVRR);
-					temporal_destroy(tiempoVRR);
 					procesoKernel->quantum -= tiempoEjecutando;
 				}
-				procesoKernel->estado = BLOCKED;
-				list_add(lista_BLOCKED, procesoKernel);
 				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaBlocked);
 				sem_post(&semListaRunning);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_Generica interfazGenerica;
-
-				PCB* proceso;
-
+				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
 				
-				
-				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&interfazGenerica.PID, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&pathLength, stream, sizeof(int));
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				interfazGenerica.nombre_interfaz = malloc(pathLength);
 				memcpy(interfazGenerica.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));
+				
 
+
+				interfazGenerica.PID=procesoKernel->PID;
 				//MUTEX
-				if(existeInterfaz(interfazGenerica.nombre_interfaz)){
+				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_GENERICA){
+					//error no es una intruccion compatible //TODO
+				}
+				
+				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.PID,sizeof(int));
 					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteIOGen,socketCliente);
+					enviar_paquete(paqueteIOGen,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOGen);
-					
-					//bloquear procesos? //TODO
+					pthread_mutex_lock(&mutexListaBlocked);
+					procesoKernel->estado = BLOCKED;
+					list_add(lista_BLOCKED, procesoKernel);
+					pthread_mutex_unlock(&mutexListaBlocked);
 				}
 				else{
-					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
-					paquete_memoria_finalizar_proceso(proceso->PID);
-					//eliminarProceso(proceso); //TODO
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel);
+					pthread_mutex_unlock(&mutexListaExit);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
 			}
+
 			case IO_STDIN_READ:
 			{
-				/*procesoCPU = recibirProcesoContextoEjecucion(stream);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					terminarHiloQuantum();
 				}
 				pthread_mutex_lock(&mutexListaRunning);
-				pthread_mutex_lock(&mutexListaBlocked);
 				procesoKernel = list_remove(lista_RUNNING, 0);
 				actualizarProceso(procesoCPU, procesoKernel);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					temporal_stop(tiempoVRR);
-					tiempoEjecutando = temporal_gettime(tiempoVRR);
-					temporal_destroy(tiempoVRR);
 					procesoKernel->quantum -= tiempoEjecutando;
 				}
-				procesoKernel->estado = BLOCKED;
-				list_add(lista_BLOCKED, procesoKernel);
 				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaBlocked);
 				sem_post(&semListaRunning);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
-				*/ 
-				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
+
 				Peticion_Interfaz_STDIN interfazsSTDIN;
-
-				PCB* proceso;
-
+				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
-				
-				
-				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
-				stream += sizeof(uint32_t);
-				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint8_t));
-				stream += sizeof(uint8_t);
-				memcpy(&interfazsSTDIN.PID, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&pathLength, stream, sizeof(int));
+				char* registroAleer;
+				int registroLen;
+
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				interfazsSTDIN.nombre_interfaz = malloc(pathLength);
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				//primer registro
+				memcpy(&registroLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				registroAleer=malloc(registroLen);
+				memcpy(registroAleer, stream, registroLen);
+				stream += registroLen;
+				interfazsSTDIN.direccion=leerValorDelRegistro(registroAleer,procesoKernel->cpuRegisters);
+				free(registroAleer);
+				//segundoRegistro
+				memcpy(&registroLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				registroAleer=malloc(registroLen);
+				memcpy(registroAleer, stream, registroLen);
+				interfazsSTDIN.tamanio=leerValorDelRegistro(registroAleer,procesoKernel->cpuRegisters);
+				free(registroAleer);
+
+				interfazsSTDIN.PID=procesoKernel->PID;
 
 				//MUTEX
-				if(existeInterfaz(interfazsSTDIN.nombre_interfaz)){
-					t_paquete* paqueteIOSTDIN=crear_paquete(IO_GEN_SLEEP);
-					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.direccion,sizeof(uint32_t));
-					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.tamanio,sizeof(uint8_t));
-					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.PID,sizeof(int));
+				int socketClienteInterfaz = existeInterfaz(interfazsSTDIN.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_STDIN){
+					//error no es una intruccion compatible //TODO
+				}
+				
+				if(socketClienteInterfaz){
+					t_paquete* paqueteIOSTDIN=crear_paquete(IO_STDIN_READ);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamanio);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.PID);
 					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteIOSTDIN,socketCliente);
+					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
+					
+					pthread_mutex_lock(&mutexListaBlocked);
+					procesoKernel->estado = BLOCKED;
+					list_add(lista_BLOCKED, procesoKernel);
+					pthread_mutex_unlock(&mutexListaBlocked);
 					
 					//bloquear procesos? //TODO
 				}
 				else{
-					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
-					paquete_memoria_finalizar_proceso(proceso->PID);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel);
+					pthread_mutex_unlock(&mutexListaExit);
 					//eliminarProceso(proceso); //TODO
 				}
 				free(interfazsSTDIN.nombre_interfaz);
@@ -312,7 +362,7 @@ void* conexionesDispatch()
 				*/ 
 				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
 				Peticion_Interfaz_STDOUT interfazsSTDOUT;
-
+				Tipos_Interfaz tipoDeLaInterfaz;
 				PCB* proceso;
 
 				int pathLength;
@@ -329,7 +379,7 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDOUT.nombre_interfaz, stream, pathLength);
 
 				//MUTEX
-				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz)){
+				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz,&tipoDeLaInterfaz)){
 					t_paquete* paqueteIOSTDOUT=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.direccion,sizeof(uint32_t));
 					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.tamanio,sizeof(uint8_t));
@@ -362,9 +412,6 @@ void* conexionesDispatch()
 				break;
 			}
 			case IO_FS_WRITE:
-			{
-				break;
-			}
 			case IO_FS_READ:
 			{
 				break;
@@ -377,21 +424,45 @@ void* conexionesDispatch()
 			}
 			eliminar_paquete(paquete);
 		}
+		free(procesoCPU);
+		free(paquete->buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 	}
 }
 
-int existeInterfaz(char *nombre){
+int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
 	//mutex lista
 	Interfaces_conectadas_kernel *interfazBuffer;
-	for (int i = 0; i < list_size(interfacesConectadas); i++)
-	{
-		interfazBuffer=list_get(interfacesConectadas, i);
-		if(!strcmp(interfazBuffer->nombre, nombre)){
-			return 1;
+	if(list_size(interfacesConectadas) != 0){
+		for (int i = 0; i < list_size(interfacesConectadas); i++)
+		{
+			interfazBuffer=list_get(interfacesConectadas, i);
+			if(!strcmp(interfazBuffer->nombre, nombre)){
+				*tipo= interfazBuffer->tipo;
+				return interfazBuffer->socketCliente;
+			}
 		}
-
 	}
+	
 	return 0;
+}
+PCB* procesoBloqueado(uint32_t pid){
+	pthread_mutex_lock(&mutexListaBlocked);
+	PCB *proceso;
+	if(list_size(lista_BLOCKED) != 0){
+		for (int i = 0; i < list_size(lista_BLOCKED); i++)
+		{
+			proceso=list_get(lista_BLOCKED, i);
+			if(proceso->PID == pid){
+				proceso = list_remove(lista_BLOCKED, i);
+				pthread_mutex_unlock(&mutexListaBlocked);
+				return proceso;
+			}
+		}
+	}
+	pthread_mutex_unlock(&mutexListaBlocked);
+	return NULL;
 }
 
 void* atenderPeticionesIO() {
@@ -428,19 +499,42 @@ void* manejarClienteIO(void *arg)
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
 				interfazBuffer->nombre = malloc(charTam);
-				memcpy(&interfazBuffer->nombre,stream, sizeof(charTam));
+				memcpy(interfazBuffer->nombre,stream, charTam);
 				stream += charTam;
+				stream += sizeof(int);
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
-
+				interfazBuffer->socketCliente = socketCliente;
 				list_add(interfacesConectadas, interfazBuffer);
-
+				//TODO agregar q si se vuelve a conectar una interfaz
 				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
 				
 				break;
 			}
-			case TERMINO_INTERFAZ:
+			case DESBLOQUEAR_PROCESO_POR_IO:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+				char *nombre;
+				int charTam;
+				uint32_t pid;
+				PCB* proceso =NULL;
+				memcpy(&charTam, stream, sizeof(int));
+				stream += sizeof(int);
+				nombre = malloc(charTam);
+				memcpy(nombre,stream, charTam);
+				stream += charTam;
+				memcpy(&pid,stream,sizeof(uint32_t));
+				proceso=procesoBloqueado(pid);
+				if(proceso == NULL){
+					//logger
+				}
+				else{
+					proceso->estado = READY;
+					pthread_mutex_lock(&mutexListaReady);
+					list_add(lista_READY, proceso);
+					pthread_mutex_unlock(&mutexListaReady);
+					sem_post(&semListaReady);
+				}
+				break;
 			}
 			case ERROR_EN_INTERFAZ:
 			{
@@ -483,7 +577,7 @@ PCB *recibirProcesoContextoEjecucion(void *stream){
 	memcpy(&proceso->cpuRegisters.SI, stream, sizeof(uint32_t));
 	stream += sizeof(uint32_t);
 	memcpy(&proceso->cpuRegisters.DI, stream, sizeof(uint32_t));
-	stream += sizeof(uint32_t);
+
 
 	return proceso;
 }

@@ -13,7 +13,7 @@ void armarConfigMemoria(){
     configuracionMemoria.PATH_INSTRUCCIONES = config_get_string_value(configMemoria,"PATH_INSTRUCCIONES");
     configuracionMemoria.RETARDO_RESPUESTA = config_get_int_value(configMemoria,"RETARDO_RESPUESTA");
 	
-    log_info(loggerMemoria, "Configuracion guardada");
+    log_info(loggerMemoria, "Configuracion de Memoria guardada");
 }
 
 void iniciarLoggerMemoria(){

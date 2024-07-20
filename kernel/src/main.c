@@ -4,8 +4,17 @@
 #include <consola.h>
 #include <configs.h>
 #include <planificadores.h>
+#include <signal.h>
+void handleSiginitKernel(){
+    close(cpu_dispatch_fd);
+    close(cpu_interrupt_fd);
+    close(memoria_fd);
+    close(server_fd);
+}
 
 int main(int argc, char *argv[]) {
+
+    signal(SIGINT,handleSiginitKernel);
     
 	iniciarLogger();
     armarConfig();
@@ -26,22 +35,24 @@ int main(int argc, char *argv[]) {
 
 	// envio mensajes
 	//enviar_mensaje("soy Kernel", memoria_fd);
-    enviar_mensaje("soy Kernel", cpu_dispatch_fd);
+    //enviar_mensaje("soy Kernel", cpu_dispatch_fd);//Esto cpu creo q lo loggea como error
 
 	//levanto servidor
     char * server_name = "Kernel";
 	server_fd = iniciar_servidor(loggerKernel,server_name, configuracionKernel.PUERTO_ESCUCHA);
 	log_info(loggerKernel, "Servidor listo para recibir al cliente");
 
-    pthread_t hiloConsola, procesosNew, procesosReady, hiloDispatch;
+    pthread_t hiloConsola, procesosNew, procesosReady, hiloDispatch, hiloInterfaz;
     pthread_create(&hiloConsola,NULL, manejadorDeConsola, NULL);
     pthread_create(&procesosNew,NULL, planificadorNew, NULL);
     pthread_create(&procesosReady,NULL, planificadorReady, NULL);
 	pthread_create(&hiloDispatch, NULL, conexionesDispatch, NULL);
+    pthread_create(&hiloInterfaz,NULL, atenderPeticionesIO, NULL);
 
     pthread_detach(procesosNew);
     pthread_detach(procesosReady);
     pthread_detach(hiloDispatch);
+    pthread_detach(hiloInterfaz);
     pthread_join(hiloConsola, NULL);
 
     return 0;

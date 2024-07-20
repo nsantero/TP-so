@@ -13,7 +13,7 @@ void* manejadorDeConsola(){
             add_history(linea);
         }
         comando = strtok(linea, " ");
-
+        //TODO estaria bueno q no rompa si el comando q le pasan esta mal, q mande un comando erroneo o algo asi
         if(!strcmp(comando,"EJECUTAR_SCRIPT")){
             segundoArgumento = strtok(NULL, " ");
             if(segundoArgumento){

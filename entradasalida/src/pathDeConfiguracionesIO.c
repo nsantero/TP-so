@@ -1,3 +1,3 @@
 #include <pathDeConfiguracionesIO.h>
 
-char * pathADirectorio="../../entradasalida";
+char * pathADirectorio="../entradasalida/";

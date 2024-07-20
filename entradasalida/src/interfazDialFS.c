@@ -12,6 +12,7 @@ sem_t sem_hay_en_DialFS;
 
 
 void inicializar_sem_cola_DialFS(){
+    cola_procesos_DialFS=list_create();
     sem_init(&sem_hay_en_DialFS,0,0);
 }
 

@@ -4,6 +4,10 @@
 #include <../../shared/src/shared.h>
 #include <memoria.h>
 
+void liberarFrame(int frame);
+
+void destroy_page_entry(void *element);
+
 int cantidadFrameLibre();
 
 int asignarFrameLibre();
@@ -18,6 +22,8 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
 void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
+void remover_proceso(int pid_remover);
+
 void* manejarClienteCpu(void *arg);
 
 void* atenderPeticionesCpu();
@@ -25,6 +31,10 @@ void* atenderPeticionesCpu();
 void* manejarClienteKernel(void *arg);
 
 void* atenderPeticionesKernel();
+
+void* atenderPeticionesEntradaSalida();
+
+void* manejarClienteEntradaSalida(void *arg);
 
 void cargarInstrucciones(Proceso *proceso, const char *path);
 
