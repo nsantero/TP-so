@@ -242,6 +242,20 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
     }
 }
 
+void enviar_paquete_cpu_marco(int marco_encontrado,int socketCliente){
+
+    t_paquete *paquete_cpu = crear_paquete(ENVIO_MARCO);
+
+    agregar_entero_a_paquete32(paquete_cpu, marco_encontrado );
+    
+    enviar_paquete(paquete_cpu, socketCliente);
+
+    log_info(loggerMemoria, "Se envio a CPU el marco: %d",marco_encontrado);
+
+    eliminar_paquete(paquete_cpu);
+
+
+}
 
 void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cliente){
 
@@ -304,6 +318,33 @@ void remover_proceso(int pid_remover){
 
         }
     }
+}
+
+
+int obtener_marco(int pid,int pagina){
+
+    Proceso *proceso = NULL;
+
+    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+
+        proceso = list_get(lista_ProcesosActivos,i);
+
+        if (proceso->pid == pid) {
+
+            for (int i = 0; i < list_size(proceso->tabla_de_paginas); i++) {
+
+                Registro_tabla_paginas_proceso * reg_tabla_pag = list_get(proceso->tabla_de_paginas, i);
+
+                if (reg_tabla_pag->pid_tabla_de_paginas == pid && reg_tabla_pag->numero_de_pagina) {
+
+                    return reg_tabla_pag->numero_de_frame;
+
+                }
+            }
+        }
+    }
+
+
 }
 
                 
@@ -377,6 +418,7 @@ void* manejarClienteCpu(void *arg)
             {   
                 int nuevo_tamaño;
                 int pid_a_cambiar;
+
                 op_code resultado_cambio;
                 paquete->buffer->stream = malloc(paquete->buffer->size);
                 recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -392,7 +434,27 @@ void* manejarClienteCpu(void *arg)
                 enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
                 break;
             }
+            case SOLICITUD_MARCO:
+            {   
+                int pid_solicitado;
+                int pagina_solicitada;
 
+                paquete->buffer->stream = malloc(paquete->buffer->size);
+                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+                void *stream = paquete->buffer->stream;
+
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&pagina_solicitada, stream, sizeof(int));
+
+                log_info(loggerMemoria, "Se solicita la pagina del PID:%d", pid_solicitado);
+                log_info(loggerMemoria, "Se solicita la pagina:%d", pagina_solicitada);
+
+                int marco_encontrado;
+                marco_encontrado= obtener_marco(pid_solicitado,pagina_solicitada);
+                enviar_paquete_cpu_marco(marco_encontrado,socketCliente);
+                break;
+            }
             default:
             {   
                 log_error(loggerMemoria, "Error");
@@ -578,7 +640,7 @@ void* manejarClienteEntradaSalida(void *arg)
                 memcpy(buffer,stream,sizeof(tamanio));
 
                 //TODO aca tiene q escribir el buffer en la direccion q le manda IO
-                
+                // solicitar la traduccion de dl a df
                 free(buffer);
             }
             case  IO_MEM_STDOUT_WRITE :
