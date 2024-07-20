@@ -27,6 +27,8 @@ typedef enum
     IO_FS_READ,
     IO_STDIN_READ,
     IO_STDOUT_WRITE,
+    WAIT_SUCCESS,
+    WAIT_BLOCK,
 
 
     //INSTRUCCIONES

@@ -122,8 +122,7 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
     }
 }
 
-#define WAIT_SUCCESS 1
-#define WAIT_BLOCK 0
+
 
 void paquete_kernel_envio_recurso(const char* recurso){
 
@@ -137,12 +136,12 @@ void paquete_kernel_envio_recurso(const char* recurso){
 
 }
 
-void ejecutar_wait(Proceso *procesoActual, const char* recurso) {
+int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
     
     int bloqueado = 0;
     paquete_kernel_envio_recurso(recurso);
     int respuesta = recibir_resultado_recursos();
-    if (respuesta = 0) {
+    if (respuesta == 0) {
         bloqueado = 1;
         mandarPaqueteaKernel(WAIT_BLOCK);
     }
@@ -152,12 +151,16 @@ void ejecutar_wait(Proceso *procesoActual, const char* recurso) {
 void ejecutar_signal(CPU_Registers *cpu, const char* recurso) {
     mandarPaqueteaKernel(PROCESO_SIGNAL);
     char* RecursoSolicitado = strtok(NULL, " ");
+<<<<<<< HEAD
+=======
+    //enviarMensaje(RecursoSolicitado, socketCliente);
+>>>>>>> refs/remotes/origin/main
     char* Respuesta = (char*) recibir_paquete(socketCliente);
 
-            if(strcmp(Respuesta, "RECHAZADO")==0)
-                {
-                    mandarPaqueteaKernel(EXIT); //validar
-                }
+    if(strcmp(Respuesta, "RECHAZADO")==0)
+    {
+        mandarPaqueteaKernel(EXIT); //validar
+    }
 
 }
 
@@ -165,31 +168,26 @@ int recibir_resultado_recursos(){
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
-
     recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-
-    recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+    
     int respuesta;
 
     switch(paquete->codigo_operacion){
         case WAIT_SUCCESS:
         {   
             respuesta = 1;
-            printf("Instrucción resize realizada!! \n");
+            printf("Se pudo hacer el wait \n");
             break;
         }
         case WAIT_BLOCK:
         {
             respuesta = 0;
-            printf("Instrucción resize: OUT OF MEMORYY ! \n");
+            printf("No se puede hacer el wait, devuelvo el proceso \n");
             break;
         }
         default:
         {   
-            log_error(loggerCpu, "Error");
+            log_error(loggerCpu, "Error el codigo de wait no es correcto");
             break;
         }
       

@@ -536,7 +536,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case WAIT:
         {
-            ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
+            bloqueado = ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
 
             break;
         }

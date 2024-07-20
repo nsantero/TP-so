@@ -221,6 +221,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 
     Proceso *proceso = NULL;
+    Instruccion *instruccionBuscada = NULL;
 
     for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
@@ -230,11 +231,11 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 
             for (int i = 0; i < list_size(proceso->instrucciones); i++) {
 
-                Instruccion *instruccion_ = list_get(proceso->instrucciones, i);
+               instruccionBuscada = list_get(proceso->instrucciones, i);
 
-                if (instruccion_->numeroInstruccion == pc_a_buscar) {
+                if (instruccionBuscada->numeroInstruccion == pc_a_buscar) {
 
-                    return instruccion_->instruccion;
+                    return instruccionBuscada->instruccion;
 
                 }
             }
