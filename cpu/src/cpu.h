@@ -28,6 +28,8 @@ extern int socketCliente;
 
 Proceso recibirProcesoAEjecutar(Proceso proceso);
 
+void enviar_paquete_mov_in_memoria(int pid, int marco, int desplazamiento);
+
 void crearTLB();
 
 void* manejarClienteKernel(void *arg);
@@ -39,6 +41,8 @@ int pedir_tam_pagina_memoria();
 void paquete_memoria_pedido_tam_pagina();
 
 void paquete_memoria_marco(int pid,int pagina);
+
+void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,uint32_t datos);
 
 void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete);
 

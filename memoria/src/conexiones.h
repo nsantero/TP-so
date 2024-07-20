@@ -14,7 +14,11 @@ int obtener_marco(int pid,int pagina);
 
 int asignarFrameLibre();
 
+Proceso* obtener_proceso(int pid_remover);
+
 void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente);
+
+void enviar_paquete_cpu_mov_in(uint32_t datos,int socketCliente);
 
 op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar);
 
@@ -27,6 +31,8 @@ void enviar_paquete_cpu_marco(int marco_encontrado,int socketCliente);
 void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
 void remover_proceso(int pid_remover);
+
+void enviar_paquete_cpu_mov_out(op_code resultado,int socketCliente);
 
 void* manejarClienteCpu(void *arg);
 

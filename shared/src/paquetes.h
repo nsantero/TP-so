@@ -64,6 +64,7 @@ typedef enum
     ENVIO_MARCO,
     OUT_OF_MEMORY,
     OK,
+    ENVIO_MOV_IN,
     
     //KERNEL IO
     PRESENCIA_INTERFAZ_GENERICA,

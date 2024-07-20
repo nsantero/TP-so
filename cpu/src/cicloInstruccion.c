@@ -70,7 +70,6 @@ void* ciclo_de_instruccion() {
         free(cadena_instruccion);
         free(instruccion_a_decodificar);
 
-
     }
 
     return NULL;
@@ -306,15 +305,12 @@ direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
     int nro_pagina;
 
     nro_pagina = floor(dl / tam_pagina); 
-
     direccion->PID = pid;
 
     //logica de paginas divido el tamaño de pagina
-
     // buscar en memoria el frame y en tlb
 
     direccion->numero_frame = buscar_frame(nro_pagina,pid);
-
     direccion->desplazamiento = dl - nro_pagina * tam_pagina;
     
     //char cadena_datos = (char)datos;
@@ -416,6 +412,7 @@ void agregar_marco_tlb(int pid,int marco_memoria,int pagina){
         algoritmoLRU(pid,marco_memoria,pagina);
     }
 }
+
 op_code buscar_en_tlb(int pid, int pagina){
 
     int size = list_size(lista_TLB);
@@ -480,7 +477,14 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
 
             direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
-            //direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+            
+            enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento);
+
+            uint32_t valor_leido;
+            valor_leido = recibir_leer_memoria_mov_in();
+
+            // guardar en registros
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valor_leido);
             break;
         }
 
@@ -495,7 +499,17 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
+            op_code operacion;
+
             direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+
+            enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,registro_datos);
+
+            operacion = recibir_confirmacion_memoria_mov_out();
+
+            if(operacion == OK){
+                printf("Instrucción resize realizada!! \n");
+            }
 
             break;
         }
@@ -617,6 +631,59 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     }
     return bloqueado;     
 }
+
+uint32_t recibir_leer_memoria_mov_in(){
+
+    uint32_t valor_leido;
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+
+    void *stream = paquete->buffer->stream;
+
+    switch(paquete->codigo_operacion){
+        case ENVIO_MOV_IN:
+        {
+            memcpy(&valor_leido, stream, sizeof(uint32_t));
+            return valor_leido;
+        }
+        default:
+        {   
+            log_error(loggerCpu, "Error");
+            break;
+        }
+    }       
+}
+
+op_code recibir_confirmacion_memoria_mov_out(){
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                return OK;
+                break;
+            }
+            default:
+            {   
+                log_error(loggerCpu, "Error");
+                break;
+            }
+
+    }
+    return PROCESO_EXIT;   
+
+}
+
 
 op_code recibir_confirmacion_memoria_resize(){
 

@@ -79,6 +79,17 @@ void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente){
     eliminar_paquete(paquete_cpu);
 }
 
+void enviar_paquete_cpu_mov_out(op_code resultado,int socketCliente){
+   
+    t_paquete *paquete_cpu = crear_paquete(resultado);
+    
+    enviar_paquete(paquete_cpu, socketCliente);
+
+    log_info(loggerMemoria, "Se envio a CPU el resultado del mov out.");
+
+    eliminar_paquete(paquete_cpu);
+}
+
 
 op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
@@ -321,6 +332,36 @@ void remover_proceso(int pid_remover){
     }
 }
 
+Proceso* obtener_proceso(int pid_remover){
+
+    Proceso *proceso = NULL;
+
+    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+
+        proceso = list_get(lista_ProcesosActivos,i);
+
+        if (proceso->pid == pid_remover) {
+
+            return proceso;
+
+        }
+    }
+}
+
+void enviar_paquete_cpu_mov_in(uint32_t datos,int socketCliente){
+
+    t_paquete *paquete_cpu = crear_paquete(ENVIO_MOV_IN);
+
+    agregar_entero_a_paquete32(paquete_cpu, datos);
+    
+    enviar_paquete(paquete_cpu, socketCliente);
+
+    log_info(loggerMemoria, "Se envio a CPU el MOV_IN: %d",datos);
+
+    eliminar_paquete(paquete_cpu);
+
+
+}
 
 int obtener_marco(int pid,int pagina){
 
@@ -404,14 +445,68 @@ void* manejarClienteCpu(void *arg)
 
             case MOV_OUT:
             {   
-                //MOV_OUT (Registro Dirección, Registro Datos): 
-                //Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
-                //int direccion_fisica;
+                int pid_mov_out; // es necesario????????
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                uint32_t datos;
+                Proceso *proceso = malloc(sizeof(Proceso));
+
+                paquete->buffer->stream = malloc(paquete->buffer->size);
+                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+                void *stream = paquete->buffer->stream;
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                //proceso = obtener_proceso(pid_mov_out);
+
+                //(void* valor, uint32_t tamanio, uint32_t direccion_fisica).
+                //Escribir en memoria
+                memcpy((char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out, stream, sizeof(uint32_t));
+
+                // Leer el valor de la memoria :)
+                uint32_t valor;
+                char* ptr = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                memcpy(&valor, ptr, sizeof(uint32_t));
+                log_info(loggerMemoria, "valor escrito:%d", valor);
+                //
+
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                enviar_paquete_cpu_mov_out(OK,socketCliente);
+
                 break;
             }
 
             case MOV_IN:
             {   
+                int pid_mov_out;
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                uint32_t datos;
+                Proceso *proceso = malloc(sizeof(Proceso));
+
+                paquete->buffer->stream = malloc(paquete->buffer->size);
+                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+                void *stream = paquete->buffer->stream;
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+
+
+                char* direccion = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                memcpy(&datos, direccion, sizeof(uint32_t));
+
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+
+                enviar_paquete_cpu_mov_in(datos,socketCliente);
+               
                 break;
             }
 

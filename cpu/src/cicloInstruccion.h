@@ -22,6 +22,10 @@ int obtener_frame_en_tlb(int pid, int pagina);
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);
 
+uint32_t recibir_leer_memoria_mov_in();
+
+op_code recibir_confirmacion_memoria_mov_out();
+
 void algoritmoFIFO(int pid,int marco_memoria,int pagina);
 
 void algoritmoLRU(int pid,int marco_memoria,int pagina);

@@ -120,6 +120,33 @@ void paquete_memoria_marco(int pid,int pagina){
        
 }
 
+void enviar_paquete_mov_in_memoria(int pid, int marco, int desplazamiento){
+    t_paquete *paquete_memoria = crear_paquete(MOV_IN);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, marco);
+    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+}
+
+
+void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,uint32_t datos){
+
+    t_paquete *paquete_memoria = crear_paquete(MOV_OUT);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, marco);
+    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
+    agregar_entero_a_paquete32(paquete_memoria, datos);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+
+}
+
 void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
 
     t_paquete *paquete_memoria = crear_paquete(RESIZE);

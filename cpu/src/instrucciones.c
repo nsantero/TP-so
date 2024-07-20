@@ -151,10 +151,7 @@ int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
 void ejecutar_signal(CPU_Registers *cpu, const char* recurso) {
     mandarPaqueteaKernel(PROCESO_SIGNAL);
     char* RecursoSolicitado = strtok(NULL, " ");
-<<<<<<< HEAD
-=======
     //enviarMensaje(RecursoSolicitado, socketCliente);
->>>>>>> refs/remotes/origin/main
     char* Respuesta = (char*) recibir_paquete(socketCliente);
 
     if(strcmp(Respuesta, "RECHAZADO")==0)
