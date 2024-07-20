@@ -11,6 +11,14 @@ typedef struct {
     int numero_frame;
     int desplazamiento;
 } direccion_fisica;
+typedef struct {
+    int pid;
+    int pagina;
+    int marco;
+    int ultima_modificacion;
+} Registro_TLB;
+
+extern t_list* lista_TLB;
 
 extern int tam_pagina;
 
@@ -20,6 +28,8 @@ extern int socketCliente;
 
 Proceso recibirProcesoAEjecutar(Proceso proceso);
 
+void crearTLB();
+
 void* manejarClienteKernel(void *arg);
 
 void* atenderPeticionesKernel();
@@ -27,6 +37,8 @@ void* atenderPeticionesKernel();
 int pedir_tam_pagina_memoria(); 
 
 void paquete_memoria_pedido_tam_pagina();
+
+void paquete_memoria_marco(int pid,int pagina);
 
 void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete);
 

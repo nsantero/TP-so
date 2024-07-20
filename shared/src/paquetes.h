@@ -38,6 +38,10 @@ typedef enum
     WAIT,
     SIGNAL,
 
+    //CPU
+    HIT,
+    MISS,
+
     //INSTRUCCIONES DE MEMORIA
     MOV_OUT,
     MOV_IN,
@@ -50,10 +54,12 @@ typedef enum
     //CPU MEMORIA
     PEDIDO_INSTRUCCION,
     PEDIDO_TAM_PAGINA,
+    SOLICITUD_MARCO,
 
     //MEMORIA A CPU
     ENVIO_INSTRUCCION,
     ENVIO_TAM_PAGINA,
+    ENVIO_MARCO,
     OUT_OF_MEMORY,
     OK,
     

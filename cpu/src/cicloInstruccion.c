@@ -36,8 +36,7 @@ void* ciclo_de_instruccion() {
             free(cadena_instruccion);
             free(instruccion_a_decodificar);
 
-            //return NULL;
-            break;
+            return NULL;
             
         }
 
@@ -115,10 +114,12 @@ char* fetch(Proceso *procesoEjecutando) {
                 log_error(loggerCpu, "Error");
                 break;
             }
-    }       
+    }     
+
     return NULL;
 
 }
+
 t_instruccion decode(char *instruccionDecodificar, int pid) {
 
     t_instruccion instruccion;
@@ -142,6 +143,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         }
 
     }
+
     if(tamanio_array == 4){
         if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
         
@@ -176,9 +178,6 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = MOV_IN;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-            utilizacion_memoria(instruccion, pid);
-            //execute(&procesoEjecutando->cpuRegisters, instruccion);
-
         }
 
         if (strcmp(cadena_instruccion[0], "MOV_OUT") == 0) {
@@ -186,8 +185,6 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = MOV_OUT;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-            utilizacion_memoria(instruccion, pid);
-            //execute(&procesoEjecutando->cpuRegisters, instruccion);
             
         }
 
@@ -212,8 +209,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.tipo_instruccion = SUB;
             instruccion.operando1 = cadena_instruccion[1];
             instruccion.operando2 = cadena_instruccion[2];
-
-            
+                        
         }
 
         if (strcmp(cadena_instruccion[0], "JNZ") == 0) {
@@ -253,12 +249,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             
             instruccion.tipo_instruccion = RESIZE;
             instruccion.operando1 = cadena_instruccion[1];
-
-            //RESIZE (Tamaño): Solicitará a la Memoria ajustar el tamaño del proceso al tamaño pasado por parámetro. 
-            //En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
-            //direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
             
-            //enviar a kernel
         }
 
         if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
@@ -286,14 +277,37 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     return instruccion;
     
 }
-direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
+uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
+	if (strcmp(dl,"AX")==0){
+		return registros.AX;
+	}else if (strcmp(dl,"BX")==0){
+		return registros.BX;
+	}else if (strcmp(dl,"CX")==0){
+		return registros.CX;
+	}else if (strcmp(dl,"DC")==0){
+		return registros.DX;
+	}else if (strcmp(dl,"EAX")==0){
+		return registros.EAX;
+	}else if (strcmp(dl,"EBX")==0){
+		return registros.EBX;
+	}else if (strcmp(dl,"ECX")==0){
+		return registros.ECX;
+	}else if (strcmp(dl,"EDX")==0){
+		return registros.EDX;
+	}else if (strcmp(dl,"SI")==0){
+		return registros.SI;
+	}else if (strcmp(dl,"DI")==0){
+		return registros.DI;
+	}else {/*TODO ERROR*/}
+}
+
+direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
 
     direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
-    int direccion_logica = atoi(dl);
     int nro_pagina;
 
-    nro_pagina = floor(direccion_logica / tam_pagina); 
+    nro_pagina = floor(dl / tam_pagina); 
 
     direccion->PID = pid;
 
@@ -301,51 +315,152 @@ direccion_fisica *traduccion_mmu(char *datos,char *dl, int pid){
 
     // buscar en memoria el frame y en tlb
 
-    direccion->numero_frame = buscar_frame(nro_pagina);
+    direccion->numero_frame = buscar_frame(nro_pagina,pid);
 
-    direccion->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
-
+    direccion->desplazamiento = dl - nro_pagina * tam_pagina;
+    
+    //char cadena_datos = (char)datos;
+    
     return direccion;
 }
-int buscar_frame(int pagina){
 
-    //buscar en tlb
 
-    //buscar en memoria
+int obtener_frame_en_tlb(int pid, int pagina){
 
-    return 1;
+    int size = list_size(lista_TLB);
+
+    Registro_TLB *reg_TLB = NULL;
+
+    for (int i = 0; i< size; i++) {
+
+        reg_TLB = list_get(lista_TLB,i);
+
+        if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
+
+            return reg_TLB->marco;
+        }
+    }
 }
+
+void algoritmoFIFO(int pid,int marco_memoria,int pagina){
+
+    //ordenerar la lista_TLB segun el ingreso para remover desde la
+
+}
+
+void algoritmoLRU(int pid,int marco_memoria,int pagina){
+
+    //ordenerar la lista_TLB y eliminar segun ultima modificacion
+    
+}
+
+void agregar_marco_tlb(int pid,int marco_memoria,int pagina){
+
+    if((strcmp(configuracionCpu.ALGORITMO_TLB,"FIFO")==0))
+    {
+        algoritmoFIFO(pid,marco_memoria,pagina);
+
+    }
+
+    else if ((strcmp(configuracionCpu.ALGORITMO_TLB,"LRU")==0))
+    {
+
+        algoritmoLRU(pid,marco_memoria,pagina);
+    }
+}
+op_code buscar_en_tlb(int pid, int pagina){
+
+    int size = list_size(lista_TLB);
+
+    Registro_TLB *reg_TLB = NULL;
+
+    for (int i = 0; i< size; i++) {
+
+        reg_TLB = list_get(lista_TLB,i);
+
+        if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
+
+            return HIT;
+        }
+
+    }
+
+    return MISS;
+}
+
+int buscar_frame(int pagina, int pid){
+
+    //  PRIMERO: buscar en tlb
+    //  SEGUNDO: preguntar a memoria
+
+    switch (buscar_en_tlb(pid,pagina)){
+    case HIT:
+    {
+        int marco_encontrado;
+        marco_encontrado = obtener_frame_en_tlb(pid,pagina);
+        return marco_encontrado;
+    }
+    case MISS:
+    {
+        paquete_memoria_marco(pid,pagina);
+
+        int marco_memoria;
+        marco_memoria = recibir_marco_memoria();
+        agregar_marco_tlb(pid,marco_memoria,pagina);
+        return marco_memoria;
+    }
+    default:
+    
+        break;
+    }
+
+}
+
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
-        //DL
+    //DL
+    switch(instruccion_memoria.tipo_instruccion){
+        case MOV_IN:
+        {   
         
-        
-        if(instruccion_memoria.tipo_instruccion = MOV_IN){
-
             //MOV_IN (Registro Datos, Registro Dirección): 
             //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
             
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_datos_leer = instruccion_memoria.operando1;
-            char* registro_direccion_dl = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+            
+            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
 
+            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+            //direccion_fisica = traduccion_mmu(registro_direccion_dl,registro_datos_leer,pid);
+            break;
         }
 
-        if(instruccion_memoria.tipo_instruccion = MOV_OUT){
+        case MOV_OUT:
+        {
             //MOV_OUT (Registro Dirección, Registro Datos): 
             //Lee el valor del Registro Datos y 
             //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
     
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            char* registro_direccion = instruccion_memoria.operando1;
-            char* registro_datos = instruccion_memoria.operando2;
-            direccion_fisica = traduccion_mmu(registro_datos,registro_direccion,pid);
+
+            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
+            uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+
+            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+
+            break;
+        }
+        default:
+        {   
+            log_error(loggerCpu, "Error");
+            break;
         }
 
-        //traduccion_mmu(t_instruccion instruccion_memoria);
+    }
 
 }
+
 int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     int bloqueado = 0;
     switch(instruccion_a_ejecutar.tipo_instruccion){
@@ -420,6 +535,16 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             bloqueado = 1;
             break;
         }
+         case MOV_IN:
+        {   
+            utilizacion_memoria(instruccion_a_ejecutar,pid);
+            break;
+        }
+         case MOV_OUT:
+        {
+            utilizacion_memoria(instruccion_a_ejecutar,pid);
+            break;
+        }
         case RESIZE:
         {
             int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
@@ -443,6 +568,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     }
     return bloqueado;     
 }
+
 op_code recibir_confirmacion_memoria_resize(){
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
@@ -475,64 +601,30 @@ op_code recibir_confirmacion_memoria_resize(){
 
 }
 
-void recv_instruccion(int memoria_fd){
+int recibir_marco_memoria(){
 
-	t_list *paquete = recibir_paquete(memoria_fd);
-
-	// Obtener el path del paquete
-	char *instruccion_cadena = (char *)list_get(paquete, 0);
-
-	log_info(loggerCpu, "Recibi la instruccion: %s", instruccion_cadena ); 
-
-	char **palabras = string_split(instruccion_cadena , " ");
+    int marco_recibido;
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
     
-    //int tamanio_array = (sizeof(palabras) / sizeof(palabras[0]));
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
 
-    int tamanio_array = 0;
-    while ((palabras)[tamanio_array] != NULL) {
-        tamanio_array++;
-    }
+    void *stream = paquete->buffer->stream;
 
-	//instruccionActual.tipo_instruccion = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
-    //strcpy(instruccionActual.tipo_instruccion, palabras[0]); 
+    switch(paquete->codigo_operacion){
+        case ENVIO_MARCO:
+        {
+            memcpy(&marco_recibido, stream, sizeof(int));
+            return marco_recibido;
+        }
+        default:
+        {   
+            log_error(loggerCpu, "Error");
+            break;
+        }
+    }       
 
-	instruccionActual.operando1 = malloc(sizeof(char) * (strlen(palabras[1]) + 1));
-    strcpy(instruccionActual.operando1, palabras[1]); 
-
-    if(tamanio_array > 2){
-
-        instruccionActual.operando2 = malloc(sizeof(char) * (strlen(palabras[2]) + 1));
-        strcpy(instruccionActual.operando2, palabras[2]);
-    }
-
-    if(tamanio_array > 3){
-
-        instruccionActual.operando3 = malloc(sizeof(char) * (strlen(palabras[3]) + 1));
-        strcpy(instruccionActual.operando3, palabras[3]);
-    }
-
-    if(tamanio_array > 4){
-
-        instruccionActual.operando4 = malloc(sizeof(char) * (strlen(palabras[4]) + 1));
-        strcpy(instruccionActual.operando4, palabras[4]);
-    }
-
-    if(tamanio_array > 5){
-
-        instruccionActual.operando5 = malloc(sizeof(char) * (strlen(palabras[5]) + 1));
-        strcpy(instruccionActual.operando5, palabras[5]);
-    }
-	
-
-        /*
-
-    // Liberar memoria asignada a palabras
-    int i = 0;
-    while (palabras[i] != NULL) {
-        free(palabras[i]);
-        i++;
-    } */
-    free(palabras);
-	free(paquete);
-    
 }

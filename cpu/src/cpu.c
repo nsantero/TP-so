@@ -5,6 +5,7 @@
 
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
+t_list *lista_TLB=NULL;
 
 int tam_pagina;
 
@@ -15,6 +16,23 @@ void paquete_memoria_pedido_tam_pagina(){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
+}
+
+void crearTLB(){
+
+    lista_TLB= list_create(); 
+
+    for (int i = 0; i < configuracionCpu.CANTIDAD_ENTRADAS_TLB; i++) {
+
+        Registro_TLB *reg_TLB = malloc(sizeof(Registro_TLB));
+        
+        reg_TLB->pid = NULL;
+        reg_TLB->pagina = NULL;
+        reg_TLB->marco = NULL;
+
+        list_add(lista_TLB, reg_TLB);
+    }
+
 }
 
 int pedir_tam_pagina_memoria(){
@@ -73,8 +91,10 @@ int main(int argc, char* argv[]) {
 	log_info(loggerCpu, "Servidor listo para recibir al cliente");
     
     tam_pagina = pedir_tam_pagina_memoria();
+
     printf("se recibio tam de pagina :%d\n", tam_pagina);
 
+    crearTLB();
     //Proceso proceso;
     //proceso = recibirProcesoAEjecutar(proceso);
 
@@ -96,6 +116,20 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+
+void paquete_memoria_marco(int pid,int pagina){
+
+    t_paquete *paquete_memoria = crear_paquete(SOLICITUD_MARCO);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, pagina);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+    
+    printf("Se solicita la pagina a memoria: %d\n", pagina);
+       
+}
 
 void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
 

@@ -14,11 +14,23 @@ char* fetch(Proceso *proceso);
 
 op_code recibir_confirmacion_memoria_resize();
 
-int buscar_frame(int pagina);
+int recibir_marco_memoria();
+
+int buscar_frame(int pagina,int pid);
+
+int obtener_frame_en_tlb(int pid, int pagina);
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);
 
-direccion_fisica *traduccion_mmu(char* datos,char* dl, int pid);
+void algoritmoFIFO(int pid,int marco_memoria,int pagina);
+
+void algoritmoLRU(int pid,int marco_memoria,int pagina);
+
+void agregar_marco_tlb(int pid,int marco_memoria,int pagina);
+
+op_code buscar_en_tlb(int pid, int pagina);
+
+direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid);
 
 t_instruccion decode(char *instruccionDecodificar, int pid);
 
