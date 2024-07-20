@@ -22,6 +22,8 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
 void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
+void remover_proceso(int pid_remover);
+
 void* manejarClienteCpu(void *arg);
 
 void* atenderPeticionesCpu();
