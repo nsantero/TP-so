@@ -192,7 +192,7 @@ void* manejarClienteKernel(void *arg)
                 //paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
                 pthread_t hiloCicloDeEjecucion;
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
-                pthread_detach(hiloCicloDeEjecucion); 
+                pthread_join(hiloCicloDeEjecucion, NULL);
                 break;
             }
             

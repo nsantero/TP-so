@@ -1,9 +1,6 @@
 #include <conexiones.h>
 #include <configs.h>
 
-#define WAIT_SUCCESS 1
-#define WAIT_BLOCK 0
-
 int memoria_fd;
 int cpu_dispatch_fd=0;
 int cpu_interrupt_fd=0;
@@ -39,23 +36,26 @@ uint32_t leerValorDelRegistro(char *registroAleer,CPU_Registers registros){
 }
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
+t_paquete* recibirPaquete(socket){
+	t_paquete* paquete = NULL;
+	paquete = malloc(sizeof(t_paquete));
+	paquete->buffer = NULL;
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->buffer->stream = NULL;
 
+	recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	recv(socket, &(paquete->buffer->size), sizeof(int), 0);
+	paquete->buffer->stream = malloc(paquete->buffer->size);
+	recv(socket, paquete->buffer->stream, paquete->buffer->size, 0);
+
+	return paquete;
+}
 void* conexionesDispatch()
 {
 	
 	while (1)
 	{
-
-		t_paquete* paquete = NULL;
-		paquete = malloc(sizeof(t_paquete));
-		paquete->buffer = NULL;
-        paquete->buffer = malloc(sizeof(t_buffer));
-		paquete->buffer->stream = NULL;
-
-        recv(cpu_dispatch_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(cpu_dispatch_fd, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(cpu_dispatch_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+		t_paquete* paquete=recibirPaquete(cpu_dispatch_fd);
 		void *stream = paquete->buffer->stream;
 		PCB *procesoCPU;
 		PCB* procesoKernel;
@@ -120,60 +120,58 @@ void* conexionesDispatch()
 					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
     					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
     					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
-       					recursoEncontrado = recursoActual;
-        				break;
+       						recursoEncontrado = recursoActual;
+        					break;
 						}
 					}
 				// Si no encuentro el recurso -- Finaliza el proceso ok
 	 			if (recursoEncontrado == NULL) {
-       			//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
-        		printf("Recurso %s no encontrado. Terminando proceso %d\n");
+					//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
+					printf("Recurso %s no encontrado. Terminando proceso %d\n");
 
-       			procesoCPU = recibirProcesoContextoEjecucion(stream);
-				pthread_mutex_lock(&mutexListaRunning);
-				pthread_mutex_lock(&mutexListaExit);
-				procesoKernel = list_remove(lista_RUNNING, 0);
+					t_paquete* paquete2=recibirPaquete(cpu_dispatch_fd);
+					void *stream2 = paquete2->buffer->stream;
 
-				if(procesoCPU->PID == procesoKernel->PID){
-					actualizarProceso(procesoCPU, procesoKernel);
-				}
-				else{
-					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+					procesoCPU = recibirProcesoContextoEjecucion(stream2);
+					pthread_mutex_lock(&mutexListaRunning);
+					pthread_mutex_lock(&mutexListaExit);
+					procesoKernel = list_remove(lista_RUNNING, 0);
 
-				}
-				procesoKernel->estado = EXIT;
-				list_add(lista_EXIT, procesoKernel); 
-				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaExit);
-				sem_post(&semListaRunning);
-				paquete_memoria_finalizar_proceso(procesoKernel->PID);
+					if(procesoCPU->PID == procesoKernel->PID){
+						actualizarProceso(procesoCPU, procesoKernel);
+					}
+					else{
+						log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+					}
+					procesoKernel->estado = EXIT;
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaRunning);
+					pthread_mutex_unlock(&mutexListaExit);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+					log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 
+					free(paquete->buffer->stream);
+					free(paquete->buffer);
+					free(paquete);
    				}
 
 				// Si el recurso existe y tiene instancias
 				if (recursoEncontrado->instancias > 0) {
-				recursoEncontrado->instancias--;
-				printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
-				// Enviar respuesta de éxito al CPU
-        		enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
+					recursoEncontrado->instancias--;
+					log_info(loggerKernel,"Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", procesoKernel->PID, recursoEncontrado->nombre, recursoEncontrado->instancias);
+					// Enviar respuesta de éxito al CPU
+					enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
 					// Bloquear el proceso 
-					t_paquete* paquete2 = malloc(sizeof(t_paquete));
-    				paquete2->buffer = malloc(sizeof(t_buffer));
+					t_paquete* paquete3=recibirPaquete(cpu_dispatch_fd);
+					void *stream3 = paquete3->buffer->stream;
 
-    				recv(socketCliente, &(paquete2->codigo_operacion), sizeof(op_code), 0);
-   					recv(socketCliente, &(paquete2->buffer->size), sizeof(int), 0);
-
-					paquete2->buffer->stream = malloc(paquete2->buffer->size);
-
-					recv(socketCliente, paquete2->buffer->stream, paquete2->buffer->size, 0);
-					void *stream2 = paquete2->buffer->stream;
-					procesoCPU = recibirProcesoContextoEjecucion(stream2);
+					procesoCPU = recibirProcesoContextoEjecucion(stream3);
 					pthread_mutex_lock(&mutexListaRunning);
 					pthread_mutex_lock(&mutexListaBlocked);
 					procesoKernel = list_remove(lista_RUNNING, 0);
@@ -184,6 +182,10 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexListaBlocked);
 					sem_post(&semListaRunning);
 					printf("Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
+					
+					free(paquete->buffer->stream);
+					free(paquete->buffer);
+					free(paquete);
 				}
 				break;
 			}
@@ -482,14 +484,7 @@ void* manejarClienteIO(void *arg)
     int socketCliente = *((int*)arg);
     free(arg);
     while(1){
-        t_paquete* paquete = malloc(sizeof(t_paquete));
-        paquete->buffer = malloc(sizeof(t_buffer));
-
-        
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+        t_paquete* paquete=recibirPaquete(socketCliente);
 		void *stream = paquete->buffer->stream;
 		switch(paquete->codigo_operacion){
         	case AGREGAR_INTERFACES:

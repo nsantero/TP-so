@@ -25,6 +25,7 @@ void paquete_CPU_interrumpir_proceso_fin_quantum(int pid);
 void InterruptACPU();
 PCB *recibirProcesoContextoEjecucion(void *stream);
 PCB* procesoBloqueado(uint32_t pid);
+t_paquete* recibirPaquete(socket);
 
 
 
