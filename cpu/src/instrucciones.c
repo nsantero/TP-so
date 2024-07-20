@@ -1,4 +1,5 @@
 #include <instrucciones.h>
+#include <mensajes.h>
 
 void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor) {
     if (strcmp(registro, "AX") == 0) {
@@ -122,19 +123,34 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
     }
 }
 
-void ejecutar_wait(CPU_Registers *cpu, const char* recurso) {
-    // Enviar la solicitud de WAIT al Kernel
-    //enviar_solicitud_wait(recurso);
-    printf("WAIT - Solicitud enviada para el recurso: %s\n", recurso);
-}
+void paquete_kernel_envio_recurso(const char* recurso){
 
-void paquete_solicitud_wait(const char* recurso) {
-    t_paquete *paquete_CPU_solicitud_wait = crear_paquete(PROCESO_WAIT);
-    //agregar_entero_a_paquete32(paquete_CPU_solicitud_wait, proceso->PID);
+    t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_WAIT);
     
-    //enviar_paquete(paquete_CPU_solicitud_wait, cpu_dispatch_fd);
-    eliminar_paquete(paquete_CPU_solicitud_wait);
-    printf("Enviando solicitud WAIT al Kernel para el recurso: %s\n", recurso);
+    agregar_entero_a_paquete32(paquete_kernel_recurso, (strlen(recurso)+1));
+    agregar_string_a_paquete(paquete_kernel_recurso, recurso);
+    
+    enviar_paquete(paquete_kernel_recurso, socketCliente);
+    eliminar_paquete(paquete_kernel_recurso);
+
 }
 
-// Falta COPY_STRING, RESIZE, MOV_OUT, MOV_IN
+void ejecutar_wait(CPU_Registers *cpu, const char* recurso) {
+    
+    paquete_kernel_envio_recurso(recurso);
+    
+}
+
+void ejecutar_signal(CPU_Registers *cpu, const char* recurso) {
+    mandarPaqueteaKernel(PROCESO_SIGNAL);
+    char* RecursoSolicitado = strtok(NULL, " ");
+    EnviarMensaje(RecursoSolicitado, socketCliente);
+    char* Respuesta = (char*) recibir_paquete(socketCliente);
+
+            if(strcmp(Respuesta, "RECHAZADO")==0)
+                {
+                    mandarPaqueteaKernel(EXIT); //validar
+                }
+
+}
+

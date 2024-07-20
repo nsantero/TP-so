@@ -38,8 +38,6 @@ typedef struct{
 typedef struct {
     char *nombre;
     int instancias;
-    sem_t mutex;
-    sem_t waitQueue;
 } Recurso;
 
 void wait_recurso(char *nombre_recurso, int pid);

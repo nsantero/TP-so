@@ -32,12 +32,12 @@ void* planificadorNew(){
     while(1){
         sem_wait(&semListaNew); 
         // verifico si la planificación está pausada
-        pthread_mutex_lock(&mutexPlanificacion);
+        /*pthread_mutex_lock(&mutexPlanificacion);
         while (planificacionPausada) {
             pthread_cond_wait(&condPlanificacion, &mutexPlanificacion);
         }
         pthread_mutex_unlock(&mutexPlanificacion);
-
+        */
         pthread_mutex_lock(&mutexListaNew);
         int procesosSistema = totalProcesosEnSistema();
         if(!list_is_empty(lista_NEW) && procesosSistema <= configuracionKernel.GRADO_MULTIPROGRAMACION){
@@ -57,12 +57,12 @@ void* planificadorReady(){
         sem_wait(&semListaRunning);
 
          // Verificar si la planificación está pausada
-        pthread_mutex_lock(&mutexPlanificacion);
+        /*pthread_mutex_lock(&mutexPlanificacion);
         while (planificacionPausada) {
             pthread_cond_wait(&condPlanificacion, &mutexPlanificacion);
         }
         pthread_mutex_unlock(&mutexPlanificacion);
-
+        */
         pthread_mutex_lock(&mutexListaReady);
         pthread_mutex_lock(&mutexListaRunning);
         if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {

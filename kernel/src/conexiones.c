@@ -82,23 +82,75 @@ void* conexionesDispatch()
 			}
 			case PROCESO_WAIT:
 			{
-                char nombre_recurso[50];
-                int pid;
-                memcpy(nombre_recurso, stream, 50);
-                stream += 50;
-                memcpy(&pid, stream, sizeof(int));
-                wait_recurso(nombre_recurso, pid);
+				// obtener recurso
+				int recursoLength;
+				char *recursoRecibido;
+                memcpy(&recursoLength, stream, sizeof(int));
+                stream += sizeof(int);
+                recursoRecibido = malloc(recursoLength);
+                memcpy(recursoRecibido, stream, recursoLength);
+				printf("Recurso recibido. Recurso: %s\n: ", recursoRecibido);
+				Recurso *recursoEncontrado = NULL;
+				// wait_recurso(&procesoCPU->cpuRegisters, Recurso);	
+					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
+    					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
+    					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
+       					recursoEncontrado = recursoActual;
+        				break;
+						}
+					}
+				// Si no encuentro el recurso
+	 			if (recursoEncontrado == NULL) {
+       			EnviarMensaje("RECURSO NO ENCONTRADO", socketCliente);
+        		printf("Recurso %s no encontrado. Terminando proceso %d\n");
+
+       			procesoCPU = recibirProcesoContextoEjecucion(stream);
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaExit);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+
+				if(procesoCPU->PID == procesoKernel->PID){
+					actualizarProceso(procesoCPU, procesoKernel);
+				}
+				else{
+					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+
+				}
+				procesoKernel->estado = EXIT;
+				list_add(lista_EXIT, procesoKernel); 
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaExit);
+				sem_post(&semListaRunning);
+				paquete_memoria_finalizar_proceso(procesoKernel->PID);
+
+				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+
 				break;
+   				}
+				// Si el recurso existe y tiene instancias
+				if (recursoEncontrado->instancias > 0) {
+				recursoEncontrado->instancias--;
+				printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
+				} 
+				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
+				else {
+					// Bloquear el proceso
+					procesoCPU = recibirProcesoContextoEjecucion(stream);
+					pthread_mutex_lock(&mutexListaRunning);
+					pthread_mutex_lock(&mutexListaBlocked);
+					procesoKernel = list_remove(lista_RUNNING, 0);
+					actualizarProceso(procesoCPU, procesoKernel);
+					procesoKernel->estado = BLOCKED;
+					list_add(lista_BLOCKED, procesoKernel);
+					pthread_mutex_unlock(&mutexListaRunning);
+					pthread_mutex_unlock(&mutexListaBlocked);
+					sem_post(&semListaRunning);
+					printf("Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
+				}
 			}
 			case PROCESO_SIGNAL:
 			{
-                char nombre_recurso[50];
-                int pid;
-                memcpy(nombre_recurso, stream, 50);
-                stream += 50;
-                memcpy(&pid, stream, sizeof(int));
-                signal_recurso(nombre_recurso, pid);
-				break;
+                
 			}
 			case RESIZE_ERROR:
 			{
@@ -462,29 +514,7 @@ void InterruptACPU(){
 
 // MANEJO DE RECURSOS
 
-void wait_recurso(CPU_Registers *cpu, const char* recurso)  {
-	// Validar si la lista de recursos posee el recurso 
-	Recurso *recursoEncontrado = NULL;
-	for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
-		Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
-		if (strcmp(recursoActual->nombre, recurso) == 0) {
-			recursoEncontrado = recursoActual;
-			break;
-		}
-	}
-	if (recursoEncontrado == NULL) {
-		printf("Recurso %s no encontrado. Terminando proceso %d\n");
-		// EXIT
-		return;
-	}
-	if (recursoEncontrado->instancias > 0) {
-		recursoEncontrado->instancias--;
-		printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
-	} else {
-		// Bloquear el proceso
-	}
-}
-
+/*
 void signal_recurso(const char* recurso) {
 	// Validar si la lista de recursos posee el recurso
 	Recurso *recursoEncontrado = NULL;
@@ -495,12 +525,16 @@ void signal_recurso(const char* recurso) {
 			break;
 		}
 	}
+	// Si no existe el recurso
 	if (recursoEncontrado == NULL) {
 		printf("Recurso %s no encontrado. Terminando proceso %d\n");
 		// EXIT
 		return;
 	}
+	// Si existe el recurso, incremento la instancia
 	recursoEncontrado->instancias++;
 	printf("Proceso %d hizo SIGNAL en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
+	// ver el tema del desbloqueo del proceso
 
 }
+*/

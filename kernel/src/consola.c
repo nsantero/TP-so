@@ -121,6 +121,5 @@ void iniciar_planificacion() {
     planificacionPausada = 0;
     pthread_mutex_unlock(&mutexPlanificacion);
     pthread_cond_broadcast(&condPlanificacion);
-    
     printf("Planificación iniciada\n");
 }

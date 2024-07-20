@@ -2,6 +2,7 @@
 #define INSTRUCCIONES_H
 
 #include "../../kernel/src/kernel.h"
+#include <cicloInstruccion.h>
 
 void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor);
 void ejecutar_sum(CPU_Registers *cpu, const char* destino, const char* origen);
