@@ -340,13 +340,63 @@ int obtener_frame_en_tlb(int pid, int pagina){
     }
 }
 
-void algoritmoFIFO(int pid,int marco_memoria,int pagina){
+void algoritmoLRU(int pid,int marco_memoria,int pagina){
+
+    int size = list_size(lista_TLB);
+
+    if(size < configuracionCpu.CANTIDAD_ENTRADAS_TLB){
+        
+        Registro_TLB *reg_TLB = malloc(sizeof(Registro_TLB));
+        
+        reg_TLB->pid = pid;
+        reg_TLB->pagina = pagina;
+        reg_TLB->marco = marco_memoria;
+        reg_TLB->ultima_modificacion ++;
+
+        list_add(lista_TLB, reg_TLB);
+    }
+
+    else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB) 
+
+    {   
+        int mod=NULL;
+        int pid_reemplazar=NULL;
+
+        // obtener el registro menos
+        for (int i = 0; i <size; i++){
+
+            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
+
+            if(i== 0 || reg_TLB->ultima_modificacion < mod)
+            {
+                mod = reg_TLB->ultima_modificacion;
+                pid = reg_TLB->pid;
+            }
+
+        }
+        
+        // reemplazo de registro en tlb si el modificado es el mas alto x el nuevo
+        for (int i = 0; i <size; i++){
+
+            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
+            
+            if(reg_TLB->pid== pid)
+            {
+                reg_TLB->pid = pid;
+                reg_TLB->pagina = pagina;
+                reg_TLB->marco = marco_memoria;
+                reg_TLB->ultima_modificacion = 1;
+            }
+
+        }
+
+    }
 
     //ordenerar la lista_TLB segun el ingreso para remover desde la
 
 }
 
-void algoritmoLRU(int pid,int marco_memoria,int pagina){
+void algoritmoFIFO(int pid,int marco_memoria,int pagina){
 
     //ordenerar la lista_TLB y eliminar segun ultima modificacion
     

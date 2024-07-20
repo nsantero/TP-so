@@ -22,17 +22,6 @@ void crearTLB(){
 
     lista_TLB= list_create(); 
 
-    for (int i = 0; i < configuracionCpu.CANTIDAD_ENTRADAS_TLB; i++) {
-
-        Registro_TLB *reg_TLB = malloc(sizeof(Registro_TLB));
-        
-        reg_TLB->pid = NULL;
-        reg_TLB->pagina = NULL;
-        reg_TLB->marco = NULL;
-
-        list_add(lista_TLB, reg_TLB);
-    }
-
 }
 
 int pedir_tam_pagina_memoria(){

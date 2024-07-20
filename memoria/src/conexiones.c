@@ -151,16 +151,17 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                         Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
                         
                         reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                        reg_tp_proceso->numero_de_pagina ++ ;
+                        reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
                         log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
                         reg_tp_proceso->numero_de_frame = asignarFrameLibre();
                         reg_tp_proceso->modificado = false;
                         log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
 
+                        
                         list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+                        
 
                     }
-
                     proceso->tam_proceso = tam_a_cambiar;
                     proceso->cantidad_paginas_asiganadas = cantidad_paginas;
                     log_info(loggerMemoria, "Se amplio el proceso.");
@@ -194,11 +195,11 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                         log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
                          
                         list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
-
+                        
                     }
-                    log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
                     proceso->tam_proceso = tam_a_cambiar;
                     proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                    log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
                     log_info(loggerMemoria, "Se reducio el proceso.");
                 
                     cantidadFrameLibre();
@@ -334,7 +335,7 @@ int obtener_marco(int pid,int pagina){
 
                 Registro_tabla_paginas_proceso * reg_tabla_pag = list_get(proceso->tabla_de_paginas, i);
 
-                if (reg_tabla_pag->pid_tabla_de_paginas == pid && reg_tabla_pag->numero_de_pagina) {
+                if (reg_tabla_pag->pid_tabla_de_paginas == pid && reg_tabla_pag->numero_de_pagina == pagina) {
 
                     return reg_tabla_pag->numero_de_frame;
 
