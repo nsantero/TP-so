@@ -1,5 +1,4 @@
 #include <instrucciones.h>
-#include <mensajes.h>
 
 void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor) {
     if (strcmp(registro, "AX") == 0) {
@@ -123,6 +122,9 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
     }
 }
 
+#define WAIT_SUCCESS 1
+#define WAIT_BLOCK 0
+
 void paquete_kernel_envio_recurso(const char* recurso){
 
     t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_WAIT);
@@ -135,10 +137,28 @@ void paquete_kernel_envio_recurso(const char* recurso){
 
 }
 
-void ejecutar_wait(CPU_Registers *cpu, const char* recurso) {
+int recibir_respuesta_wait() {
+    int respuesta;
+    recv(socketCliente, &respuesta, sizeof(int), 0); 
+    return respuesta;
+}
+
+void ejecutar_wait(Proceso *procesoActual, const char* recurso) {
     
     paquete_kernel_envio_recurso(recurso);
+    int respuesta = recibir_respuesta_wait();
     
+    if (respuesta == WAIT_SUCCESS) {
+        // Continuar ejecución
+        printf("Recurso %s adquirido. Continuando ejecución del proceso %d\n", recurso, procesoActual->PID);
+    } else if (respuesta == WAIT_BLOCK) {
+        // Bloquear el proceso
+        printf("No hay instancias disponibles para el recurso %s. Bloqueando proceso %d\n", recurso, procesoEjecutando->PID);
+        // Cambiar estado del proceso a bloqueado y salir del ciclo de ejecución
+    } else {
+        // Manejar otros posibles códigos de respuesta
+        printf("Error al procesar WAIT para el recurso %s. Código de respuesta: %d\n", recurso, respuesta);
+    }
 }
 
 void ejecutar_signal(CPU_Registers *cpu, const char* recurso) {

@@ -1,6 +1,9 @@
 #include <conexiones.h>
 #include <configs.h>
 
+#define WAIT_SUCCESS 1
+#define WAIT_BLOCK 0
+
 int memoria_fd;
 int cpu_dispatch_fd=0;
 int cpu_interrupt_fd=0;
@@ -93,7 +96,7 @@ void* conexionesDispatch()
         				break;
 						}
 					}
-				// Si no encuentro el recurso
+				// Si no encuentro el recurso -- Finaliza el proceso ok
 	 			if (recursoEncontrado == NULL) {
        			EnviarMensaje("RECURSO NO ENCONTRADO", socketCliente);
         		printf("Recurso %s no encontrado. Terminando proceso %d\n");
@@ -126,7 +129,10 @@ void* conexionesDispatch()
 				if (recursoEncontrado->instancias > 0) {
 				recursoEncontrado->instancias--;
 				printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
+				// Enviar respuesta de éxito al CPU
+        		//enviar_resultado_recursos(WAIT_SUCCESS,socketCliente);
 				} 
+
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
 					// Bloquear el proceso 
@@ -505,6 +511,16 @@ void InterruptACPU(){
 
     enviar_paquete(paquete_CPU_interrupcion, cpu_interrupt_fd);
     eliminar_paquete(paquete_CPU_interrupcion);
+}
+
+
+void enviar_resultado_recursos(op_code resultadoRecursos,int socket_cliente){
+
+    t_paquete *paquete_cpu_recursos = crear_paquete(resultadoRecursos);
+    
+    enviar_paquete(paquete_cpu_recursos, socket_cliente);
+
+    eliminar_paquete(paquete_cpu_recursos);
 }
 
 // MANEJO DE RECURSOS

@@ -384,7 +384,7 @@ int execute2(t_instruccion instruccion_a_ejecutar){
         }
         case WAIT:
         {
-            ejecutar_wait(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1);
+            ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
         }
         case SIGNAL:
