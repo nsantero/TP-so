@@ -98,7 +98,7 @@ void* conexionesDispatch()
 					}
 				// Si no encuentro el recurso -- Finaliza el proceso ok
 	 			if (recursoEncontrado == NULL) {
-       			EnviarMensaje("RECURSO NO ENCONTRADO", socketCliente);
+       			//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
         		printf("Recurso %s no encontrado. Terminando proceso %d\n");
 
        			procesoCPU = recibirProcesoContextoEjecucion(stream);
@@ -122,7 +122,6 @@ void* conexionesDispatch()
 
 				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 
-				break;
    				}
 
 				// Si el recurso existe y tiene instancias
@@ -130,13 +129,23 @@ void* conexionesDispatch()
 				recursoEncontrado->instancias--;
 				printf("Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
 				// Enviar respuesta de éxito al CPU
-        		//enviar_resultado_recursos(WAIT_SUCCESS,socketCliente);
+        		enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
 					// Bloquear el proceso 
-					procesoCPU = recibirProcesoContextoEjecucion(stream);
+					t_paquete* paquete2 = malloc(sizeof(t_paquete));
+    				paquete2->buffer = malloc(sizeof(t_buffer));
+
+    				recv(socketCliente, &(paquete2->codigo_operacion), sizeof(op_code), 0);
+   					recv(socketCliente, &(paquete2->buffer->size), sizeof(int), 0);
+
+					paquete2->buffer->stream = malloc(paquete2->buffer->size);
+
+					recv(socketCliente, paquete2->buffer->stream, paquete2->buffer->size, 0);
+					void *stream2 = paquete2->buffer->stream;
+					procesoCPU = recibirProcesoContextoEjecucion(stream2);
 					pthread_mutex_lock(&mutexListaRunning);
 					pthread_mutex_lock(&mutexListaBlocked);
 					procesoKernel = list_remove(lista_RUNNING, 0);
@@ -148,6 +157,7 @@ void* conexionesDispatch()
 					sem_post(&semListaRunning);
 					printf("Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
 				}
+				break;
 			}
 			case PROCESO_SIGNAL:
 			{
