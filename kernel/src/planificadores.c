@@ -4,10 +4,6 @@
 
 //INICIALIZAR PLANIFICADORES
 
-pthread_mutex_t mutexPlanificacion = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t condPlanificacion = PTHREAD_COND_INITIALIZER;
-int planificacionPausada = 0;
-
 pthread_t hiloQuantum;
 t_temporal* tiempoVRR;
 int64_t tiempoEjecutando;
@@ -30,14 +26,10 @@ int totalProcesosEnSistema(){
 
 void* planificadorNew(){
     while(1){
-        sem_wait(&semListaNew); 
-        // verifico si la planificación está pausada
-        /*pthread_mutex_lock(&mutexPlanificacion);
-        while (planificacionPausada) {
-            pthread_cond_wait(&condPlanificacion, &mutexPlanificacion);
-        }
-        pthread_mutex_unlock(&mutexPlanificacion);
-        */
+        sem_wait(&semListaNew);
+
+        sem_wait(&semPlaniNew);
+
         pthread_mutex_lock(&mutexListaNew);
         int procesosSistema = totalProcesosEnSistema();
         if(!list_is_empty(lista_NEW) && procesosSistema <= configuracionKernel.GRADO_MULTIPROGRAMACION){
@@ -47,23 +39,20 @@ void* planificadorNew(){
             pthread_mutex_unlock(&mutexListaReady);
         }
         pthread_mutex_unlock(&mutexListaNew);
+
+        sem_post(&semPlaniNew);
     }
     return NULL;
 }
 
 void* planificadorReady(){
      while (1) {
+        sem_wait(&semPlaniReady);
         sem_wait(&semListaReady);
         sem_wait(&semListaRunning);
 
-         // Verificar si la planificación está pausada
-        /*pthread_mutex_lock(&mutexPlanificacion);
-        while (planificacionPausada) {
-            pthread_cond_wait(&condPlanificacion, &mutexPlanificacion);
-        }
-        pthread_mutex_unlock(&mutexPlanificacion);
-        */
         pthread_mutex_lock(&mutexListaReady);
+        pthread_mutex_lock(&mutexListaReadyPri);
         pthread_mutex_lock(&mutexListaRunning);
         if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {
             if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "FIFO")){
@@ -77,7 +66,9 @@ void* planificadorReady(){
             }
         }
         pthread_mutex_unlock(&mutexListaRunning);
+        pthread_mutex_unlock(&mutexListaReadyPri);
         pthread_mutex_unlock(&mutexListaReady);
+        sem_post(&semPlaniReady);
     }
     return NULL;
 }
@@ -91,7 +82,7 @@ void comportamientoFIFO(){
 
 void comportamientoRR(){
 
-    cambiarARunning(lista_READY);
+    cambiarARunningVRR();
 
     PCB* pcbRunnign=list_get(lista_RUNNING, 0);
 
@@ -130,12 +121,23 @@ void cambiarAReady(t_list* cola){
 }
 PCB* cambiarARunning(t_list* lista_READY){
     if (!list_is_empty(lista_READY)) {
-    PCB *proceso = list_remove(lista_READY, 0);
-    proceso->estado = RUNNING;
-    list_add(lista_RUNNING, proceso);
-    return proceso;
+        PCB *proceso = list_remove(lista_READY, 0);
+        proceso->estado = RUNNING;
+        list_add(lista_RUNNING, proceso);
+        return proceso;
     }
     return NULL;
+}
+PCB* cambiarARunningVRR(){
+    PCB* proceso;
+    if(!list_is_empty(lista_READYPRI)){
+        proceso = list_remove(lista_READYPRI, 0);
+    }
+    else{
+        proceso=cambiarARunning(lista_READY);
+    }
+
+    return proceso;
 }
 PCB* cambiarAExitDesdeRunning(t_list* cola){
     PCB *proceso = list_remove(cola, 0);

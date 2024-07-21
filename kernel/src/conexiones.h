@@ -26,6 +26,9 @@ void InterruptACPU();
 PCB *recibirProcesoContextoEjecucion(void *stream);
 PCB* procesoBloqueado(uint32_t pid);
 t_paquete* recibirPaquete(socket);
+PCB* desalojarProceso(PCB* procesoKernel, PCB* procesoCPU);
+void bloquearProceso(PCB* proceso);
+void terminarProceso(PCB* proceso);
 
 
 

@@ -38,7 +38,7 @@ void* manejadorDeConsola(){
                 int pid = atoi(segundoArgumento);
                 printf("PID %d \n", pid);
                 paquete_memoria_finalizar_proceso(pid);
-                //finalizar_proceso(pid);
+                //finalizar_proceso((uint32_t)pid);
             } else {
                 printf("Error: Falta el argumento [PID].\n");
             }
@@ -75,6 +75,16 @@ void ejecutarScript(char* path){
         //log_error("Error: No se puede abrir el archivo %s\n", path);
         return;
     }
+    char* lastSlash = strrchr(path, '/');
+    char scriptBasePath[1024];
+    if (lastSlash != NULL) {
+        size_t basePathLength = lastSlash - path;
+        strncpy(scriptBasePath, path, basePathLength);
+        scriptBasePath[basePathLength] = '\0'; // Agregar terminador nulo
+    } else {
+        strcpy(scriptBasePath, ".");
+    }
+
 
     char* linea = NULL;
     size_t len = 0;
@@ -85,14 +95,14 @@ void ejecutarScript(char* path){
         if (linea[read - 1] == '\n') {
             linea[read - 1] = '\0';
         }
-        procesarLinea(linea);
+        procesarLinea(linea, scriptBasePath);
     }
 
     free(linea);
     fclose(archivo);
 }
 
-void procesarLinea(char* linea) {
+void procesarLinea(char* linea,  const char* scriptBasePath) {
     char* comando = strtok(linea, " ");
     char* argumento = strtok(NULL, " ");
     
@@ -102,24 +112,63 @@ void procesarLinea(char* linea) {
     
     if (strcmp(comando, "INICIAR_PROCESO") == 0) {
         if (argumento != NULL) {
-            crearPCB(argumento);
+            char* fullPath = construirPathCompleto(argumento);
+            if (fullPath != NULL) {
+                crearPCB(fullPath);
+                free(fullPath);
+            };
         } else {
            //log_error("Error: Falta el argumento [PATH] para INICIAR_PROCESO\n");
         }
     }
 }
+char* construirPathCompleto(char* argumento) {
+    char prefijo[] = "/home/utnso/Documents/c-comenta-pruebas";
+    size_t size = strlen(prefijo) + strlen(argumento) + 1;
+    char* nuevo_path = (char*)malloc(size);
+
+    if (nuevo_path == NULL) {
+        fprintf(stderr, "Error al asignar memoria\n");
+        return NULL;
+    }
+
+    strcpy(nuevo_path, prefijo);
+    strcat(nuevo_path, argumento);
+
+    return nuevo_path;
+}
 
 void detener_planificacion() {
-    pthread_mutex_lock(&mutexPlanificacion);
-    planificacionPausada = 1;
-    pthread_mutex_unlock(&mutexPlanificacion);
-    printf("Planificación detenida\n");
+    pthread_t detener_new, detener_ready, detener_exec, detener_blocked;
+    pthread_create(&detener_new,NULL,(void*) detener_cola_new,NULL);
+    pthread_create(&detener_ready,NULL,(void*) detener_cola_ready,NULL);
+    pthread_create(&detener_exec,NULL,(void*) detener_cola_exec,NULL);
+    pthread_create(&detener_blocked,NULL,(void*) detener_cola_blocked,NULL);
+    pthread_detach(detener_new);
+    pthread_detach(detener_ready);
+    pthread_detach(detener_exec);
+    pthread_detach(detener_blocked);
+}
+void detener_cola_new(void* arg)
+{
+    sem_wait(&semPlaniNew);
+}
+void detener_cola_ready(void* arg)
+{
+    sem_wait(&semPlaniReady);
+}
+void detener_cola_exec(void* arg)
+{
+    sem_wait(&semPlaniRunning);
+}
+void detener_cola_blocked(void* arg)
+{
+    sem_wait(&semPlaniBlocked);
 }
 
 void iniciar_planificacion() {
-    pthread_mutex_lock(&mutexPlanificacion);
-    planificacionPausada = 0;
-    pthread_mutex_unlock(&mutexPlanificacion);
-    pthread_cond_broadcast(&condPlanificacion);
-    printf("Planificación iniciada\n");
+    sem_post(&semPlaniNew);
+    sem_post(&semPlaniReady);
+    sem_post(&semPlaniRunning);
+    sem_post(&semPlaniBlocked);
 }

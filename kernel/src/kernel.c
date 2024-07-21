@@ -9,6 +9,7 @@
 
 t_list* lista_NEW;
 t_list* lista_READY;
+t_list* lista_READYPRI;
 t_list* lista_BLOCKED;
 t_list* lista_EXIT;
 t_list* lista_RUNNING;
@@ -16,7 +17,8 @@ t_list* interfacesConectadas;
 
 void inicializarListas() {
     lista_NEW = list_create();
-    lista_READY = list_create(); 
+    lista_READY = list_create();
+    lista_READYPRI = list_create();
     lista_EXIT = list_create();
     lista_BLOCKED = list_create();
     lista_RUNNING = list_create();
@@ -90,8 +92,44 @@ int leer_grado_multiprogramación() {
     return configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
+/*void finalizarProceso(uint32_t pid){
+    PCB * proceso;
+    pthread_mutex_lock(&mutexListaNew);
+    buscarProcesoPID(pid, lista_NEW);
+    pthread_mutex_unlock(&mutexListaNew);
+    pthread_mutex_lock(&mutexListaReady);
+    pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaRunning);
+    pthread_mutex_lock(&mutexListaExit);
+    mostrar_procesos_en_lista(lista_NEW, "ListaNew");
+    mostrar_procesos_en_lista(lista_READY, "ListaReady");
+    mostrar_procesos_en_lista(lista_BLOCKED, "ListaBlocked");
+    mostrar_procesos_en_lista(lista_RUNNING, "ListaRunning");
+    mostrar_procesos_en_lista(lista_EXIT, "ListaExit");
+ 
+    pthread_mutex_unlock(&mutexListaReady);
+    pthread_mutex_unlock(&mutexListaBlocked);
+    pthread_mutex_unlock(&mutexListaRunning);
+    pthread_mutex_unlock(&mutexListaExit);
+
+}*/
+
+PCB* buscarProcesoPID(uint32_t pid, t_list* lista){
+	PCB *proceso;
+	if(list_size(lista) != 0){
+		for (int i = 0; i < list_size(lista); i++)
+		{
+			proceso=list_get(lista, i);
+			if(proceso->PID == pid){
+				proceso = list_remove(lista_BLOCKED, i);
+				return proceso;
+			}
+		}
+	}
+	return NULL;
+}
+
+
 
 // Definiciones de las funciones crear_paquete, agregar_a_paquete, enviar_paquete, eliminar_paquete
 // Definiciones de los IDs de paquetes CREAR_PROCESO y DATOS_DEL_PROCESO

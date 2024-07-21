@@ -7,7 +7,8 @@ void inicializarListas();
 // LISTAS DE ESTADOS
 
     extern t_list* lista_NEW;
-    extern t_list* lista_READY; 
+    extern t_list* lista_READY;
+    extern t_list* lista_READYPRI;
     extern t_list* lista_EXIT;
     extern t_list* lista_BLOCKED;
     extern t_list* lista_RUNNING;

@@ -64,6 +64,8 @@ void* conexionesDispatch()
 			case PROCESO_EXIT:
 			{
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaExit);
 				procesoKernel = list_remove(lista_RUNNING, 0);
@@ -90,10 +92,13 @@ void* conexionesDispatch()
 			}
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
-				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
 				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
+				sem_wait(&semPlaniReadyClock);
+				sem_post(&semPlaniReadyClock);
 				procesoKernel = list_remove(lista_RUNNING, 0);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					actualizarProceso(procesoCPU, procesoKernel);
@@ -200,20 +205,14 @@ void* conexionesDispatch()
 			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
-
+				printf("te vas a detener");
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					terminarHiloQuantum();
-				}
-				pthread_mutex_lock(&mutexListaRunning);
-				procesoKernel = list_remove(lista_RUNNING, 0);
-				actualizarProceso(procesoCPU, procesoKernel);
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					procesoKernel->quantum -= tiempoEjecutando;
-				}
-				pthread_mutex_unlock(&mutexListaRunning);
-				sem_post(&semListaRunning);
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_Generica interfazGenerica;
@@ -243,17 +242,10 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteIOGen,interfazGenerica.nombre_interfaz,pathLength);					
 					enviar_paquete(paqueteIOGen,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOGen);
-					pthread_mutex_lock(&mutexListaBlocked);
-					procesoKernel->estado = BLOCKED;
-					list_add(lista_BLOCKED, procesoKernel);
-					pthread_mutex_unlock(&mutexListaBlocked);
+					bloquearProceso(procesoKernel);
 				}
 				else{
-					paquete_memoria_finalizar_proceso(procesoKernel->PID);
-					procesoKernel->estado = EXIT;
-					pthread_mutex_lock(&mutexListaExit);
-					list_add(lista_EXIT, procesoKernel);
-					pthread_mutex_unlock(&mutexListaExit);
+					terminarProceso(procesoKernel);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
@@ -263,17 +255,7 @@ void* conexionesDispatch()
 			{
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					terminarHiloQuantum();
-				}
-				pthread_mutex_lock(&mutexListaRunning);
-				procesoKernel = list_remove(lista_RUNNING, 0);
-				actualizarProceso(procesoCPU, procesoKernel);
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					procesoKernel->quantum -= tiempoEjecutando;
-				}
-				pthread_mutex_unlock(&mutexListaRunning);
-				sem_post(&semListaRunning);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_STDIN interfazsSTDIN;
@@ -320,19 +302,10 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
 					
-					pthread_mutex_lock(&mutexListaBlocked);
-					procesoKernel->estado = BLOCKED;
-					list_add(lista_BLOCKED, procesoKernel);
-					pthread_mutex_unlock(&mutexListaBlocked);
-					
-					//bloquear procesos? //TODO
+					bloquearProceso(procesoKernel);
 				}
 				else{
-					paquete_memoria_finalizar_proceso(procesoKernel->PID);
-					procesoKernel->estado = EXIT;
-					pthread_mutex_lock(&mutexListaExit);
-					list_add(lista_EXIT, procesoKernel);
-					pthread_mutex_unlock(&mutexListaExit);
+					terminarProceso(procesoKernel);
 					//eliminarProceso(proceso); //TODO
 				}
 				free(interfazsSTDIN.nombre_interfaz);
@@ -519,8 +492,22 @@ void* manejarClienteIO(void *arg)
 				stream += charTam;
 				memcpy(&pid,stream,sizeof(uint32_t));
 				proceso=procesoBloqueado(pid);
-				if(proceso == NULL){
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				/*if(proceso == NULL){
 					//logger
+				}*/
+
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR"))
+				{
+					if(proceso->quantum < configuracionKernel.QUANTUM && proceso->quantum > 0){
+						proceso->estado = READY;
+						pthread_mutex_lock(&mutexListaReadyPri);
+						list_add(lista_READYPRI, proceso);
+						pthread_mutex_unlock(&mutexListaReadyPri);
+						sem_post(&semListaReady);
+					}
+					
 				}
 				else{
 					proceso->estado = READY;
@@ -622,6 +609,36 @@ void enviar_resultado_recursos(op_code resultadoRecursos,int socket_cliente){
     eliminar_paquete(paquete_cpu_recursos);
 }
 
+PCB* desalojarProceso(PCB* procesoKernel, PCB* procesoCPU){
+	if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+		terminarHiloQuantum();
+	}
+	pthread_mutex_lock(&mutexListaRunning);
+	procesoKernel = list_remove(lista_RUNNING, 0);
+	actualizarProceso(procesoCPU, procesoKernel);
+	if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+		procesoKernel->quantum -= tiempoEjecutando;
+	}
+	pthread_mutex_unlock(&mutexListaRunning);
+	sem_post(&semListaRunning);
+
+	return procesoKernel;
+}
+
+void bloquearProceso(PCB* proceso){
+	pthread_mutex_lock(&mutexListaBlocked);
+	proceso->estado = BLOCKED;
+	list_add(lista_BLOCKED, proceso);
+	pthread_mutex_unlock(&mutexListaBlocked);
+}
+
+void terminarProceso(PCB* proceso){
+	paquete_memoria_finalizar_proceso(proceso->PID);
+	proceso->estado = EXIT;
+	pthread_mutex_lock(&mutexListaExit);
+	list_add(lista_EXIT, proceso);
+	pthread_mutex_unlock(&mutexListaExit);
+}
 // MANEJO DE RECURSOS
 
 /*
