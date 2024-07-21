@@ -205,7 +205,6 @@ void* conexionesDispatch()
 			// INSTRUCCIONES I/O
 			case IO_GEN_SLEEP:
 			{
-				printf("te vas a detener");
 				sem_wait(&semPlaniRunning);
 				sem_post(&semPlaniRunning);
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
@@ -490,6 +489,7 @@ void* manejarClienteIO(void *arg)
 				nombre = malloc(charTam);
 				memcpy(nombre,stream, charTam);
 				stream += charTam;
+
 				memcpy(&pid,stream,sizeof(uint32_t));
 				proceso=procesoBloqueado(pid);
 				sem_wait(&semPlaniBlocked);
