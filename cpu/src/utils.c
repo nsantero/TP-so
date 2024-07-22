@@ -49,19 +49,24 @@ void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfa
     eliminar_paquete(paquete_Kernel);
 }
 void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
+    uint32_t dirLog=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
+    uint32_t desplazamientoFisica;
+    direccion_fisica* dirFis = traduccion_mmu(desplazamientoFisica,dirLog,procesoEjecutando->PID);
+
+    desplazamientoFisica=(dirFis->numero_frame*tam_pagina)+dirFis->desplazamiento;
+    
+    uint32_t tamanio=leerValorDelRegistro(registro2,procesoEjecutando->cpuRegisters);
     t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
 
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
     agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
 
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro1);
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro2)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro2);
-
+    agregar_entero_a_paquete32(paquete_Kernel, desplazamientoFisica);   
+    agregar_entero_a_paquete32(paquete_Kernel, tamanio);
+    
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
+    free(dirFis);
 }
 void mandarPaqueteaKernelFScrdel(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo){
     t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
@@ -84,13 +89,21 @@ void mandarPaqueteaKernelFStrun(op_code codigoDeOperacion, char* nombreInterfaz,
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(archivo)+1));
     agregar_string_a_paquete(paquete_Kernel, archivo);
 
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro1);
+    uint32_t tamanio=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
+    agregar_entero_a_paquete32(paquete_Kernel, tamanio);
+    
 
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
 }
 void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1, char *registro2, char* registro3){
+    uint32_t dirLog=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
+    uint32_t desplazamientoFisica;
+    direccion_fisica* dirFis = traduccion_mmu(desplazamientoFisica,dirLog,procesoEjecutando->PID);
+
+    desplazamientoFisica=(dirFis->numero_frame*tam_pagina)+dirFis->desplazamiento;
+    
+    
     t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
 
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
@@ -99,15 +112,16 @@ void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, c
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(archivo)+1));
     agregar_string_a_paquete(paquete_Kernel, archivo);
 
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro1)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro1);
+    agregar_entero_a_paquete32(paquete_Kernel, desplazamientoFisica);
 
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro2)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro2);
-
-    agregar_entero_a_paquete32(paquete_Kernel, (strlen(registro3)+1));
-    agregar_string_a_paquete(paquete_Kernel, registro3);
+    uint32_t tamanio = leerValorDelRegistro(registro2,procesoEjecutando->cpuRegisters);
+    agregar_entero_a_paquete32(paquete_Kernel, tamanio);
+    
+    uint32_t punteroArchivo= leerValorDelRegistro(registro3,procesoEjecutando->cpuRegisters);
+    agregar_entero_a_paquete32(paquete_Kernel, punteroArchivo);
+    
 
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
+    free(dirFis);
 }

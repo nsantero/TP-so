@@ -607,7 +607,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_FS_DELETE:
         {
-            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            mandarPaqueteaKernelFScrdel(IO_FS_DELETE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
@@ -619,11 +619,17 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_FS_WRITE:
         {
-            mandarPaqueteaKernelFSWR(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
+            mandarPaqueteaKernelFSWR(IO_FS_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
-         case MOV_IN:
+        case IO_FS_READ:
+        {
+            mandarPaqueteaKernelFSWR(IO_FS_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
+            bloqueado = 1;
+            break;
+        }
+        case MOV_IN:
         {   
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
