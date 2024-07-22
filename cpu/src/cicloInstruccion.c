@@ -140,7 +140,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         tamanio_array++;
     }
     if(tamanio_array == 6){
-        if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
+        if (strcmp(cadena_instruccion[0], "IO_FS_WRITE") == 0) {
         
             instruccion.tipo_instruccion = IO_FS_WRITE;
             instruccion.operando1 = cadena_instruccion[1];
@@ -150,6 +150,17 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.operando5 = cadena_instruccion[5];
 
         }
+        if (strcmp(cadena_instruccion[0],"IO_FS_READ") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_READ;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+            instruccion.operando4 = cadena_instruccion[4];
+            instruccion.operando5 = cadena_instruccion[5];
+
+        }
+
 
     }
 
@@ -162,7 +173,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.operando3 = cadena_instruccion[3];
 
         }
-        if (strcmp(cadena_instruccion[0], "IO_STDIN_WRITE") == 0) {
+        if (strcmp(cadena_instruccion[0], "IO_STDOUT_WRITE") == 0) {
         
             instruccion.tipo_instruccion = IO_STDOUT_WRITE;
             instruccion.operando1 = cadena_instruccion[1];
