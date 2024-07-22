@@ -5,6 +5,8 @@
 
 pthread_mutex_t mutexSocketKernel = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexSocketCpu = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexInterrupcion = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexProcesoEjecutando = PTHREAD_MUTEX_INITIALIZER;
 t_list *lista_TLB=NULL;
 
 int tam_pagina;
@@ -237,9 +239,10 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&procesoEjecutando->cpuRegisters.SI, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&procesoEjecutando->cpuRegisters.DI, stream, sizeof(uint32_t));
-
-                printf("se recibio proceso :%d\n", procesoEjecutando->PID);
-                //paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
+                pthread_mutex_lock(&mutexInterrupcion);
+                interrumpir = 0;
+                pthread_mutex_unlock(&mutexInterrupcion);
+                log_info(loggerCpu, "Se recibio el proceso:%d\n", procesoEjecutando->PID);
                 pthread_t hiloCicloDeEjecucion;
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);
@@ -248,7 +251,7 @@ void* manejarClienteKernel(void *arg)
             
             default:
             {   
-                log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
+                //log_error(loggerCpu, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
@@ -259,8 +262,8 @@ void* manejarClienteKernel(void *arg)
     close(socketCliente);
 }
 void* check_interrupts() {
+    int socketCliente = esperarClienteV2(loggerCpu, fd_cpu_interrupt);
     while(1){
-        int socketCliente = esperarClienteV2(loggerCpu, fd_cpu_interrupt);
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -276,26 +279,31 @@ void* check_interrupts() {
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
 				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
-                //mutex procesoEjecutando
+                pthread_mutex_lock(&mutexProcesoEjecutando);
+                pthread_mutex_lock(&mutexInterrupcion);
                 if(procesoEjecutando->PID == pidInterrumpido){
-                    //mutex interrumpir
                     interrumpir = 1;
                 }
+                pthread_mutex_unlock(&mutexProcesoEjecutando);
+                pthread_mutex_unlock(&mutexInterrupcion);
 				break;
 			}
             case INTERRUMPIR_PROCESO:
             {
                 memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
-                //mutex procesoEjecutando
+                pthread_mutex_lock(&mutexProcesoEjecutando);
+                pthread_mutex_lock(&mutexInterrupcion);
                 if(procesoEjecutando->PID == pidInterrumpido){
                     //mutex interrumpir
                     interrumpir = 2;
                 }
+                pthread_mutex_unlock(&mutexProcesoEjecutando);
+                pthread_mutex_unlock(&mutexInterrupcion);
 				break;
             }
             default:
             {
-                log_error(loggerCpu,"No es un mensaje correcto para CPU");
+                //log_error(loggerCpu,"No es un mensaje correcto para CPU");
                 break;
             }
         }

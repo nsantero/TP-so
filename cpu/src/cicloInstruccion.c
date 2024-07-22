@@ -43,7 +43,8 @@ void* ciclo_de_instruccion() {
         int bloqueado = execute2(instruccion,procesoEjecutando->PID);
 
         if(bloqueado == 1){
-            return;
+            bloqueado = 0;
+            return NULL;
         }
         if(interrumpir == 2){
             mandarPaqueteaKernel(INTERRUMPIR_PROCESO);
@@ -55,8 +56,6 @@ void* ciclo_de_instruccion() {
             }
             free(cadena_instruccion);
             free(instruccion_a_decodificar);
-
-            interrumpir = 0;
 
             return NULL;
         }
@@ -72,8 +71,7 @@ void* ciclo_de_instruccion() {
             free(cadena_instruccion);
             free(instruccion_a_decodificar);
 
-            //return NULL;
-            break;
+            return NULL;
         }
 
         int tamanio_array = 0;
@@ -544,6 +542,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         {   
             int valor = atoi(instruccion_a_ejecutar.operando2);
             ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
+            log_info(loggerCpu, "Se ejecuto la instruccion SET del proceso:%d\n", procesoEjecutando->PID);
             break;
         }
         case SUM:

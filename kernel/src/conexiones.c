@@ -131,6 +131,9 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniReadyClock);
 				sem_post(&semPlaniReadyClock);
 				procesoKernel = list_remove(lista_RUNNING, 0);
+				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
+					procesoKernel->quantum=configuracionKernel.QUANTUM;
+				}
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
@@ -597,6 +600,14 @@ void* manejarClienteIO(void *arg)
 						pthread_mutex_lock(&mutexListaReadyPri);
 						list_add(lista_READYPRI, proceso);
 						pthread_mutex_unlock(&mutexListaReadyPri);
+						sem_post(&semListaReady);
+					}
+					else{
+						proceso->quantum=configuracionKernel.QUANTUM;
+						proceso->estado = READY;
+						pthread_mutex_lock(&mutexListaReady);
+						list_add(lista_READY, proceso);
+						pthread_mutex_unlock(&mutexListaReady);
 						sem_post(&semListaReady);
 					}
 					
