@@ -569,7 +569,8 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             break;
         }
         case SIGNAL:
-            bloqueado = ejecutar_signal(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1);
+            bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
+            break;
         case IO_GEN_SLEEP:
         {
             mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);

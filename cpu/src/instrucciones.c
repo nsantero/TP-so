@@ -166,12 +166,9 @@ int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
 int ejecutar_signal(Proceso *procesoActual, const char* recurso) {
     int bloqueado = 0;
     paquete_kernel_envio_recurso_signal(recurso);
-    int respuesta = recibir_resultado_recursos();
-    printf(("Respuesta de signal: %d\n"), respuesta);
+    int respuesta = recibir_resultado_recursos(WAIT_BLOCK);
     if (respuesta == 0) {
         bloqueado = 1;
-        mandarPaqueteaKernel(WAIT_BLOCK);
-
     }
     return bloqueado;
 }
@@ -203,7 +200,7 @@ int recibir_resultado_recursos(){
             break;
         default:
         {   
-            log_error(loggerCpu, "Error el codigo de wait no es correcto");
+            log_error(loggerCpu, "Error el codigo no es correcto");
             break;
         }
       
