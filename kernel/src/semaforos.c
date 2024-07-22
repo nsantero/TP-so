@@ -5,6 +5,7 @@ pthread_mutex_t mutexListaNew = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaReady = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaReadyPri = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaBlocked = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexListaBlockedRecursos = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaRunning= PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaExit = PTHREAD_MUTEX_INITIALIZER;
 

@@ -126,9 +126,21 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
 
 
 
-void paquete_kernel_envio_recurso(const char* recurso){
+void paquete_kernel_envio_recurso_wait(const char* recurso){
 
     t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_WAIT);
+    
+    agregar_entero_a_paquete32(paquete_kernel_recurso, (strlen(recurso)+1));
+    agregar_string_a_paquete(paquete_kernel_recurso, recurso);
+    
+    enviar_paquete(paquete_kernel_recurso, socketCliente);
+    eliminar_paquete(paquete_kernel_recurso);
+
+}
+
+void paquete_kernel_envio_recurso_signal(const char* recurso){
+
+    t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_SIGNAL);
     
     agregar_entero_a_paquete32(paquete_kernel_recurso, (strlen(recurso)+1));
     agregar_string_a_paquete(paquete_kernel_recurso, recurso);
@@ -141,7 +153,7 @@ void paquete_kernel_envio_recurso(const char* recurso){
 int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
     
     int bloqueado = 0;
-    paquete_kernel_envio_recurso(recurso);
+    paquete_kernel_envio_recurso_wait(recurso);
     int respuesta = recibir_resultado_recursos();
     if (respuesta == 0) {
         bloqueado = 1;
@@ -150,17 +162,18 @@ int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
     return bloqueado;
 }
 
-void ejecutar_signal(CPU_Registers *cpu, const char* recurso) {
-    mandarPaqueteaKernel(PROCESO_SIGNAL);
-    char* RecursoSolicitado = strtok(NULL, " ");
-    //enviarMensaje(RecursoSolicitado, socketCliente);
-    char* Respuesta = (char*) recibir_paquete(socketCliente);
 
-    if(strcmp(Respuesta, "RECHAZADO")==0)
-    {
-        mandarPaqueteaKernel(EXIT); //validar
+int ejecutar_signal(Proceso *procesoActual, const char* recurso) {
+    int bloqueado = 0;
+    paquete_kernel_envio_recurso_signal(recurso);
+    int respuesta = recibir_resultado_recursos();
+    printf(("Respuesta de signal: %d\n"), respuesta);
+    if (respuesta == 0) {
+        bloqueado = 1;
+        mandarPaqueteaKernel(WAIT_BLOCK);
+
     }
-
+    return bloqueado;
 }
 
 int recibir_resultado_recursos(){
@@ -184,6 +197,10 @@ int recibir_resultado_recursos(){
             printf("No se puede hacer el wait, devuelvo el proceso \n");
             break;
         }
+        case SIGNAL_SUCCESS:
+            respuesta = 1;
+            printf("Se pudo hacer el signal \n");
+            break;
         default:
         {   
             log_error(loggerCpu, "Error el codigo de wait no es correcto");

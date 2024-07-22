@@ -11,6 +11,7 @@ void inicializarListas();
     extern t_list* lista_READYPRI;
     extern t_list* lista_EXIT;
     extern t_list* lista_BLOCKED;
+    extern t_list* lista_BLOCKED_RECURSOS;
     extern t_list* lista_RUNNING;
     extern t_list *interfacesConectadas;
 
@@ -50,6 +51,7 @@ typedef struct {
     uint32_t PID;
     int quantum;
     Estado estado;
+    char* recursoBloqueante;
     CPU_Registers cpuRegisters;
 } PCB;
 

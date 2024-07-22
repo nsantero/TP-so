@@ -29,6 +29,7 @@ typedef enum
     IO_STDOUT_WRITE,
     WAIT_SUCCESS,
     WAIT_BLOCK,
+    SIGNAL_SUCCESS,
 
 
     //INSTRUCCIONES

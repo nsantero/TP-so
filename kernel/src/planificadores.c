@@ -11,17 +11,20 @@ int64_t tiempoEjecutando;
 int totalProcesosEnSistema(){
     pthread_mutex_lock(&mutexListaReady);
     pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaBlockedRecursos);
     pthread_mutex_lock(&mutexListaRunning);
 
     int procesosReady = list_size(lista_READY);
     int procesosBlocked = list_size(lista_BLOCKED);
     int procesosRunning = list_size(lista_RUNNING);
+    int procesosBlockedRecursos = list_size(lista_BLOCKED_RECURSOS);
 
     pthread_mutex_unlock(&mutexListaReady);
     pthread_mutex_unlock(&mutexListaBlocked);
     pthread_mutex_unlock(&mutexListaRunning);
+    pthread_mutex_unlock(&mutexListaBlockedRecursos);
 
-    return procesosReady+procesosBlocked+procesosRunning;
+    return procesosReady+procesosBlocked+procesosRunning+procesosBlockedRecursos;
 }
 
 void* planificadorNew(){

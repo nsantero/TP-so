@@ -12,6 +12,7 @@ extern pthread_mutex_t mutexListaNew;
 extern pthread_mutex_t mutexListaReady;
 extern pthread_mutex_t mutexListaReadyPri;
 extern pthread_mutex_t mutexListaBlocked;
+extern pthread_mutex_t mutexListaBlockedRecursos;
 extern pthread_mutex_t mutexListaRunning;
 extern pthread_mutex_t mutexListaExit;
 

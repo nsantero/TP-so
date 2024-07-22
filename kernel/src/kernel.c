@@ -12,6 +12,7 @@ t_list* lista_READY;
 t_list* lista_READYPRI;
 t_list* lista_BLOCKED;
 t_list* lista_EXIT;
+t_list* lista_BLOCKED_RECURSOS;
 t_list* lista_RUNNING;
 t_list* interfacesConectadas;
 
@@ -21,6 +22,7 @@ void inicializarListas() {
     lista_READYPRI = list_create();
     lista_EXIT = list_create();
     lista_BLOCKED = list_create();
+    lista_BLOCKED_RECURSOS = list_create();
     lista_RUNNING = list_create();
     interfacesConectadas = list_create();
 }
@@ -49,6 +51,7 @@ PCB* crearPCB(char* path) {
         return NULL; 
     }
     nuevoPCB -> PID = generarPID();
+    nuevoPCB -> recursoBloqueante = NULL;
     nuevoPCB -> cpuRegisters.PC = 0;
     nuevoPCB -> cpuRegisters.AX = 0;
     nuevoPCB -> cpuRegisters.BX = 0;

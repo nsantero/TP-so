@@ -50,6 +50,8 @@ t_paquete* recibirPaquete(socket){
 
 	return paquete;
 }
+
+// INICIAR_PROCESO /home/utnso/tp-2024-1c-File-System-Fanatics/kernel/preliminares/script_solo_cpu.txt
 void* conexionesDispatch()
 {
 	
@@ -187,16 +189,11 @@ void* conexionesDispatch()
 
 					log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 
-					free(paquete->buffer->stream);
-					free(paquete->buffer);
-					free(paquete);
    				}
 
 				// Si el recurso existe y tiene instancias
 				if (recursoEncontrado->instancias > 0) {
 					recursoEncontrado->instancias--;
-					log_info(loggerKernel,"Proceso %d hizo WAIT en el recurso %s. Instancias restantes: %d\n", procesoKernel->PID, recursoEncontrado->nombre, recursoEncontrado->instancias);
-					// Enviar respuesta de éxito al CPU
 					enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
 				} 
 
@@ -205,28 +202,92 @@ void* conexionesDispatch()
 					// Bloquear el proceso 
 					t_paquete* paquete3=recibirPaquete(cpu_dispatch_fd);
 					void *stream3 = paquete3->buffer->stream;
-
+					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
 					procesoCPU = recibirProcesoContextoEjecucion(stream3);
 					pthread_mutex_lock(&mutexListaRunning);
-					pthread_mutex_lock(&mutexListaBlocked);
+					pthread_mutex_lock(&mutexListaBlockedRecursos);
 					procesoKernel = list_remove(lista_RUNNING, 0);
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = BLOCKED;
-					list_add(lista_BLOCKED, procesoKernel);
+					procesoKernel->recursoBloqueante = recursoRecibido;
+					list_add(lista_BLOCKED_RECURSOS, procesoKernel);
 					pthread_mutex_unlock(&mutexListaRunning);
-					pthread_mutex_unlock(&mutexListaBlocked);
+					pthread_mutex_unlock(&mutexListaBlockedRecursos);
 					sem_post(&semListaRunning);
 					printf("Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
 					
-					free(paquete->buffer->stream);
-					free(paquete->buffer);
-					free(paquete);
 				}
 				break;
 			}
 			case PROCESO_SIGNAL:
 			{
-                
+				// obtener recurso
+				int recursoLength;
+				char *recursoRecibido;
+                memcpy(&recursoLength, stream, sizeof(int));
+                stream += sizeof(int);
+                recursoRecibido = malloc(recursoLength);
+                memcpy(recursoRecibido, stream, recursoLength);
+				printf("Recurso recibido. Recurso: %s\n: ", recursoRecibido);
+				Recurso *recursoEncontrado = NULL;
+					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
+    					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
+    					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
+       						recursoEncontrado = recursoActual;
+        					break;
+						}
+					}
+				// Si no encuentro el recurso -- Finaliza el proceso ok
+	 			if (recursoEncontrado == NULL) {
+					//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
+					printf("Recurso %s no encontrado. Terminando proceso %d\n");
+
+					t_paquete* paquete2=recibirPaquete(cpu_dispatch_fd);
+					void *stream2 = paquete2->buffer->stream;
+
+					procesoCPU = recibirProcesoContextoEjecucion(stream2);
+					pthread_mutex_lock(&mutexListaRunning);
+					pthread_mutex_lock(&mutexListaExit);
+					procesoKernel = list_remove(lista_RUNNING, 0);
+
+					if(procesoCPU->PID == procesoKernel->PID){
+						actualizarProceso(procesoCPU, procesoKernel);
+					}
+					else{
+						log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+					}
+					procesoKernel->estado = EXIT;
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaRunning);
+					pthread_mutex_unlock(&mutexListaExit);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
+
+					log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+
+   				}
+				// Si el recurso existe
+				if (recursoEncontrado != NULL) {
+					recursoEncontrado->instancias++;
+					// busco si hay algún proceso esperando el recurso
+					for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
+						PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
+						if (strcmp(procesoBloqueado->recursoBloqueante, recursoRecibido) == 0) {
+							// lo muevo a ready
+							pthread_mutex_lock(&mutexListaBlockedRecursos);
+							pthread_mutex_lock(&mutexListaReady);
+							procesoKernel = list_remove(lista_BLOCKED_RECURSOS, i);
+							procesoKernel->estado = READY;
+							list_add(lista_READY, procesoKernel);
+							pthread_mutex_unlock(&mutexListaBlockedRecursos);
+							pthread_mutex_unlock(&mutexListaReady);
+							sem_post(&semListaReady);
+							printf("Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
+						}
+					}
+					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);
+				}
+				break;
 			}
 			case RESIZE_ERROR:
 			{
@@ -428,7 +489,7 @@ void* conexionesDispatch()
 			}
 			eliminar_paquete(paquete);
 		}
-		free(procesoCPU);
+		//free(procesoCPU);
 		free(paquete->buffer->stream);
 		free(paquete->buffer);
 		free(paquete);
@@ -670,29 +731,3 @@ void terminarProceso(PCB* proceso){
 	list_add(lista_EXIT, proceso);
 	pthread_mutex_unlock(&mutexListaExit);
 }
-// MANEJO DE RECURSOS
-
-/*
-void signal_recurso(const char* recurso) {
-	// Validar si la lista de recursos posee el recurso
-	Recurso *recursoEncontrado = NULL;
-	for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
-		Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
-		if (strcmp(recursoActual->nombre, recurso) == 0) {
-			recursoEncontrado = recursoActual;
-			break;
-		}
-	}
-	// Si no existe el recurso
-	if (recursoEncontrado == NULL) {
-		printf("Recurso %s no encontrado. Terminando proceso %d\n");
-		// EXIT
-		return;
-	}
-	// Si existe el recurso, incremento la instancia
-	recursoEncontrado->instancias++;
-	printf("Proceso %d hizo SIGNAL en el recurso %s. Instancias restantes: %d\n", recursoEncontrado->instancias);
-	// ver el tema del desbloqueo del proceso
-
-}
-*/
