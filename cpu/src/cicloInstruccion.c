@@ -45,7 +45,21 @@ void* ciclo_de_instruccion() {
         if(bloqueado == 1){
             return;
         }
-        
+        if(interrumpir == 2){
+            mandarPaqueteaKernel(INTERRUMPIR_PROCESO);
+
+            int tamanio_array = 0;
+            while ((cadena_instruccion)[tamanio_array] != NULL) {
+                free(cadena_instruccion[tamanio_array]);
+                tamanio_array++;
+            }
+            free(cadena_instruccion);
+            free(instruccion_a_decodificar);
+
+            interrumpir = 0;
+
+            return NULL;
+        }
         //mutex interrumpir
         if(interrumpir == 1){
             mandarPaqueteaKernel(PROCESO_INTERRUMPIDO_CLOCK);

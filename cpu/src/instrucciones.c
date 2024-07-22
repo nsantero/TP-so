@@ -17,6 +17,8 @@ void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor)
         registros->ECX = valor;
     } else if (strcmp(registro, "EDX") == 0) {
         registros->EDX = valor;
+    } else if (strcmp(registro, "PC") == 0) {
+        registros->PC = valor;
     } else {
         printf("Registro no reconocido: %s\n", registro);
     }

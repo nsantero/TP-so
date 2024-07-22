@@ -9,6 +9,7 @@
 
 t_list* lista_NEW;
 t_list* lista_READY;
+t_list* lista_READYPRI;
 t_list* lista_BLOCKED;
 t_list* lista_EXIT;
 t_list* lista_RUNNING;
@@ -16,7 +17,8 @@ t_list* interfacesConectadas;
 
 void inicializarListas() {
     lista_NEW = list_create();
-    lista_READY = list_create(); 
+    lista_READY = list_create();
+    lista_READYPRI = list_create();
     lista_EXIT = list_create();
     lista_BLOCKED = list_create();
     lista_RUNNING = list_create();
@@ -90,8 +92,93 @@ int leer_grado_multiprogramación() {
     return configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
+void finalizarProceso(uint32_t pid){
+    PCB * proceso = NULL;
+    pthread_mutex_lock(&mutexListaNew);
+    pthread_mutex_lock(&mutexListaReady);
+    pthread_mutex_lock(&mutexListaReadyPri);
+    pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaRunning);
+    pthread_mutex_lock(&mutexListaExit);
+
+    proceso=buscarProcesoPID(pid, lista_NEW);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        paquete_memoria_finalizar_proceso(pid);
+    }
+    
+    proceso=buscarProcesoPID(pid, lista_READY);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        paquete_memoria_finalizar_proceso(pid);
+    }
+    proceso=buscarProcesoPID(pid, lista_READYPRI);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        paquete_memoria_finalizar_proceso(pid);
+    }
+    
+    proceso=buscarProcesoPID(pid, lista_BLOCKED);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        paquete_memoria_finalizar_proceso(pid);
+    }
+    
+    proceso=buscarProcesoPIDSinRemover(pid, lista_RUNNING);
+    if(proceso != NULL){
+        paquete_CPU_interrumpir_proceso_finalizado(pid);
+    }
+    
+    pthread_mutex_unlock(&mutexListaNew);
+    pthread_mutex_unlock(&mutexListaReady);
+    pthread_mutex_unlock(&mutexListaReadyPri);
+    pthread_mutex_unlock(&mutexListaBlocked);
+    pthread_mutex_unlock(&mutexListaRunning);
+    pthread_mutex_unlock(&mutexListaExit);
+
+    return;
+}
+void paquete_CPU_interrumpir_proceso_finalizado(int pid){
+    t_paquete *paquete_CPU = crear_paquete(INTERRUMPIR_PROCESO);
+
+    agregar_entero_a_paquete32(paquete_CPU, pid);
+    enviar_paquete(paquete_CPU, cpu_interrupt_fd);
+    eliminar_paquete(paquete_CPU);
+}
+
+PCB* buscarProcesoPID(uint32_t pid, t_list* lista){
+	PCB *proceso;
+	if(list_size(lista) != 0){
+		for (int i = 0; i < list_size(lista); i++)
+		{
+			proceso=list_get(lista, i);
+			if(proceso->PID == pid){
+				proceso = list_remove(lista, i);
+				return proceso;
+			}
+		}
+	}
+	return NULL;
+}
+PCB* buscarProcesoPIDSinRemover(uint32_t pid, t_list* lista){
+	PCB *proceso;
+	if(list_size(lista) != 0){
+		for (int i = 0; i < list_size(lista); i++)
+		{
+			proceso=list_get(lista, i);
+			if(proceso->PID == pid){
+				proceso = list_get(lista, i);
+				return proceso;
+			}
+		}
+	}
+	return NULL;
+}
+
 
 // Definiciones de las funciones crear_paquete, agregar_a_paquete, enviar_paquete, eliminar_paquete
 // Definiciones de los IDs de paquetes CREAR_PROCESO y DATOS_DEL_PROCESO

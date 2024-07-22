@@ -7,7 +7,8 @@ void inicializarListas();
 // LISTAS DE ESTADOS
 
     extern t_list* lista_NEW;
-    extern t_list* lista_READY; 
+    extern t_list* lista_READY;
+    extern t_list* lista_READYPRI;
     extern t_list* lista_EXIT;
     extern t_list* lista_BLOCKED;
     extern t_list* lista_RUNNING;
@@ -66,6 +67,10 @@ extern int leer_grado_multiprogramación();
 //void paquete_crear_proceso(int PID_paquete, char* path_paquete, int pc_paquete);
 void paquete_memoria_finalizar_proceso (int PID_paquete);
 void paquete_memoria_crear_proceso(int PID_paquete, char* path_paquete);
+PCB* buscarProcesoPID(uint32_t pid, t_list* lista);
+PCB* buscarProcesoPIDSinRemover(uint32_t pid, t_list* lista);
+void finalizarProceso(uint32_t pid);
+void paquete_CPU_interrumpir_proceso_finalizado(int pid);
 PCB* cambiarARunning(t_list* lista_READY);
 
 #endif

@@ -19,6 +19,7 @@ void* planificadorReady();
 void* manejadorDeQuantum(void *quantum);
 void cambiarAReady(t_list* cola);
 PCB* cambiarARunning(t_list* lista_READY);
+PCB* cambiarARunningVRR();
 PCB* cambiarAExitDesdeRunning(t_list* cola);
 
 void comportamientoFIFO();

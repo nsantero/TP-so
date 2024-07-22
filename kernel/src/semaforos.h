@@ -10,15 +10,25 @@ extern void inicializar_sem_planificadores();
 
 extern pthread_mutex_t mutexListaNew;
 extern pthread_mutex_t mutexListaReady;
+extern pthread_mutex_t mutexListaReadyPri;
 extern pthread_mutex_t mutexListaBlocked;
 extern pthread_mutex_t mutexListaRunning;
 extern pthread_mutex_t mutexListaExit;
+
 
 extern pthread_mutex_t mutexHiloQuantum;
 
 extern sem_t semListaNew;
 extern sem_t semListaReady;
 extern sem_t semListaRunning;
+
+extern sem_t semPlaniNew;
+extern sem_t semPlaniReady;
+extern sem_t semPlaniBlocked;
+extern sem_t semPlaniRunning;
+extern sem_t semPlaniReadyClock;
+
+extern sem_t semIOGEN;
 
 extern sem_t sem_grado_multiprogramacion;
 extern sem_t sem_corto_plazo, *sem_largo_plazo;
