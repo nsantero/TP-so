@@ -38,7 +38,7 @@ char* recibirRecurso(void* stream);
 PCB *recibirProcesoContextoEjecucion(void *stream);
 PCB* procesoBloqueado(uint32_t pid);
 Recurso* buscarRecurso(char* recursoRecibido);
-void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso);
+void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel);
 t_paquete* recibirPaquete(socket);
 PCB* desalojarProceso(PCB* procesoKernel, PCB* procesoCPU);
 void bloquearProceso(PCB* proceso);

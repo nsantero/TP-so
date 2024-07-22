@@ -51,7 +51,7 @@ PCB* crearPCB(char* path) {
         return NULL; 
     }
     nuevoPCB -> PID = generarPID();
-    nuevoPCB -> recursoBloqueante = NULL;
+    nuevoPCB -> recursoBloqueante = list_create();
     nuevoPCB -> cpuRegisters.PC = 0;
     nuevoPCB -> cpuRegisters.AX = 0;
     nuevoPCB -> cpuRegisters.BX = 0;
@@ -136,22 +136,26 @@ void finalizarProceso(uint32_t pid){
     if(proceso != NULL){
         proceso->estado = EXIT;
         list_add(lista_EXIT, proceso);
-        Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
-        recurso->instancias++;
+        //Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
+        //recurso->instancias++;
         for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
+            //Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
             PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
-            if (strcmp(procesoBloqueado->recursoBloqueante, recurso->nombre) == 0) {
-                // lo muevo a ready
-                pthread_mutex_lock(&mutexListaBlockedRecursos);
-                pthread_mutex_lock(&mutexListaReady);
-                procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, i);
-                procesoBloqueado->estado = READY;
-                list_add(lista_READY, procesoBloqueado);
-                pthread_mutex_unlock(&mutexListaBlockedRecursos);
-                pthread_mutex_unlock(&mutexListaReady);
-                sem_post(&semListaReady);
-                log_info(loggerKernel,"Proceso %d desbloqueado por eliminacion de otro %s\n", procesoBloqueado->PID, recurso->nombre);
-            }
+            Recurso *recursobuscado = list_get(procesoBloqueado->recursoBloqueante,i);
+            for(int j=0; j<list_size(procesoBloqueado->recursoBloqueante); i++){
+                if (strcmp(recursobuscado->nombre, recurso->nombre) == 0) {
+                    // lo muevo a ready
+                    pthread_mutex_lock(&mutexListaBlockedRecursos);
+                    pthread_mutex_lock(&mutexListaReady);
+                    procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, i);
+                    procesoBloqueado->estado = READY;
+                    list_add(lista_READY, procesoBloqueado);
+                    pthread_mutex_unlock(&mutexListaBlockedRecursos);
+                    pthread_mutex_unlock(&mutexListaReady);
+                    sem_post(&semListaReady);
+                    log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoBloqueado->PID, recurso->nombre);
+                }
+			}
         }
         paquete_memoria_finalizar_proceso(pid);
     }

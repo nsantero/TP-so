@@ -181,12 +181,13 @@ void* conexionesDispatch()
 				if (recursoEncontrado->instancias > 0) {
 					recursoEncontrado->instancias--;
 					enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
+					list_add(procesoKernel->recursoBloqueante,recursoEncontrado);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
-					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoRecibido);
+					bloquearProcesoRecurso(procesoCPU,procesoKernel);
 					log_info(loggerKernel,"Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
 					
 				}
@@ -230,18 +231,22 @@ void* conexionesDispatch()
 					// busco si hay algún proceso esperando el recurso
 					for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
 						PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
-						if (strcmp(procesoBloqueado->recursoBloqueante, recursoRecibido) == 0) {
-							// lo muevo a ready
-							pthread_mutex_lock(&mutexListaBlockedRecursos);
-							pthread_mutex_lock(&mutexListaReady);
-							procesoKernel = list_remove(lista_BLOCKED_RECURSOS, i);
-							procesoKernel->estado = READY;
-							list_add(lista_READY, procesoKernel);
-							pthread_mutex_unlock(&mutexListaBlockedRecursos);
-							pthread_mutex_unlock(&mutexListaReady);
-							sem_post(&semListaReady);
-							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
+						Recurso *recursobuscado = list_get(procesoBloqueado->recursoBloqueante,i);
+						for(int j=0; j<list_size(procesoBloqueado->recursoBloqueante); i++){
+							if (strcmp(recursobuscado->nombre, recursoRecibido) == 0) {
+								// lo muevo a ready
+								pthread_mutex_lock(&mutexListaBlockedRecursos);
+								pthread_mutex_lock(&mutexListaReady);
+								procesoKernel = list_remove(lista_BLOCKED_RECURSOS, i);
+								procesoKernel->estado = READY;
+								list_add(lista_READY, procesoKernel);
+								pthread_mutex_unlock(&mutexListaBlockedRecursos);
+								pthread_mutex_unlock(&mutexListaReady);
+								sem_post(&semListaReady);
+								log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
+							}
 						}
+						
 					}
 					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);
 				}
@@ -474,7 +479,7 @@ Recurso* buscarRecurso(char* recursoRecibido){
 	}
 	return recursoEncontrado;
 }
-void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
+void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel){
 	t_paquete* paquete=recibirPaquete(cpu_dispatch_fd);
 	void *stream = paquete->buffer->stream;
 	enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
@@ -484,7 +489,6 @@ void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
 	procesoKernel = list_remove(lista_RUNNING, 0);
 	actualizarProceso(procesoCPU, procesoKernel);
 	procesoKernel->estado = BLOCKED;
-	procesoKernel->recursoBloqueante = recurso;
 	list_add(lista_BLOCKED_RECURSOS, procesoKernel);
 	pthread_mutex_unlock(&mutexListaRunning);
 	pthread_mutex_unlock(&mutexListaBlockedRecursos);

@@ -51,7 +51,7 @@ typedef struct {
     uint32_t PID;
     int quantum;
     Estado estado;
-    char* recursoBloqueante;
+    t_list* recursoBloqueante;
     CPU_Registers cpuRegisters;
 } PCB;
 
