@@ -101,6 +101,7 @@ void finalizarProceso(uint32_t pid){
     pthread_mutex_lock(&mutexListaReady);
     pthread_mutex_lock(&mutexListaReadyPri);
     pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaBlockedRecursos);
     pthread_mutex_lock(&mutexListaRunning);
     pthread_mutex_lock(&mutexListaExit);
 
@@ -130,6 +131,30 @@ void finalizarProceso(uint32_t pid){
         list_add(lista_EXIT, proceso);
         paquete_memoria_finalizar_proceso(pid);
     }
+
+    proceso=buscarProcesoPID(pid, lista_BLOCKED_RECURSOS);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
+        recurso->instancias++;
+        for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
+            PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
+            if (strcmp(procesoBloqueado->recursoBloqueante, recurso->nombre) == 0) {
+                // lo muevo a ready
+                pthread_mutex_lock(&mutexListaBlockedRecursos);
+                pthread_mutex_lock(&mutexListaReady);
+                procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, i);
+                procesoBloqueado->estado = READY;
+                list_add(lista_READY, procesoBloqueado);
+                pthread_mutex_unlock(&mutexListaBlockedRecursos);
+                pthread_mutex_unlock(&mutexListaReady);
+                sem_post(&semListaReady);
+                log_info(loggerKernel,"Proceso %d desbloqueado por eliminacion de otro %s\n", procesoBloqueado->PID, recurso->nombre);
+            }
+        }
+        paquete_memoria_finalizar_proceso(pid);
+    }
     
     proceso=buscarProcesoPIDSinRemover(pid, lista_RUNNING);
     if(proceso != NULL){
@@ -140,6 +165,7 @@ void finalizarProceso(uint32_t pid){
     pthread_mutex_unlock(&mutexListaReady);
     pthread_mutex_unlock(&mutexListaReadyPri);
     pthread_mutex_unlock(&mutexListaBlocked);
+    pthread_mutex_unlock(&mutexListaBlockedRecursos);
     pthread_mutex_unlock(&mutexListaRunning);
     pthread_mutex_unlock(&mutexListaExit);
 

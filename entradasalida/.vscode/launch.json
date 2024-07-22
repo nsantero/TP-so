@@ -8,7 +8,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
-      "args": ["SLP1"],
+      "args": ["ESPERA"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
