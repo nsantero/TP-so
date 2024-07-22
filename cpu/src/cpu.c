@@ -273,7 +273,7 @@ void* check_interrupts() {
         int pidInterrumpido;
         switch (paquete->codigo_operacion)
 		{
-			case INTERRUMPIR_PROCESO:
+			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
 				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 //mutex procesoEjecutando
@@ -283,6 +283,16 @@ void* check_interrupts() {
                 }
 				break;
 			}
+            case INTERRUMPIR_PROCESO:
+            {
+                memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
+                //mutex procesoEjecutando
+                if(procesoEjecutando->PID == pidInterrumpido){
+                    //mutex interrumpir
+                    interrumpir = 2;
+                }
+				break;
+            }
             default:
             {
                 log_error(loggerCpu,"No es un mensaje correcto para CPU");

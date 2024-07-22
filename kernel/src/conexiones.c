@@ -90,8 +90,37 @@ void* conexionesDispatch()
 				//eliminarProceso(procesoKernel);
 				break;
 			}
+			case INTERRUMPIR_PROCESO:
+			{
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaExit);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				if(procesoCPU->PID == procesoKernel->PID){
+					actualizarProceso(procesoCPU, procesoKernel);
+				}
+				else{
+					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+
+				}
+				procesoKernel->estado = EXIT;
+				list_add(lista_EXIT, procesoKernel); 
+				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaExit);
+				sem_post(&semListaRunning);
+				//mutex conexion memoria
+				paquete_memoria_finalizar_proceso(procesoKernel->PID);
+
+				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+				break;
+
+			}
 			case PROCESO_INTERRUMPIDO_CLOCK:
 			{
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				sem_wait(&semPlaniRunning);
 				sem_post(&semPlaniRunning);
 				
@@ -105,6 +134,7 @@ void* conexionesDispatch()
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
 				}
+				log_info(loggerKernel, "Se interrumpio el proceso con pid: %d por fin de QUANTUM\n", procesoKernel->PID);
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
 				sem_post(&semListaReady);
@@ -233,7 +263,7 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_GENERICA){
 					//error no es una intruccion compatible //TODO
 				}
-				
+				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
@@ -480,6 +510,7 @@ void* manejarClienteIO(void *arg)
 			case DESBLOQUEAR_PROCESO_POR_IO:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
+				sem_post(&semIOGEN);
 				char *nombre;
 				int charTam;
 				uint32_t pid;
@@ -585,7 +616,7 @@ void paquete_CPU_ejecutar_proceso(PCB* proceso){
 }
 
 void paquete_CPU_interrumpir_proceso_fin_quantum(int pid){
-    t_paquete *paquete_CPU = crear_paquete(INTERRUMPIR_PROCESO);
+    t_paquete *paquete_CPU = crear_paquete(PROCESO_INTERRUMPIDO_CLOCK);
 
     agregar_entero_a_paquete32(paquete_CPU, pid);
     enviar_paquete(paquete_CPU, cpu_interrupt_fd);

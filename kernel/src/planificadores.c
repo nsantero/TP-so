@@ -96,7 +96,7 @@ void comportamientoRR(){
 void *manejadorDeQuantum(void* quantum){
     int quantumProceso = *((int*) quantum);
     log_info(loggerKernel, "el valor obetenido es: %d", quantumProceso);
-    usleep(quantumProceso/1000);
+    usleep(quantumProceso);
     
 
     return NULL;

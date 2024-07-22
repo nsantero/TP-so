@@ -28,6 +28,8 @@ extern sem_t semPlaniBlocked;
 extern sem_t semPlaniRunning;
 extern sem_t semPlaniReadyClock;
 
+extern sem_t semIOGEN;
+
 extern sem_t sem_grado_multiprogramacion;
 extern sem_t sem_corto_plazo, *sem_largo_plazo;
 extern sem_t mutex_detener_planificador;
