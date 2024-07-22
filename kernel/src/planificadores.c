@@ -57,7 +57,7 @@ void* planificadorReady(){
         pthread_mutex_lock(&mutexListaReady);
         pthread_mutex_lock(&mutexListaReadyPri);
         pthread_mutex_lock(&mutexListaRunning);
-        if (!list_is_empty(lista_READY) && list_size(lista_RUNNING) < 1) {
+        if ((!list_is_empty(lista_READY) || !list_is_empty(lista_READYPRI))&& list_size(lista_RUNNING) < 1) {
             if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "FIFO")){
                 comportamientoFIFO();
             }
@@ -85,9 +85,11 @@ void comportamientoFIFO(){
 
 void comportamientoRR(){
 
-    cambiarARunningVRR();
+    PCB* pcbRunnign;
 
-    PCB* pcbRunnign=list_get(lista_RUNNING, 0);
+    pcbRunnign=cambiarARunningVRR();
+
+    pcbRunnign=list_get(lista_RUNNING, 0);
 
     pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
     paquete_CPU_ejecutar_proceso(pcbRunnign);
@@ -98,8 +100,7 @@ void comportamientoRR(){
 
 void *manejadorDeQuantum(void* quantum){
     int quantumProceso = *((int*) quantum);
-    log_info(loggerKernel, "el valor obetenido es: %d", quantumProceso);
-    usleep(quantumProceso);
+    usleep(quantumProceso*1000);
     
 
     return NULL;
@@ -122,9 +123,9 @@ void cambiarAReady(t_list* cola){
 
     return;
 }
-PCB* cambiarARunning(t_list* lista_READY){
-    if (!list_is_empty(lista_READY)) {
-        PCB *proceso = list_remove(lista_READY, 0);
+PCB* cambiarARunning(t_list* lista){
+    if (!list_is_empty(lista)) {
+        PCB *proceso = list_remove(lista, 0);
         proceso->estado = RUNNING;
         list_add(lista_RUNNING, proceso);
         return proceso;
@@ -134,7 +135,7 @@ PCB* cambiarARunning(t_list* lista_READY){
 PCB* cambiarARunningVRR(){
     PCB* proceso;
     if(!list_is_empty(lista_READYPRI)){
-        proceso = list_remove(lista_READYPRI, 0);
+        proceso=cambiarARunning(lista_READYPRI);
     }
     else{
         proceso=cambiarARunning(lista_READY);
@@ -155,80 +156,3 @@ void terminarHiloQuantum(){
     pthread_cancel(hiloQuantum);
     pthread_mutex_unlock(&mutexHiloQuantum);
 }
-
-
-/*void inicializar_planificadores() {
-    t_config* config = config_create("kernel.config");
-
-    // valor del quantum
-    if (config_has_property(config, "QUANTUM")) {
-        quantum = config_get_int_value(config, "QUANTUM");
-    } else {
-        printf ("No se encontro el parametro 'QUANTUM' en el archivo de configuracion.\n");
-    }
-    // tipo de planificador (FIFO o RR)
-
-   if (config_has_property(config, "ALGORITMO_PLANIFICACION")) {
-        algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
-    } else {
-        printf ("No se encontro el parametro 'ALGORITMO_PLANIFICACION' en el archivo de configuracion.\n");
-    }
-
-    config_destroy(config);
-}
-*/
-
-
-/*int hilosPlanificadores(void) {
-
-    pthread_create(&hilo_largo_plazo, NULL, planificador_largo_plazo, NULL);
-    pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);
-
-    pthread_join(hilo_largo_plazo, NULL); // detach no te guarda el valor 
-    pthread_join(hilo_corto_plazo, NULL);
-
-    return 0;
-}
-*/
-/*
-void planificar_fifo() {
-    if (list_is_empty(lista_READY)) { // QUEUE *Lista_ready
-        printf ("No hay procesos en la Lista.\n");
-        return;
-    }
-    // variable global con mutex donde definamos que pueda ejecutar wait(mutex)
-    // LISTA RUNNING
-    sem_wait(&sem_proceso_ejecutando);
-    sem_wait(&sem_procesos_ready); 
-    list_remove(lista_READY, 0);
-    sem_post (&sem_procesos_ready); 
-    sem_wait (&sem_procesos_running);
-    list_add (lista_RUNNING, 0);
-    sem_post (&sem_procesos_running);
-    //t_pcb.estado  = RUNNING;
-    sem_wait(&sem_proceso_ejecutando);
-    //ejecutar_proceso(&t_pcb.PID);
-    sem_post(&sem_proceso_ejecutando);
-
-}
-
- implementación RR
-void planificar_round_robin() {
-    if (list_is_empty(Lista_de_procesos)) {
-        printf ("No hay procesos en la Lista.\n");
-        return;
-    }
-
-PCB* pcb = list_get(Lista_de_procesos, 0);
-
-int tiempo_ejecucion = ejecutar_proceso(pcb);
-
-if (tiempo_ejecucion < pcb -> quantum) {
-    list_remove(Lista_de_procesos, 0); // al haber terminado el proceso dentro del quantum lo elimino de la Lista
-    free (pcb); // libero memoria del pcb
-} else {
-    pcb -> pc += tiempo_ejecucion; //calculo el tiempo que ejecuto y cuanto falta, y lo actualizo en el pc
-    list_remove(Lista_de_procesos, 0);
-    list_add(Lista_de_procesos, pcb);
-}
-*/

@@ -51,7 +51,8 @@ void paquete_memoria_resize(int PID_paquete,int tam_nuevo);
 void* check_interrupts();
 
 extern pthread_mutex_t mutexSocketKernel;
-
 extern pthread_mutex_t mutexSocketCpu;
+extern pthread_mutex_t mutexInterrupcion;
+extern pthread_mutex_t mutexProcesoEjecutando;
 
 #endif
