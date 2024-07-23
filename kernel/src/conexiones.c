@@ -315,8 +315,7 @@ void* conexionesDispatch()
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
-				char* registroAleer;
-				int registroLen;
+				
 
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -324,20 +323,12 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&registroLen, stream, sizeof(uint32_t));
+				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
-				registroAleer=malloc(registroLen);
-				memcpy(registroAleer, stream, registroLen);
-				stream += registroLen;
-				interfazsSTDIN.direccion=leerValorDelRegistro(registroAleer,procesoKernel->cpuRegisters);
-				free(registroAleer);
 				//segundoRegistro
-				memcpy(&registroLen, stream, sizeof(uint32_t));
+				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
-				registroAleer=malloc(registroLen);
-				memcpy(registroAleer, stream, registroLen);
-				interfazsSTDIN.tamanio=leerValorDelRegistro(registroAleer,procesoKernel->cpuRegisters);
-				free(registroAleer);
+				
 
 				interfazsSTDIN.PID=procesoKernel->PID;
 
@@ -368,81 +359,352 @@ void* conexionesDispatch()
 			}
 			case IO_STDOUT_WRITE:
 			{
-				/*procesoCPU = recibirProcesoContextoEjecucion(stream);
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "RR") || !strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					terminarHiloQuantum();
-				}
-				pthread_mutex_lock(&mutexListaRunning);
-				pthread_mutex_lock(&mutexListaBlocked);
-				procesoKernel = list_remove(lista_RUNNING, 0);
-				actualizarProceso(procesoCPU, procesoKernel);
-				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
-					temporal_stop(tiempoVRR);
-					tiempoEjecutando = temporal_gettime(tiempoVRR);
-					temporal_destroy(tiempoVRR);
-					procesoKernel->quantum -= tiempoEjecutando;
-				}
-				procesoKernel->estado = BLOCKED;
-				list_add(lista_BLOCKED, procesoKernel);
-				pthread_mutex_unlock(&mutexListaRunning);
-				pthread_mutex_unlock(&mutexListaBlocked);
-				sem_post(&semListaRunning);
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
 				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
-				*/ 
-				//ESTO ESTA COPYPASTEADO NO SI ESTA BN
-				Peticion_Interfaz_STDOUT interfazsSTDOUT;
-				Tipos_Interfaz tipoDeLaInterfaz;
-				PCB* proceso;
 
+				Peticion_Interfaz_STDOUT peticionSTDOUT;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
 				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionSTDOUT.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionSTDOUT.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				//primer registro
+				memcpy(&peticionSTDOUT.direccion, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				//segundoRegistro
+				memcpy(&peticionSTDOUT.tamanio, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				
-				memcpy(&interfazsSTDOUT.direccion, stream, sizeof(uint32_t));
-				stream += sizeof(uint32_t);
-				memcpy(&interfazsSTDOUT.tamanio, stream, sizeof(uint8_t));
-				stream += sizeof(uint8_t);
-				memcpy(&interfazsSTDOUT.PID, stream, sizeof(int));
-				stream += sizeof(int);
-				memcpy(&pathLength, stream, sizeof(int));
-				interfazsSTDOUT.nombre_interfaz = malloc(pathLength);
-				memcpy(interfazsSTDOUT.nombre_interfaz, stream, pathLength);
 
+
+				peticionSTDOUT.PID=procesoKernel->PID;
 				//MUTEX
-				if(existeInterfaz(interfazsSTDOUT.nombre_interfaz,&tipoDeLaInterfaz)){
-					t_paquete* paqueteIOSTDOUT=crear_paquete(IO_GEN_SLEEP);
-					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.direccion,sizeof(uint32_t));
-					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.tamanio,sizeof(uint8_t));
-					agregar_a_paquete(paqueteIOSTDOUT,&interfazsSTDOUT.PID,sizeof(int));
-					agregar_a_paquete(paqueteIOSTDOUT,interfazsSTDOUT.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteIOSTDOUT,socketCliente);
-					eliminar_paquete(paqueteIOSTDOUT);
-					
-					//bloquear procesos? //TODO
+				int socketClienteInterfaz = existeInterfaz(peticionSTDOUT.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_STDOUT){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteSTDOUT=crear_paquete(IO_STDOUT_WRITE);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamanio);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.PID);
+					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteSTDOUT,socketClienteInterfaz);
+					eliminar_paquete(paqueteSTDOUT);
+					bloquearProceso(procesoKernel);
 				}
 				else{
-					PCB* proceso = cambiarAExitDesdeRunning(lista_RUNNING);
-					paquete_memoria_finalizar_proceso(proceso->PID);
-					//eliminarProceso(proceso); //TODO
+					terminarProceso(procesoKernel);
 				}
-				free(interfazsSTDOUT.nombre_interfaz);
+				free(peticionSTDOUT.nombre_interfaz);
+				
 
 				break;
 			}
 			case IO_FS_CREATE:
 			{
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
+				Peticion_Interfaz_DialFS peticionFS;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
+				int pathLength;
+				int archivoLen;
+				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionFS.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				
+				memcpy(&archivoLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombreArchivo=malloc(archivoLen);
+				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
+
+				peticionFS.PID=procesoKernel->PID;
+				peticionFS.operacion=IO_FS_CREATE;
+				//MUTEX
+				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_DFS){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteFS=crear_paquete(IO_FS_CREATE);
+					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
+					agregar_entero_a_paquete32(paqueteFS, archivoLen);
+    				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteFS,socketClienteInterfaz);
+					eliminar_paquete(paqueteFS);
+					bloquearProceso(procesoKernel);
+				}
+				else{
+					terminarProceso(procesoKernel);
+				}
+				free(peticionFS.nombre_interfaz);
+				free(peticionFS.nombreArchivo);
+				
+
 				break;
 			}
 			case IO_FS_DELETE:
 			{
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
+				Peticion_Interfaz_DialFS peticionFS;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
+				int pathLength;
+				int archivoLen;
+				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionFS.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				
+				memcpy(&archivoLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombreArchivo=malloc(archivoLen);
+				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
+
+				peticionFS.PID=procesoKernel->PID;
+				peticionFS.operacion=IO_FS_DELETE;
+				//MUTEX
+				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_DFS){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteFS=crear_paquete(IO_FS_DELETE);
+					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
+					agregar_entero_a_paquete32(paqueteFS, archivoLen);
+    				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteFS,socketClienteInterfaz);
+					eliminar_paquete(paqueteFS);
+					bloquearProceso(procesoKernel);
+				}
+				else{
+					terminarProceso(procesoKernel);
+				}
+				free(peticionFS.nombre_interfaz);
+				free(peticionFS.nombreArchivo);
+				
+
 				break;
 			}
 			case IO_FS_TRUNCATE:
 			{
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
+				Peticion_Interfaz_DialFS peticionFS;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
+				int pathLength;
+				int archivoLen;
+				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionFS.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				
+				memcpy(&archivoLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombreArchivo=malloc(archivoLen);
+				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
+				stream+=archivoLen;
+				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
+
+				peticionFS.PID=procesoKernel->PID;
+				peticionFS.operacion=IO_FS_TRUNCATE;
+				//MUTEX
+				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_DFS){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteFS=crear_paquete(IO_FS_TRUNCATE);
+					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
+					agregar_entero_a_paquete32(paqueteFS, archivoLen);
+    				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteFS,socketClienteInterfaz);
+					eliminar_paquete(paqueteFS);
+					bloquearProceso(procesoKernel);
+				}
+				else{
+					terminarProceso(procesoKernel);
+				}
+				free(peticionFS.nombre_interfaz);
+				free(peticionFS.nombreArchivo);
+				
+
 				break;
 			}
 			case IO_FS_WRITE:
+			{
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
+				Peticion_Interfaz_DialFS peticionFS;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
+				int pathLength;
+				int archivoLen;
+				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionFS.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				
+				memcpy(&archivoLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombreArchivo=malloc(archivoLen);
+				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
+				stream+=archivoLen;
+				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
+
+				peticionFS.PID=procesoKernel->PID;
+				peticionFS.operacion=IO_FS_WRITE;
+				//MUTEX
+				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_DFS){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteFS=crear_paquete(IO_FS_WRITE);
+					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
+					agregar_entero_a_paquete32(paqueteFS, archivoLen);
+    				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteFS,socketClienteInterfaz);
+					eliminar_paquete(paqueteFS);
+					bloquearProceso(procesoKernel);
+				}
+				else{
+					terminarProceso(procesoKernel);
+				}
+				free(peticionFS.nombre_interfaz);
+				free(peticionFS.nombreArchivo);
+				
+
+				break;
+			}
 			case IO_FS_READ:
 			{
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
+				sem_wait(&semPlaniBlocked);
+				sem_post(&semPlaniBlocked);
+				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
+
+				Peticion_Interfaz_DialFS peticionFS;
+				Tipos_Interfaz tipoDeInterfazEncontrada;
+				int pathLength;
+				int archivoLen;
+				
+				memcpy(&pathLength, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombre_interfaz = malloc(pathLength);
+				memcpy(peticionFS.nombre_interfaz, stream, pathLength);
+				stream+=pathLength;
+				
+				memcpy(&archivoLen, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				peticionFS.nombreArchivo=malloc(archivoLen);
+				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
+				stream+=archivoLen;
+				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
+
+				peticionFS.PID=procesoKernel->PID;
+				peticionFS.operacion=IO_FS_READ;
+				//MUTEX
+				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
+				if (tipoDeInterfazEncontrada!=T_DFS){
+					//error no es una intruccion compatible //TODO
+				}
+				sem_wait(&semIOGEN);
+				if(socketClienteInterfaz){
+					t_paquete* paqueteFS=crear_paquete(IO_FS_READ);
+					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
+					agregar_entero_a_paquete32(paqueteFS, archivoLen);
+    				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					enviar_paquete(paqueteFS,socketClienteInterfaz);
+					eliminar_paquete(paqueteFS);
+					bloquearProceso(procesoKernel);
+				}
+				else{
+					terminarProceso(procesoKernel);
+				}
+				free(peticionFS.nombre_interfaz);
+				free(peticionFS.nombreArchivo);
+				
+
 				break;
 			}
 				

@@ -737,11 +737,27 @@ void* manejarClienteEntradaSalida(void *arg)
 
                 //TODO aca tiene q escribir el buffer en la direccion q le manda IO
                 // solicitar la traduccion de dl a df
+                
                 free(buffer);
             }
             case  IO_MEM_STDOUT_WRITE :
             {
                 //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+                uint32_t tamanio;
+                uint32_t direccion;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+
+                //TODO busca la direccion y la mete en el buffer;
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
             }
 
             default:

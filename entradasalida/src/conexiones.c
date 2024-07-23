@@ -152,11 +152,12 @@ void recibirPeticionDeIO_STDOUT(){
             
             memcpy(&peticion->direccion, stream, sizeof(uint32_t));
             stream += sizeof(uint32_t);
-            memcpy(&peticion->tamanio, stream, sizeof(uint8_t));
-            stream += sizeof(uint8_t);
+            memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
+            stream += sizeof(uint32_t);
             memcpy(&peticion->PID, stream, sizeof(int));
             stream += sizeof(int);
             memcpy(&bytes, stream, sizeof(int));
+            stream+=sizeof(int);
             peticion->nombre_interfaz = malloc(bytes);
             memcpy(peticion->nombre_interfaz, stream, bytes);
 
@@ -200,29 +201,9 @@ void recibirPeticionDeIO_DialFS(){
         switch (paquete->codigo_operacion)  
         {
             case IO_FS_CREATE:
-                
-                
-                memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
-                stream += sizeof(OperacionesDeDialFS);
-                memcpy(&bytes, stream, sizeof(int));
-                stream += sizeof(int);
-                peticion->nombreArchivo = malloc(bytes);
-                memcpy(peticion->nombreArchivo, stream, bytes);
-                stream+=bytes;
-                memcpy(&peticion->PID, stream, sizeof(int));
-                stream += sizeof(int);
-                memcpy(&bytes, stream, sizeof(int));
-                stream += sizeof(int);
-                peticion->nombre_interfaz = malloc(bytes);
-                memcpy(peticion->nombre_interfaz, stream, bytes);
-
-                pthread_mutex_lock(&mutex_cola_DialFS);
-                list_add(cola_procesos_DialFS,peticion);
-                pthread_mutex_unlock(&mutex_cola_DialFS);
-                sem_post(&sem_hay_en_DialFS);
-                break;
             case IO_FS_DELETE:
                 
+                stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
@@ -243,6 +224,7 @@ void recibirPeticionDeIO_DialFS(){
                 sem_post(&sem_hay_en_DialFS);
                 break;
             case IO_FS_TRUNCATE:
+                stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));
@@ -267,7 +249,7 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_READ:
             case IO_FS_WRITE:
             //TODO separar los casos +- esta
-                
+                stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
                 memcpy(&bytes, stream, sizeof(int));

@@ -54,7 +54,7 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion){
 void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 	
     t_paquete* paquete_direccion = crear_paquete(IO_MEM_STDOUT_WRITE);
-    agregar_entero_a_paquete8(paquete_direccion,peticion->tamanio);
+    agregar_entero_a_paquete32(paquete_direccion,peticion->tamanio);
     agregar_entero_a_paquete32(paquete_direccion, peticion->direccion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
     free(paquete_direccion->buffer);
@@ -62,18 +62,30 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 
     //TODO, hacer esto con un void* buffer; CREO Q ESTA HECHO LO DEL BUFFER, SI NO NO SE A Q ME REFERI ACA
     int bytes;
-    void* buffer = recibir_buffer(&bytes,memoria_fd);//Recibo el contenido de la direccion por parte de memoria
+    void* buffer;//Recibo el contenido de la direccion por parte de memoria
     //esto lo recibe aca asi? 
-    char* contenido_memoria = buffer;
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    
+    memcpy(&bytes,stream,sizeof(int));
+    stream+=sizeof(int);
+    buffer=malloc(bytes);
+    memcpy(buffer,stream,bytes);
 
     
-
+    char* contenido_memoria = buffer;//Aca no se si va a faltar el \0
     printf("El contenido encontrado en la direccion de memoria %u es: %s\n", peticion->direccion, contenido_memoria);
     
-
-    
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
     free(contenido_memoria);
-    free(buffer);
+    
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDOUT_WRITE",peticion->PID);
     terminoEjecucionInterfaz(interfaz_STDOUT.nombre,peticion->PID);

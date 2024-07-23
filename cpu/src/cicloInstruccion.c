@@ -140,7 +140,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         tamanio_array++;
     }
     if(tamanio_array == 6){
-        if (strcmp(cadena_instruccion[0], "IO_STDIN_READ") == 0) {
+        if (strcmp(cadena_instruccion[0], "IO_FS_WRITE") == 0) {
         
             instruccion.tipo_instruccion = IO_FS_WRITE;
             instruccion.operando1 = cadena_instruccion[1];
@@ -150,6 +150,17 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.operando5 = cadena_instruccion[5];
 
         }
+        if (strcmp(cadena_instruccion[0],"IO_FS_READ") == 0) {
+        
+            instruccion.tipo_instruccion = IO_FS_READ;
+            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operando2 = cadena_instruccion[2];
+            instruccion.operando3 = cadena_instruccion[3];
+            instruccion.operando4 = cadena_instruccion[4];
+            instruccion.operando5 = cadena_instruccion[5];
+
+        }
+
 
     }
 
@@ -162,7 +173,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
             instruccion.operando3 = cadena_instruccion[3];
 
         }
-        if (strcmp(cadena_instruccion[0], "IO_STDIN_WRITE") == 0) {
+        if (strcmp(cadena_instruccion[0], "IO_STDOUT_WRITE") == 0) {
         
             instruccion.tipo_instruccion = IO_STDOUT_WRITE;
             instruccion.operando1 = cadena_instruccion[1];
@@ -596,7 +607,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_FS_DELETE:
         {
-            mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            mandarPaqueteaKernelFScrdel(IO_FS_DELETE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
@@ -608,11 +619,17 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case IO_FS_WRITE:
         {
-            mandarPaqueteaKernelFSWR(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
+            mandarPaqueteaKernelFSWR(IO_FS_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
-         case MOV_IN:
+        case IO_FS_READ:
+        {
+            mandarPaqueteaKernelFSWR(IO_FS_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
+            bloqueado = 1;
+            break;
+        }
+        case MOV_IN:
         {   
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
