@@ -75,5 +75,6 @@ PCB* buscarProcesoPIDSinRemover(uint32_t pid, t_list* lista);
 void finalizarProceso(uint32_t pid);
 void paquete_CPU_interrumpir_proceso_finalizado(int pid);
 PCB* cambiarARunning(t_list* lista_READY);
+extern int grado_multiprogramacion;
 
 #endif

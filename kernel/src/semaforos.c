@@ -21,6 +21,7 @@ sem_t semPlaniBlocked;
 sem_t semPlaniRunning;
 sem_t semPlaniReadyClock;
 sem_t semPlaniBlockedRecursos;
+sem_t semPlaniBlockedPrioridad;
 
 sem_t semIOGEN;
 
@@ -42,6 +43,7 @@ void inicializar_sem_planificadores()
     sem_init(&semPlaniRunning,0,1);
     sem_init(&semPlaniReadyClock,0,1);
     sem_init(&semPlaniBlockedRecursos,0,1);
+    sem_init(&semPlaniBlockedPrioridad,0,1);
 
     sem_init(&semIOGEN,0,1);
 }
