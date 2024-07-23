@@ -178,6 +178,7 @@ int recibir_resultado_recursos(){
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
     recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
     
     int respuesta;
 

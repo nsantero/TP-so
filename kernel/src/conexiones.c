@@ -148,27 +148,11 @@ void* conexionesDispatch()
 			}
 			case PROCESO_WAIT:
 			{
-				// obtener recurso
-				int recursoLength;
-				char *recursoRecibido;
-                memcpy(&recursoLength, stream, sizeof(int));
-                stream += sizeof(int);
-                recursoRecibido = malloc(recursoLength);
-                memcpy(recursoRecibido, stream, recursoLength);
-				printf("Recurso recibido. Recurso: %s\n: ", recursoRecibido);
-				Recurso *recursoEncontrado = NULL;
-					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
-    					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
-    					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
-       						recursoEncontrado = recursoActual;
-        					break;
-						}
-					}
+				char* recursoRecibido=recibirRecurso(stream);
+				Recurso *recursoEncontrado = buscarRecurso(recursoRecibido);
 				// Si no encuentro el recurso -- Finaliza el proceso ok
 	 			if (recursoEncontrado == NULL) {
 					//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
-					printf("Recurso %s no encontrado. Terminando proceso %d\n");
-
 					t_paquete* paquete2=recibirPaquete(cpu_dispatch_fd);
 					void *stream2 = paquete2->buffer->stream;
 
@@ -189,8 +173,7 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexListaExit);
 					sem_post(&semListaRunning);
 					paquete_memoria_finalizar_proceso(procesoKernel->PID);
-
-					log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d\n", recursoRecibido, procesoKernel->PID);
 
    				}
 
@@ -198,52 +181,28 @@ void* conexionesDispatch()
 				if (recursoEncontrado->instancias > 0) {
 					recursoEncontrado->instancias--;
 					enviar_resultado_recursos(WAIT_SUCCESS, cpu_dispatch_fd);
+					pthread_mutex_lock(&mutexListaRunning);
+					procesoKernel = list_get(lista_RUNNING, 0);
+					list_add(procesoKernel->recursosEnUso,recursoEncontrado);
+					pthread_mutex_unlock(&mutexListaRunning);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
-					// Bloquear el proceso 
-					t_paquete* paquete3=recibirPaquete(cpu_dispatch_fd);
-					void *stream3 = paquete3->buffer->stream;
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
-					procesoCPU = recibirProcesoContextoEjecucion(stream3);
-					pthread_mutex_lock(&mutexListaRunning);
-					pthread_mutex_lock(&mutexListaBlockedRecursos);
-					procesoKernel = list_remove(lista_RUNNING, 0);
-					actualizarProceso(procesoCPU, procesoKernel);
-					procesoKernel->estado = BLOCKED;
-					procesoKernel->recursoBloqueante = recursoRecibido;
-					list_add(lista_BLOCKED_RECURSOS, procesoKernel);
-					pthread_mutex_unlock(&mutexListaRunning);
-					pthread_mutex_unlock(&mutexListaBlockedRecursos);
-					sem_post(&semListaRunning);
-					printf("Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
+					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoEncontrado->nombre);
+					log_info(loggerKernel,"Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
 					
 				}
 				break;
 			}
 			case PROCESO_SIGNAL:
 			{
-				// obtener recurso
-				int recursoLength;
-				char *recursoRecibido;
-                memcpy(&recursoLength, stream, sizeof(int));
-                stream += sizeof(int);
-                recursoRecibido = malloc(recursoLength);
-                memcpy(recursoRecibido, stream, recursoLength);
-				printf("Recurso recibido. Recurso: %s\n: ", recursoRecibido);
-				Recurso *recursoEncontrado = NULL;
-					for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
-    					Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
-    					if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
-       						recursoEncontrado = recursoActual;
-        					break;
-						}
-					}
+				char* recursoRecibido=recibirRecurso(stream);
+				Recurso *recursoEncontrado = buscarRecurso(recursoRecibido);
 				// Si no encuentro el recurso -- Finaliza el proceso ok
 	 			if (recursoEncontrado == NULL) {
 					//enviarMensaje("RECURSO NO ENCONTRADO", cpu_dispatch_fd);
-					printf("Recurso %s no encontrado. Terminando proceso %d\n");
 
 					t_paquete* paquete2=recibirPaquete(cpu_dispatch_fd);
 					void *stream2 = paquete2->buffer->stream;
@@ -266,7 +225,7 @@ void* conexionesDispatch()
 					sem_post(&semListaRunning);
 					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-					log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d\n", recursoRecibido, procesoKernel->PID);
 
    				}
 				// Si el recurso existe
@@ -285,8 +244,10 @@ void* conexionesDispatch()
 							pthread_mutex_unlock(&mutexListaBlockedRecursos);
 							pthread_mutex_unlock(&mutexListaReady);
 							sem_post(&semListaReady);
-							printf("Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
+							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
 						}
+
+						
 					}
 					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);
 				}
@@ -759,6 +720,43 @@ void* conexionesDispatch()
 		free(paquete->buffer);
 		free(paquete);
 	}
+}
+char* recibirRecurso(void* stream){
+	int recursoLength;
+	char *recursoRecibido;
+	memcpy(&recursoLength, stream, sizeof(int));
+	stream += sizeof(int);
+	recursoRecibido = malloc(recursoLength);
+	memcpy(recursoRecibido, stream, recursoLength);
+
+	return recursoRecibido;
+}
+Recurso* buscarRecurso(char* recursoRecibido){
+	Recurso *recursoEncontrado = NULL;
+	for (int i = 0; i < list_size(configuracionKernel.RECURSOS); i++) {
+		Recurso *recursoActual = list_get(configuracionKernel.RECURSOS, i);
+		if (strcmp(recursoActual->nombre, recursoRecibido) == 0) {
+			recursoEncontrado = recursoActual;
+			break;
+		}
+	}
+	return recursoEncontrado;
+}
+void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
+	t_paquete* paquete=recibirPaquete(cpu_dispatch_fd);
+	void *stream = paquete->buffer->stream;
+	enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
+	procesoCPU = recibirProcesoContextoEjecucion(stream);
+	pthread_mutex_lock(&mutexListaRunning);
+	pthread_mutex_lock(&mutexListaBlockedRecursos);
+	procesoKernel = list_remove(lista_RUNNING, 0);
+	actualizarProceso(procesoCPU, procesoKernel);
+	procesoKernel->recursoBloqueante = recurso;
+	procesoKernel->estado = BLOCKED;
+	list_add(lista_BLOCKED_RECURSOS, procesoKernel);
+	pthread_mutex_unlock(&mutexListaRunning);
+	pthread_mutex_unlock(&mutexListaBlockedRecursos);
+	sem_post(&semListaRunning);
 }
 
 int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
