@@ -120,6 +120,7 @@ void cambiarAReady(t_list* cola){
     PCB *proceso = list_remove(cola, 0);
     proceso->estado = READY;
     list_add(lista_READY, proceso);
+    log_info(loggerKernel,"PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", proceso->PID);
 
     return;
 }
@@ -128,6 +129,7 @@ PCB* cambiarARunning(t_list* lista){
         PCB *proceso = list_remove(lista, 0);
         proceso->estado = RUNNING;
         list_add(lista_RUNNING, proceso);
+        log_info(loggerKernel,"PID: <%d> - Estado Anterior: <READY> - Estado Actual: <RUNNING>", proceso->PID);
         return proceso;
     }
     return NULL;

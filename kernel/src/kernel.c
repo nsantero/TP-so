@@ -77,7 +77,7 @@ PCB* crearPCB(char* path) {
 
     paquete_memoria_crear_proceso(nuevoPCB->PID, path);
     
-    log_info(loggerKernel, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
+    log_info(loggerKernel, "Se creó el proceso <%d> en NEW", nuevoPCB -> PID);
     return nuevoPCB;
 }
 void eliminarProceso(PCB* proceso){
@@ -165,6 +165,7 @@ void finalizarProceso(uint32_t pid){
     if(proceso != NULL){
         paquete_CPU_interrumpir_proceso_finalizado(pid);
     }
+    log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INTERRUPTED_BY_USER>\n", proceso->PID);
     
     pthread_mutex_unlock(&mutexListaNew);
     pthread_mutex_unlock(&mutexListaReady);

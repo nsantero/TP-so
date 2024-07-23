@@ -87,7 +87,7 @@ void* conexionesDispatch()
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
+				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <SUCCESS>\n", procesoKernel->PID);
 
 				//eliminarProceso(procesoKernel);
 				break;
@@ -115,8 +115,6 @@ void* conexionesDispatch()
 				sem_post(&semListaRunning);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
-
-				log_info(loggerKernel, "Se elimino el proceso con pid: %d\n", procesoKernel->PID);
 				break;
 
 			}
@@ -128,6 +126,7 @@ void* conexionesDispatch()
 				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
+				log_info(loggerKernel, "PID: <%d> - Desalojado por fin Quantum\n", procesoKernel->PID);
 				sem_wait(&semPlaniReadyClock);
 				sem_post(&semPlaniReadyClock);
 				procesoKernel = list_remove(lista_RUNNING, 0);
@@ -138,8 +137,9 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <READY>\n", procesoKernel->PID);
 				}
-				log_info(loggerKernel, "Se interrumpio el proceso con pid: %d por fin de QUANTUM\n", procesoKernel->PID);
+				
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
 				sem_post(&semListaReady);
@@ -168,12 +168,12 @@ void* conexionesDispatch()
 						log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 					}
 					procesoKernel->estado = EXIT;
-					list_add(lista_EXIT, procesoKernel); 
+					list_add(lista_EXIT, procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_RESOURCE:%s>\n", procesoKernel->PID, recursoRecibido);
 					pthread_mutex_unlock(&mutexListaRunning);
 					pthread_mutex_unlock(&mutexListaExit);
 					sem_post(&semListaRunning);
 					paquete_memoria_finalizar_proceso(procesoKernel->PID);
-					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d\n", recursoRecibido, procesoKernel->PID);
 
    				}
 
@@ -184,14 +184,16 @@ void* conexionesDispatch()
 					pthread_mutex_lock(&mutexListaRunning);
 					procesoKernel = list_get(lista_RUNNING, 0);
 					list_add(procesoKernel->recursosEnUso,recursoEncontrado);
+					log_info(loggerKernel,"Proceso <%d> pudo utilizar recurso %s.\n",procesoKernel->PID, recursoRecibido);
 					pthread_mutex_unlock(&mutexListaRunning);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>\n", procesoKernel->PID);
 					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoEncontrado->nombre);
-					log_info(loggerKernel,"Proceso %d bloqueado por falta de instancias del recurso %s\n", procesoKernel->PID, recursoRecibido);
+					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, recursoRecibido);
 					
 				}
 				break;
@@ -255,6 +257,29 @@ void* conexionesDispatch()
 			}
 			case RESIZE_ERROR:
 			{
+				procesoCPU = recibirProcesoContextoEjecucion(stream);
+				sem_wait(&semPlaniRunning);
+				sem_post(&semPlaniRunning);
+				pthread_mutex_lock(&mutexListaRunning);
+				pthread_mutex_lock(&mutexListaExit);
+				procesoKernel = list_remove(lista_RUNNING, 0);
+				if(procesoCPU->PID == procesoKernel->PID){
+					actualizarProceso(procesoCPU, procesoKernel);
+				}
+				else{
+					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
+
+				}
+				procesoKernel->estado = EXIT;
+				list_add(lista_EXIT, procesoKernel); 
+				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
+				pthread_mutex_unlock(&mutexListaRunning);
+				pthread_mutex_unlock(&mutexListaExit);
+				sem_post(&semListaRunning);
+				//mutex conexion memoria
+				paquete_memoria_finalizar_proceso(procesoKernel->PID);
+
+				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <OUT_OF_MEMORY>\n", procesoKernel->PID);
 				break;
 			}
 			// INSTRUCCIONES I/O
@@ -267,7 +292,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_Generica interfazGenerica;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -280,8 +304,6 @@ void* conexionesDispatch()
 				stream+=pathLength;
 				memcpy(&interfazGenerica.unidades_de_trabajo, stream, sizeof(uint32_t));
 				
-
-
 				interfazGenerica.PID=procesoKernel->PID;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(interfazGenerica.nombre_interfaz,&tipoDeInterfazEncontrada);
@@ -297,9 +319,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteIOGen,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOGen);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, interfazGenerica.nombre_interfaz);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					terminarProceso(procesoKernel); //TODO falta pasarle la lista para bloquearla
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
@@ -310,7 +335,6 @@ void* conexionesDispatch()
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -346,12 +370,14 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
-					
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, interfazsSTDIN.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
 					//eliminarProceso(proceso); //TODO
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(interfazsSTDIN.nombre_interfaz);
 
@@ -366,7 +392,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_STDOUT peticionSTDOUT;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -402,9 +427,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteSTDOUT,socketClienteInterfaz);
 					eliminar_paquete(paqueteSTDOUT);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionSTDOUT.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionSTDOUT.nombre_interfaz);
 				
@@ -420,7 +448,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -456,9 +483,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -475,7 +505,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -511,9 +540,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -530,7 +562,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -569,9 +600,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -588,7 +622,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -633,9 +666,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -652,7 +688,6 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-				log_info(loggerKernel, "El proceso con pid:%d se interrumpio por IO_GEN_SLEEP\n", procesoKernel->PID);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -697,9 +732,12 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
+					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
 				}
 				else{
 					terminarProceso(procesoKernel);
+					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -879,6 +917,7 @@ void* manejarClienteIO(void *arg)
 					pthread_mutex_unlock(&mutexListaReady);
 					sem_post(&semListaReady);
 				}
+				log_info(loggerKernel,"PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", proceso->PID);
 				break;
 			}
 			case ERROR_EN_INTERFAZ:
