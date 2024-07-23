@@ -18,7 +18,6 @@ void* ciclo_de_instruccion() {
 
         instruccion_a_decodificar = fetch(procesoEjecutando);
         log_info(loggerCpu,"PID: <%d> - FETCH - Program Counter: <%d>\n",procesoEjecutando->PID, procesoEjecutando->cpuRegisters.PC);
-        log_info(loggerCpu,"Instrucción recibida: <%s>\n",instruccion_a_decodificar);
 
         //char **cadena_instruccion = malloc(sizeof(char**));
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
@@ -305,7 +304,7 @@ uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
 		return registros.BX;
 	}else if (strcmp(dl,"CX")==0){
 		return registros.CX;
-	}else if (strcmp(dl,"DC")==0){
+	}else if (strcmp(dl,"DX")==0){
 		return registros.DX;
 	}else if (strcmp(dl,"EAX")==0){
 		return registros.EAX;
@@ -665,13 +664,13 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case MOV_IN:
         {   
-            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_IN> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_IN> - <%s> <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1,instruccion_a_ejecutar.operando2);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
          case MOV_OUT:
         {
-            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_OUT> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_OUT> - <%s> <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1,instruccion_a_ejecutar.operando2);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
