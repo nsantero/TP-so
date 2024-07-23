@@ -310,7 +310,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_GENERICA){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOGen=crear_paquete(IO_GEN_SLEEP);
 					agregar_a_paquete(paqueteIOGen,&interfazGenerica.unidades_de_trabajo,sizeof(int));
@@ -417,7 +416,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_STDOUT){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteSTDOUT=crear_paquete(IO_STDOUT_WRITE);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion);
@@ -472,7 +470,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_DFS){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteFS=crear_paquete(IO_FS_CREATE);
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
@@ -529,7 +526,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_DFS){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteFS=crear_paquete(IO_FS_DELETE);
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
@@ -588,7 +584,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_DFS){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteFS=crear_paquete(IO_FS_TRUNCATE);
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
@@ -652,7 +647,6 @@ void* conexionesDispatch()
 				if (tipoDeInterfazEncontrada!=T_DFS){
 					//error no es una intruccion compatible //TODO
 				}
-				sem_wait(&semIOGEN);
 				if(socketClienteInterfaz){
 					t_paquete* paqueteFS=crear_paquete(IO_FS_WRITE);
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
@@ -717,8 +711,7 @@ void* conexionesDispatch()
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){
 					//error no es una intruccion compatible //TODO
-				}
-				sem_wait(&semIOGEN);
+				}		
 				if(socketClienteInterfaz){
 					t_paquete* paqueteFS=crear_paquete(IO_FS_READ);
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
@@ -872,7 +865,6 @@ void* manejarClienteIO(void *arg)
 			case DESBLOQUEAR_PROCESO_POR_IO:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
-				sem_post(&semIOGEN);
 				char *nombre;
 				int charTam;
 				uint32_t pid;
@@ -922,6 +914,27 @@ void* manejarClienteIO(void *arg)
 			}
 			case ERROR_EN_INTERFAZ:
 			{
+				char *nombre;
+				int charTam;
+				uint32_t pid;
+				PCB* proceso =NULL;
+				memcpy(&charTam, stream, sizeof(int));
+				stream += sizeof(int);
+				nombre = malloc(charTam);
+				memcpy(nombre,stream, charTam);
+				stream += charTam;
+
+				memcpy(&pid,stream,sizeof(uint32_t));
+				pthread_mutex_lock(&mutexListaExit);
+				proceso=procesoBloqueado(pid);
+				proceso->estado = EXIT;
+				list_add(lista_EXIT, proceso); 
+				pthread_mutex_unlock(&mutexListaExit);
+				//mutex conexion memoria
+				paquete_memoria_finalizar_proceso(proceso->PID);
+				log_info(loggerKernel, "PID: <%d> - Estado Anterior: BLOCKED> - Estado Actual: <EXIT>\n", proceso->PID);
+				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <ERROR_DE_INTERFAZ:%s>\n", proceso->PID, nombre);
+
 				break;
 			}
 			default:
