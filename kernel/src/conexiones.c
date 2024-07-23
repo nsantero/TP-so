@@ -478,7 +478,7 @@ void* conexionesDispatch()
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 
 				peticionFS.PID=procesoKernel->PID;
-				peticionFS.operacion=IO_FS_CREATE;
+				peticionFS.operacion=DFS_CREATE;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){
@@ -533,7 +533,7 @@ void* conexionesDispatch()
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 
 				peticionFS.PID=procesoKernel->PID;
-				peticionFS.operacion=IO_FS_DELETE;
+				peticionFS.operacion=DFS_DELETE;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){
@@ -590,7 +590,7 @@ void* conexionesDispatch()
 				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
 
 				peticionFS.PID=procesoKernel->PID;
-				peticionFS.operacion=IO_FS_TRUNCATE;
+				peticionFS.operacion=DFS_TRUNCATE;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){
@@ -652,7 +652,7 @@ void* conexionesDispatch()
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
 
 				peticionFS.PID=procesoKernel->PID;
-				peticionFS.operacion=IO_FS_WRITE;
+				peticionFS.operacion=DFS_WRITE;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){
@@ -716,7 +716,7 @@ void* conexionesDispatch()
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
 
 				peticionFS.PID=procesoKernel->PID;
-				peticionFS.operacion=IO_FS_READ;
+				peticionFS.operacion=DFS_READ;
 				//MUTEX
 				int socketClienteInterfaz = existeInterfaz(peticionFS.nombre_interfaz,&tipoDeInterfazEncontrada);
 				if (tipoDeInterfazEncontrada!=T_DFS){

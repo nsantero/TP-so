@@ -232,8 +232,8 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(&peticion->tamanio, stream, sizeof(uint8_t));//TODO, aca necesito q sea uint32.
-                stream += sizeof(uint8_t);
+                memcpy(&peticion->tamanio, stream, sizeof(uint32_t));//TODO, aca necesito q sea uint32.
+                stream += sizeof(uint32_t);
                 memcpy(&peticion->PID, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&bytes, stream, sizeof(int));
@@ -259,8 +259,8 @@ void recibirPeticionDeIO_DialFS(){
                 stream+=bytes;
                 memcpy(&peticion->direcion, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&peticion->tamanio, stream, sizeof(uint8_t));
-                stream += sizeof(uint8_t);
+                memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
                 memcpy(&peticion->punteroArchivo, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->PID, stream, sizeof(int));
@@ -296,9 +296,8 @@ void avisarErrorAKernel(char* nombre,int PID){
     
 
     t_paquete* paquete=crear_paquete(ERROR_EN_INTERFAZ);
-    agregar_a_paquete(paquete,&tamanioNombre,sizeof(int));
     agregar_a_paquete(paquete,nombre,tamanioNombre);
-    agregar_a_paquete(paquete,&PID,sizeof(int));
+    agregar_entero_a_paquete32(paquete,PID);
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
 }

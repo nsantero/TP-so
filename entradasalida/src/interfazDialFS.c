@@ -90,7 +90,9 @@ Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion){
     
     closedir(dir);
     if(bloquesCheckeo){inicializar_bloques_dat(aDevolver);}
+    else{path_bloques =string_from_format("%s%s",aDevolver.pathBaseDialfs,"bloques.dat");}
     if(bitCheckeo){inicializar_bitmap_dat(aDevolver);}
+    else{path_bitmap=string_from_format("%s%s",aDevolver.pathBaseDialfs,"bitmap.dat");}
 
     return aDevolver;
 
@@ -241,8 +243,8 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
     off_t bloqueInicial;
     int tamanioEnbytesActual;
     char* path=obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
-    off_t cantBloquesNecesarios=(tamanio/8);
-    off_t cantbloquesActuales=(tamanioEnbytesActual/8);
+    off_t cantBloquesNecesarios=(tamanio/interfaz_DialFS.blockSize);
+    off_t cantbloquesActuales=(tamanioEnbytesActual/interfaz_DialFS.blockSize);
      //caso hay q achicar el archivo, se liberan los bloques
         
     if(cantbloquesActuales>cantBloquesNecesarios){ //caso, necesita menos bloques
@@ -303,7 +305,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     
     char* nombreArchivo=peticion->nombreArchivo;
     uint32_t direcion=peticion->direcion;
-    uint8_t tamanio=peticion->tamanio;
+    uint32_t tamanio=peticion->tamanio;
     uint32_t punteroArchivo=peticion->punteroArchivo;
 
     off_t bloqueInicialArchivo;
@@ -316,7 +318,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     }
     //solicitar info a memoria
     t_paquete* paquete_direccion = crear_paquete(IO_MEM_FS_WRITE);
-    agregar_entero_a_paquete8(paquete_direccion,tamanio);
+    agregar_entero_a_paquete32(paquete_direccion,tamanio);
     agregar_entero_a_paquete32(paquete_direccion,direcion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
     free(paquete_direccion->buffer);
@@ -324,8 +326,24 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     //recibir info de memoria
     //recivis un 
     int bytes;//q tiene q ser igual a tamanio
-    //y un
-    void* buffer=recibir_buffer(&bytes,memoria_fd);//guarda las cosas
+    void* buffer;//guarda las cosas
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    
+    memcpy(&bytes,stream,sizeof(int));
+    stream+=sizeof(int);
+    buffer=malloc(bytes);
+    memcpy(buffer,stream,bytes);
+
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
     
     if(bytes!=tamanio){
         //error con el mensaje HECHO
@@ -342,7 +360,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     char *addrBloques;
     addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
     //ejecuto tarea
-    memcpy(addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize),buffer,tamanio);
+    memcpy((addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize)),buffer,tamanio);
     //cierro todo
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
@@ -356,7 +374,7 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     
     char *nombreArchivo = peticion->nombreArchivo;
     uint32_t direcion = peticion->direcion;
-    uint8_t tamanio = peticion->tamanio;
+    uint32_t tamanio = peticion->tamanio;
     uint32_t punteroArchivo = peticion->punteroArchivo;
 
     off_t bloqueInicialArchivo;
@@ -366,6 +384,7 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
         //mensaje de error a kernel lee fuera del archivo HECHO
         avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
         log_info(loggerIO,"El contenido a leer se encuentra fuera del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
+        //TODO devolver error, en varios lugares
         return;
     }
 
@@ -383,9 +402,9 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     close(fdBl);
     //enviar solicitud a memoria
     t_paquete *paquete = crear_paquete(IO_MEM_FS_READ);
-    agregar_entero_a_paquete8(paquete,tamanio);
+    agregar_entero_a_paquete32(paquete,tamanio);
     agregar_entero_a_paquete32(paquete,direcion);
-    agregar_a_paquete(paquete, buffer, (int)tamanio);
+    agregar_a_paquete(paquete, buffer, tamanio);
     enviar_paquete(paquete, memoria_fd);
     eliminar_paquete(paquete);
 
