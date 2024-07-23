@@ -16,6 +16,10 @@ t_list* lista_BLOCKED_RECURSOS;
 t_list* lista_RUNNING;
 t_list* interfacesConectadas;
 
+// inicializar grado de multiprogramacion 
+
+int grado_multiprogramacion = 0;
+
 void inicializarListas() {
     lista_NEW = list_create();
     lista_READY = list_create();
@@ -46,11 +50,12 @@ int generarPID() {
 
 PCB* crearPCB(char* path) {
     printf("Creando PCB... \n");
-    PCB* nuevoPCB = malloc(2*sizeof(int)+sizeof(Estado)+sizeof(CPU_Registers)); //reserva de memoria
+    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
      if (nuevoPCB == NULL) {
         return NULL; 
     }
     nuevoPCB -> PID = generarPID();
+    nuevoPCB -> recursosEnUso = list_create();
     nuevoPCB -> recursoBloqueante = NULL;
     nuevoPCB -> cpuRegisters.PC = 0;
     nuevoPCB -> cpuRegisters.AX = 0;
@@ -72,7 +77,7 @@ PCB* crearPCB(char* path) {
 
     paquete_memoria_crear_proceso(nuevoPCB->PID, path);
     
-    log_info(loggerKernel, "Se creó el PCB del nuevo proceso, PID %d", nuevoPCB -> PID);
+    log_info(loggerKernel, "Se creó el proceso <%d> en NEW", nuevoPCB -> PID);
     return nuevoPCB;
 }
 void eliminarProceso(PCB* proceso){
@@ -92,7 +97,7 @@ void actualizarProceso(PCB* procesoCPU, PCB* procesoKernel){
     procesoKernel->cpuRegisters.DI = procesoCPU->cpuRegisters.DI;
 }
 int leer_grado_multiprogramación() {
-    return configuracionKernel.GRADO_MULTIPROGRAMACION;
+    return grado_multiprogramacion = configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
 void finalizarProceso(uint32_t pid){
@@ -101,6 +106,7 @@ void finalizarProceso(uint32_t pid){
     pthread_mutex_lock(&mutexListaReady);
     pthread_mutex_lock(&mutexListaReadyPri);
     pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaBlockedRecursos);
     pthread_mutex_lock(&mutexListaRunning);
     pthread_mutex_lock(&mutexListaExit);
 
@@ -130,16 +136,42 @@ void finalizarProceso(uint32_t pid){
         list_add(lista_EXIT, proceso);
         paquete_memoria_finalizar_proceso(pid);
     }
+
+    proceso=buscarProcesoPID(pid, lista_BLOCKED_RECURSOS);
+    if(proceso != NULL){
+        proceso->estado = EXIT;
+        list_add(lista_EXIT, proceso);
+        //Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
+        //recurso->instancias++;
+        for(int i=0; i<list_size(proceso->recursosEnUso); i++){
+            Recurso *recursoALiberar = list_get(proceso->recursosEnUso,i);
+            for(int j=0; j<list_size(lista_BLOCKED_RECURSOS); j++){
+                PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, j);
+                if (strcmp(recursoALiberar->nombre, procesoBloqueado->recursoBloqueante) == 0){
+                    procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, j);
+                    procesoBloqueado->estado = READY;
+                    list_add(lista_READY, procesoBloqueado);
+                    sem_post(&semListaReady);
+                    log_info(loggerKernel,"Proceso %d desbloqueado por finalizacion de proceso: %d de recurso %s\n", procesoBloqueado->PID, proceso->PID, procesoBloqueado->recursoBloqueante);
+                }
+            }
+            
+        }
+        
+        paquete_memoria_finalizar_proceso(pid);
+    }
     
     proceso=buscarProcesoPIDSinRemover(pid, lista_RUNNING);
     if(proceso != NULL){
         paquete_CPU_interrumpir_proceso_finalizado(pid);
     }
+    log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INTERRUPTED_BY_USER>\n", proceso->PID);
     
     pthread_mutex_unlock(&mutexListaNew);
     pthread_mutex_unlock(&mutexListaReady);
     pthread_mutex_unlock(&mutexListaReadyPri);
     pthread_mutex_unlock(&mutexListaBlocked);
+    pthread_mutex_unlock(&mutexListaBlockedRecursos);
     pthread_mutex_unlock(&mutexListaRunning);
     pthread_mutex_unlock(&mutexListaExit);
 

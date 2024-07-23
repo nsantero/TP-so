@@ -17,7 +17,8 @@ void* ciclo_de_instruccion() {
     while (valor) {
 
         instruccion_a_decodificar = fetch(procesoEjecutando);
-        printf("Instrucción recibida: %s\n", instruccion_a_decodificar);
+        log_info(loggerCpu,"PID: <%d> - FETCH - Program Counter: <%d>\n",procesoEjecutando->PID, procesoEjecutando->cpuRegisters.PC);
+        log_info(loggerCpu,"Instrucción recibida: <%s>\n",instruccion_a_decodificar);
 
         //char **cadena_instruccion = malloc(sizeof(char**));
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
@@ -120,7 +121,7 @@ char* fetch(Proceso *procesoEjecutando) {
             }
             default:
             {   
-                log_error(loggerCpu, "Error");
+                //log_error(loggerCpu, "Error");
                 break;
             }
     }     
@@ -417,7 +418,26 @@ void algoritmoLRU(int pid,int marco_memoria,int pagina){
 
 void algoritmoFIFO(int pid,int marco_memoria,int pagina){
 
-    //ordenerar la lista_TLB y eliminar segun ultima modificacion
+    int size = list_size(lista_TLB);
+
+    if(size < configuracionCpu.CANTIDAD_ENTRADAS_TLB){
+        
+        Registro_TLB *reg_TLB = malloc(sizeof(Registro_TLB));
+        
+        reg_TLB->pid = pid;
+        reg_TLB->pagina = pagina;
+        reg_TLB->marco = marco_memoria;
+        reg_TLB->ultima_modificacion = 0;
+
+        list_add(lista_TLB, reg_TLB);
+    }else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB){
+        Registro_TLB *reg_TLB  = list_get(lista_TLB,0);
+        reg_TLB->pid = pid;
+        reg_TLB->pagina = pagina;
+        reg_TLB->marco = marco_memoria;
+        reg_TLB->ultima_modificacion = 0;
+    }
+
     
 }
 
@@ -448,11 +468,12 @@ op_code buscar_en_tlb(int pid, int pagina){
 
         if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
 
+            log_info(loggerCpu,"PID: <%d> - TLB HIT - Pagina: <%d>", procesoEjecutando->PID, pagina);
             return HIT;
         }
 
     }
-
+    log_info(loggerCpu,"PID: <%d> - TLB MISS - Pagina: <%d>", procesoEjecutando->PID, pagina);
     return MISS;
 }
 
@@ -552,110 +573,126 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         case SET:
         {   
             int valor = atoi(instruccion_a_ejecutar.operando2);
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <SET> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, valor);
             ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
-            log_info(loggerCpu, "Se ejecuto la instruccion SET del proceso:%d\n", procesoEjecutando->PID);
             break;
         }
         case SUM:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <SUM> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             ejecutar_sum(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;        
         }
         case SUB:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <SUB> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             ejecutar_sub(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;
         }
         case JNZ:
         {
             int valor = atoi(instruccion_a_ejecutar.operando2);
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <JNZ> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;
         }
         case WAIT:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
 
             break;
         }
         case SIGNAL:
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
         case IO_GEN_SLEEP:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             bloqueado = 1;
             break;
         }
         case IO_STDIN_READ:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_STDIN_READ> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
             mandarPaqueteaKernelSTD(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_STDOUT_WRITE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_STDOUT_WRITE> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
             mandarPaqueteaKernelSTD(IO_STDOUT_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_FS_CREATE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_CREATE> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
         case IO_FS_DELETE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_DELETE> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             mandarPaqueteaKernelFScrdel(IO_FS_DELETE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
         case IO_FS_TRUNCATE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_TRUNCATE> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3);
             mandarPaqueteaKernelFStrun(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_FS_WRITE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_WRITE> - <%s> <%s> <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5);
             mandarPaqueteaKernelFSWR(IO_FS_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
         case IO_FS_READ:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_READ> - <%s> <%s> <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5);
             mandarPaqueteaKernelFSWR(IO_FS_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
         case MOV_IN:
         {   
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_IN> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
          case MOV_OUT:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_OUT> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
         case RESIZE:
         {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <RESIZE> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
 
             paquete_memoria_resize(pid,tam_nuevo);
             op_code operacion;
             operacion=recibir_confirmacion_memoria_resize();
             if(operacion == OUT_OF_MEMORY){
-                mandarPaqueteaKernel(EXIT);
+                mandarPaqueteaKernel(RESIZE_ERROR);
                 bloqueado = 1;
+                log_info(loggerCpu, "PID: <%d> - Error Ejecutando: <RESIZE> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             }
-            printf("Instrucción resize realizada!! \n");
             break;
         }
         default:
         {   
-            log_error(loggerCpu, "Error");
+            //log_error(loggerCpu, "Error");
             break;
         }
 
@@ -685,7 +722,7 @@ uint32_t recibir_leer_memoria_mov_in(){
         }
         default:
         {   
-            log_error(loggerCpu, "Error");
+            //log_error(loggerCpu, "Error");
             break;
         }
     }       
@@ -706,7 +743,7 @@ op_code recibir_confirmacion_memoria_mov_out(){
             }
             default:
             {   
-                log_error(loggerCpu, "Error");
+                //log_error(loggerCpu, "Error");
                 break;
             }
 
