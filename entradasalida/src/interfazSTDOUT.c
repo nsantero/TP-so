@@ -79,7 +79,7 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 
     
     char* contenido_memoria = buffer;//Aca no se si va a faltar el \0
-    printf("El contenido encontrado en la direccion de memoria %u es: %s\n", peticion->direccion, contenido_memoria);
+    printf("El contenido encontrado en la direccion de memoria %d es: %s\n", (int)peticion->direccion, contenido_memoria);
     
     free(paquete->buffer->stream);
     free(paquete->buffer);

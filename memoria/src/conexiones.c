@@ -710,18 +710,43 @@ void* manejarClienteEntradaSalida(void *arg)
 
             case IO_MEM_FS_READ:
             {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
-                //string buffer
-                //RECIBE DIRECCION y BUFFER y escribe el buffer en la direccion dada
+                uint32_t tamanio;
+                uint32_t direc;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,tamanio);
                 
+                //Guardar buffer
+
+
+
+                free(buffer);
             }
             case  IO_MEM_FS_WRITE:
             {
-                //Registro Tamaño -> 8 bytes
-                //Registro Dirección -> dl unit_32
+                uint32_t tamanio;
+                uint32_t direc;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
                 
-                //RECIBE DIRECCION , TAM y luego envia lo que hay en esa direccion a IOFS
+                //Lee la direccion
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                
+
+
+
             }
             case  IO_MEM_STDIN_READ :
             {
@@ -737,7 +762,7 @@ void* manejarClienteEntradaSalida(void *arg)
 
                 //TODO aca tiene q escribir el buffer en la direccion q le manda IO
                 // solicitar la traduccion de dl a df
-                
+                //Devolver ok?
                 free(buffer);
             }
             case  IO_MEM_STDOUT_WRITE :
@@ -758,6 +783,7 @@ void* manejarClienteEntradaSalida(void *arg)
                 enviar_paquete(paqueteDevolverAIO,socketCliente);
                 free(paqueteDevolverAIO->buffer);
                 free(paqueteDevolverAIO);
+                
             }
 
             default:
