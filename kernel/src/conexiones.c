@@ -32,15 +32,18 @@ uint32_t leerValorDelRegistro(char *registroAleer,CPU_Registers registros){
 		return registros.SI;
 	}else if (strcmp(registroAleer,"DI")==0){
 		return registros.DI;
-	}else {/*TODO ERROR*/}
+	}
+	return 0;
 }
 
 ////////////////////////////////////////////////////////// PROCESO CONEXION //////////////////////////////////////////////////////////
-t_paquete* recibirPaquete(socket){
+t_paquete* recibirPaquete(int socket){
 	t_paquete* paquete = NULL;
 	paquete = malloc(sizeof(t_paquete));
 	paquete->buffer = NULL;
 	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->codigo_operacion = 0;
+	paquete->buffer->size = 0;
 	paquete->buffer->stream = NULL;
 
 	recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
@@ -78,6 +81,7 @@ void* conexionesDispatch()
 					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 
 				}
+				free(procesoCPU);
 				procesoKernel->estado = EXIT;
 				list_add(lista_EXIT, procesoKernel); 
 				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
@@ -107,6 +111,7 @@ void* conexionesDispatch()
 					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 
 				}
+				free(procesoCPU);
 				procesoKernel->estado = EXIT;
 				list_add(lista_EXIT, procesoKernel); 
 				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);
@@ -126,10 +131,10 @@ void* conexionesDispatch()
 				
 				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
-				log_info(loggerKernel, "PID: <%d> - Desalojado por fin Quantum\n", procesoKernel->PID);
 				sem_wait(&semPlaniReadyClock);
 				sem_post(&semPlaniReadyClock);
 				procesoKernel = list_remove(lista_RUNNING, 0);
+				log_info(loggerKernel, "PID: <%d> - Desalojado por fin Quantum\n", procesoKernel->PID);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					procesoKernel->quantum=configuracionKernel.QUANTUM;
 				}
@@ -139,6 +144,7 @@ void* conexionesDispatch()
 					list_add(lista_READY, procesoKernel);
 					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <READY>\n", procesoKernel->PID);
 				}
+				free(procesoCPU);
 				
 				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
@@ -167,6 +173,7 @@ void* conexionesDispatch()
 					else{
 						log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 					}
+					free(procesoCPU);
 					procesoKernel->estado = EXIT;
 					list_add(lista_EXIT, procesoKernel);
 					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_RESOURCE:%s>\n", procesoKernel->PID, recursoRecibido);
@@ -220,6 +227,7 @@ void* conexionesDispatch()
 					else{
 						log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 					}
+					free(procesoCPU);
 					procesoKernel->estado = EXIT;
 					list_add(lista_EXIT, procesoKernel); 
 					pthread_mutex_unlock(&mutexListaRunning);
@@ -292,6 +300,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_Generica interfazGenerica;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -334,7 +343,7 @@ void* conexionesDispatch()
 				procesoCPU = recibirProcesoContextoEjecucion(stream);
 				stream += 8*sizeof(uint32_t) + 4*sizeof(uint8_t); // como recibe mas cosas se suma el el registri DI
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
-
+				free(procesoCPU);
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
@@ -391,6 +400,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_STDOUT peticionSTDOUT;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -446,6 +456,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -502,6 +513,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -558,6 +570,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -617,6 +630,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -682,6 +696,7 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniBlocked);
 				sem_post(&semPlaniBlocked);
 				procesoKernel = desalojarProceso(procesoKernel, procesoCPU);
+				free(procesoCPU);
 
 				Peticion_Interfaz_DialFS peticionFS;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
@@ -746,7 +761,6 @@ void* conexionesDispatch()
 			}
 			eliminar_paquete(paquete);
 		}
-		//free(procesoCPU);
 		free(paquete->buffer->stream);
 		free(paquete->buffer);
 		free(paquete);
@@ -782,6 +796,7 @@ void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
 	pthread_mutex_lock(&mutexListaBlockedRecursos);
 	procesoKernel = list_remove(lista_RUNNING, 0);
 	actualizarProceso(procesoCPU, procesoKernel);
+	free(procesoCPU);
 	procesoKernel->recursoBloqueante = recurso;
 	procesoKernel->estado = BLOCKED;
 	list_add(lista_BLOCKED_RECURSOS, procesoKernel);
@@ -865,16 +880,14 @@ void* manejarClienteIO(void *arg)
 			case DESBLOQUEAR_PROCESO_POR_IO:
 			{
 				//recibo nombre de la interfaz para sacarlo de la lista y pasarlo de bloqueado a ready
-				char *nombre;
+				//char *nombre;
 				int charTam;
 				uint32_t pid;
 				PCB* proceso =NULL;
 				memcpy(&charTam, stream, sizeof(int));
 				stream += sizeof(int);
-				nombre = malloc(charTam);
-				memcpy(nombre,stream, charTam);
 				stream += charTam;
-
+				//nombre no lo necesito
 				memcpy(&pid,stream,sizeof(uint32_t));
 				proceso=procesoBloqueado(pid);
 				sem_wait(&semPlaniBlocked);
@@ -942,7 +955,11 @@ void* manejarClienteIO(void *arg)
 				//ningun mensaje valido recibido
 				break;
 			}
+		
 		}
+		free(paquete->buffer->stream);
+		free(paquete->buffer);
+		free(paquete);
 	}
 }
 

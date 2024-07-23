@@ -45,5 +45,28 @@ void inicializar_sem_planificadores()
     sem_init(&semPlaniBlockedRecursos,0,1);
     sem_init(&semPlaniBlockedPrioridad,0,1);
 
-    sem_init(&semIOGEN,0,1);
+}
+void destruirSemaforos(){
+    sem_destroy(&semListaNew);
+    sem_destroy(&semListaReady);
+    sem_destroy(&semListaRunning);
+
+    sem_destroy(&semPlaniNew);
+    sem_destroy(&semPlaniReady);
+    sem_destroy(&semPlaniBlocked);
+    sem_destroy(&semPlaniRunning);
+    sem_destroy(&semPlaniReadyClock);
+    sem_destroy(&semPlaniBlockedRecursos);
+    sem_destroy(&semPlaniBlockedPrioridad);
+
+    //MUTEX
+
+    pthread_mutex_destroy(&mutexListaNew);
+    pthread_mutex_destroy(&mutexListaReady);
+    pthread_mutex_destroy(&mutexListaReadyPri);
+    pthread_mutex_destroy(&mutexListaBlocked);
+    pthread_mutex_destroy(&mutexListaBlockedRecursos);
+    pthread_mutex_destroy(&mutexListaRunning);
+    pthread_mutex_destroy(&mutexListaExit);
+    pthread_mutex_destroy(&mutexHiloQuantum);
 }

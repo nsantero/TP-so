@@ -5,6 +5,7 @@
 #include <utils.h>
 
 extern void inicializar_sem_planificadores();
+void destruirSemaforos();
 
 //SEMAFOROS
 
@@ -31,10 +32,8 @@ extern sem_t semPlaniReadyClock;
 extern sem_t semPlaniBlockedRecursos;
 extern sem_t semPlaniBlockedPrioridad;
 
-extern sem_t semIOGEN;
 
 extern sem_t sem_grado_multiprogramacion;
-extern sem_t sem_corto_plazo, *sem_largo_plazo;
 extern sem_t mutex_detener_planificador;
 
 #endif 

@@ -8,66 +8,127 @@ void* manejadorDeConsola(){
 
     while(1){
         linea=readline("Kernel> ");
-        if(linea)
+        if(strlen(linea)>0)
         {
             add_history(linea);
-        }
-        comando = strtok(linea, " ");
-        //TODO estaria bueno q no rompa si el comando q le pasan esta mal, q mande un comando erroneo o algo asi
-        if(!strcmp(comando,"EJECUTAR_SCRIPT")){
-            segundoArgumento = strtok(NULL, " ");
-            if(segundoArgumento){
-                ejecutarScript(segundoArgumento);
+            comando = strtok(linea, " ");
+            //TODO estaria bueno q no rompa si el comando q le pasan esta mal, q mande un comando erroneo o algo asi
+            if(!strcmp(comando,"EJECUTAR_SCRIPT")){
+                segundoArgumento = strtok(NULL, " ");
+                if(segundoArgumento){
+                    ejecutarScript(segundoArgumento);
+                }
+                else{
+                    printf("Error: Falta el argumento [PATH]\n");
+                }
             }
-            else{
-                printf("Error: Falta el argumento [PATH]\n");
+            else if(!strcmp(comando, "INICIAR_PROCESO")){
+                segundoArgumento = strtok(NULL, " ");
+                if (segundoArgumento) {
+                    //iniciar_proceso(segundoArgumento);
+                    crearPCB(segundoArgumento);
+                } else {
+                    printf("Error: Falta el argumento [PATH].\n");
+                }
             }
-        }
-        else if(!strcmp(comando, "INICIAR_PROCESO")){
-            segundoArgumento = strtok(NULL, " ");
-            if (segundoArgumento) {
-                //iniciar_proceso(segundoArgumento);
-                crearPCB(segundoArgumento);
-            } else {
-                printf("Error: Falta el argumento [PATH].\n");
+            else if (!strcmp(comando, "FINALIZAR_PROCESO")) {
+                segundoArgumento = strtok(NULL, " ");
+                if (segundoArgumento) {
+                    int pid = atoi(segundoArgumento);
+                    printf("PID %d \n", pid);
+                    detener_planificacion();
+                    finalizarProceso((uint32_t)pid);
+                    iniciar_planificacion();
+                } else {
+                    printf("Error: Falta el argumento [PID].\n");
+                }
             }
-        }
-        else if (!strcmp(comando, "FINALIZAR_PROCESO")) {
-            segundoArgumento = strtok(NULL, " ");
-            if (segundoArgumento) {
-                int pid = atoi(segundoArgumento);
-                printf("PID %d \n", pid);
+            else if (!strcmp(comando, "DETENER_PLANIFICACION")) {
                 detener_planificacion();
-                finalizarProceso((uint32_t)pid);
-                iniciar_planificacion();
-            } else {
-                printf("Error: Falta el argumento [PID].\n");
-            }
-        }
-        else if (!strcmp(comando, "DETENER_PLANIFICACION")) {
-            detener_planificacion();
 
-        }
-        else if (!strcmp(comando, "INICIAR_PLANIFICACION")) {
-            iniciar_planificacion();
-        }
-        else if (!strcmp(comando, "MULTIPROGRAMACION")) {
-            segundoArgumento = strtok(NULL, " ");
-            if (segundoArgumento) {
-                int valor = atoi(segundoArgumento);
-                modificar_grado_multiprogramacion(valor);
-            } else {
-                printf("Error: Falta el argumento [VALOR].\n");
             }
-        }
-        else if (!strcmp(comando, "PROCESO_ESTADO")) {
-            mostrar_todas_las_listas();
-        } else {
-            printf("Comando no reconocido: %s\n", comando);
+            else if (!strcmp(comando, "INICIAR_PLANIFICACION")) {
+                iniciar_planificacion();
+            }
+            else if (!strcmp(comando, "MULTIPROGRAMACION")) {
+                segundoArgumento = strtok(NULL, " ");
+                if (segundoArgumento) {
+                    int valor = atoi(segundoArgumento);
+                    modificar_grado_multiprogramacion(valor);
+                } else {
+                    printf("Error: Falta el argumento [VALOR].\n");
+                }
+            }
+            else if (!strcmp(comando, "PROCESO_ESTADO")) {
+                mostrar_todas_las_listas();
+            }else if (!strcmp(comando, "MATAR")) {
+                terminarKernel();
+                free(linea);
+                return NULL;
+            } else {
+                printf("Comando no reconocido: %s\n", comando);
+            }
         }
         free(linea);
+        
     }
     
+}
+void liberarPCB(PCB* pcb) {
+    if (pcb != NULL) {
+        // Liberar la lista de recursos en uso
+        if (pcb->recursosEnUso != NULL) {
+            list_destroy_and_destroy_elements(pcb->recursosEnUso, free);  // Ajusta el segundo parámetro si necesitas liberar elementos específicos
+        }
+        // Liberar el PCB
+        free(pcb->recursoBloqueante); // Si se ha asignado memoria a recursoBloqueante
+        free(pcb);
+    }
+}
+
+// Función para liberar todas las listas y sus elementos
+void liberarTodasLasListas() {
+    // Definir un array de listas
+    t_list* listas[] = { lista_NEW, lista_READY, lista_READYPRI, lista_EXIT, lista_BLOCKED, lista_BLOCKED_RECURSOS, lista_RUNNING };
+    int numListas = sizeof(listas) / sizeof(t_list*);
+
+    // Recorrer cada lista
+    for (int i = 0; i < numListas; i++) {
+        t_list* lista = listas[i];
+        if (lista != NULL) {
+            // Recorrer y liberar cada PCB en la lista
+            while (!list_is_empty(lista)) {
+                PCB* pcb = list_remove(lista, 0);
+                liberarPCB(pcb);
+            }
+            // Liberar la lista
+            list_destroy(lista);
+        }
+    }
+}
+void terminarKernel(){
+    pthread_mutex_lock(&mutexListaNew);
+    pthread_mutex_lock(&mutexListaReady);
+    pthread_mutex_lock(&mutexListaReadyPri);
+    pthread_mutex_lock(&mutexListaBlocked);
+    pthread_mutex_lock(&mutexListaBlockedRecursos);
+    pthread_mutex_lock(&mutexListaRunning);
+    pthread_mutex_lock(&mutexListaExit);
+    liberarTodasLasListas();
+    pthread_mutex_unlock(&mutexListaNew);
+    pthread_mutex_unlock(&mutexListaReady);
+    pthread_mutex_unlock(&mutexListaReadyPri);
+    pthread_mutex_unlock(&mutexListaBlocked);
+    pthread_mutex_unlock(&mutexListaBlockedRecursos);
+    pthread_mutex_unlock(&mutexListaRunning);
+    pthread_mutex_unlock(&mutexListaExit);
+
+    destruirSemaforos();
+
+    close(memoria_fd);
+    close(cpu_dispatch_fd);
+    close(cpu_interrupt_fd);
+    close(server_fd);
 }
 
 void ejecutarScript(char* path){

@@ -21,6 +21,10 @@ void modificar_grado_multiprogramacion(int valor);
 void procesarLinea(char* linea,  const char* scriptBasePath);
 char* construirPathCompleto(char* argumento);
 
+void liberarPCB(PCB* pcb);
+void liberarTodasLasListas();
+void terminarKernel();
+
 void detener_cola_new(void* arg);
 void detener_cola_ready(void* arg);
 void detener_cola_exec(void* arg);
