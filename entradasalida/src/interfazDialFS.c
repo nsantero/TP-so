@@ -170,7 +170,7 @@ void crearNuevoFile(Peticion_Interfaz_DialFS* peticion){
     {
         if(strcmp(entry->d_name,nombre)==0){
             log_info(loggerIO,"Ya existe el archivo en el FS");
-            //Deberia avisar a kernel?? TODO
+            avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
             return;
         }
     }
@@ -228,7 +228,7 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
         }
     }
     log_info(loggerIO,"No existe el archivo en el FS");
-    //Deberia avisar a kernel?? TODO
+    avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
 
     
 
@@ -384,7 +384,7 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
         //mensaje de error a kernel lee fuera del archivo HECHO
         avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
         log_info(loggerIO,"El contenido a leer se encuentra fuera del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
-        //TODO devolver error, en varios lugares
+        
         return;
     }
 

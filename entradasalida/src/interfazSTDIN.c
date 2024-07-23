@@ -65,9 +65,6 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	
 	t_paquete* paquete_entrada = crear_paquete(IO_MEM_STDIN_READ);
 
-    //TODO aca el paquete tmb deberia tener la direccion logica de donde se quiere guardar 
-    //y el tamaño q se quiere guardar, por si se ingresa algo mas grande/mas chico 
-    //CREO Q ESTE to do ya esta solucionado
 
 	texto_leido = leer_texto_ingresado(peticion->tamanio,peticion->PID);
     peticion->tamanio=strlen(texto_leido)+1;
