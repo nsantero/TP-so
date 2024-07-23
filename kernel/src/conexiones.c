@@ -246,6 +246,7 @@ void* conexionesDispatch()
 							sem_post(&semListaReady);
 							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
 						}
+
 						
 					}
 					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);

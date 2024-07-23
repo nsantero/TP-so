@@ -46,7 +46,7 @@ int generarPID() {
 
 PCB* crearPCB(char* path) {
     printf("Creando PCB... \n");
-    PCB* nuevoPCB = malloc(2*sizeof(int)+sizeof(Estado)+sizeof(CPU_Registers)); //reserva de memoria
+    PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
      if (nuevoPCB == NULL) {
         return NULL; 
     }
@@ -141,16 +141,12 @@ void finalizarProceso(uint32_t pid){
         //recurso->instancias++;
         for(int i=0; i<list_size(proceso->recursosEnUso); i++){
             Recurso *recursoALiberar = list_get(proceso->recursosEnUso,i);
-            for(int j=0; i<list_size(lista_BLOCKED_RECURSOS); j++){
+            for(int j=0; j<list_size(lista_BLOCKED_RECURSOS); j++){
                 PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, j);
                 if (strcmp(recursoALiberar->nombre, procesoBloqueado->recursoBloqueante) == 0){
-                    pthread_mutex_lock(&mutexListaBlockedRecursos);
-                    pthread_mutex_lock(&mutexListaReady);
                     procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, j);
                     procesoBloqueado->estado = READY;
                     list_add(lista_READY, procesoBloqueado);
-                    pthread_mutex_unlock(&mutexListaBlockedRecursos);
-                    pthread_mutex_unlock(&mutexListaReady);
                     sem_post(&semListaReady);
                     log_info(loggerKernel,"Proceso %d desbloqueado por finalizacion de proceso: %d de recurso %s\n", procesoBloqueado->PID, proceso->PID, procesoBloqueado->recursoBloqueante);
                 }
