@@ -28,6 +28,8 @@ extern sem_t semPlaniReady;
 extern sem_t semPlaniBlocked;
 extern sem_t semPlaniRunning;
 extern sem_t semPlaniReadyClock;
+extern sem_t semPlaniBlockedRecursos;
+extern sem_t semPlaniBlockedPrioridad;
 
 extern sem_t semIOGEN;
 

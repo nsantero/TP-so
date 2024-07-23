@@ -16,6 +16,10 @@ t_list* lista_BLOCKED_RECURSOS;
 t_list* lista_RUNNING;
 t_list* interfacesConectadas;
 
+// inicializar grado de multiprogramacion 
+
+int grado_multiprogramacion = 0;
+
 void inicializarListas() {
     lista_NEW = list_create();
     lista_READY = list_create();
@@ -93,7 +97,7 @@ void actualizarProceso(PCB* procesoCPU, PCB* procesoKernel){
     procesoKernel->cpuRegisters.DI = procesoCPU->cpuRegisters.DI;
 }
 int leer_grado_multiprogramación() {
-    return configuracionKernel.GRADO_MULTIPROGRAMACION;
+    return grado_multiprogramacion = configuracionKernel.GRADO_MULTIPROGRAMACION;
 }
 
 void finalizarProceso(uint32_t pid){

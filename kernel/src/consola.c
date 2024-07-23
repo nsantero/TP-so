@@ -55,7 +55,7 @@ void* manejadorDeConsola(){
             segundoArgumento = strtok(NULL, " ");
             if (segundoArgumento) {
                 int valor = atoi(segundoArgumento);
-                //modificar_multiprogramacion(valor);
+                modificar_grado_multiprogramacion(valor);
             } else {
                 printf("Error: Falta el argumento [VALOR].\n");
             }
@@ -140,15 +140,19 @@ char* construirPathCompleto(char* argumento) {
 }
 
 void detener_planificacion() {
-    pthread_t detener_new, detener_ready, detener_exec, detener_blocked;
+    pthread_t detener_new, detener_ready, detener_exec, detener_blocked, detener_blocked_recursos, detener_blocked_prioridad;
     pthread_create(&detener_new,NULL,(void*) detener_cola_new,NULL);
     pthread_create(&detener_ready,NULL,(void*) detener_cola_ready,NULL);
     pthread_create(&detener_exec,NULL,(void*) detener_cola_exec,NULL);
     pthread_create(&detener_blocked,NULL,(void*) detener_cola_blocked,NULL);
+    pthread_create(&detener_blocked_recursos,NULL,(void*) detener_cola_blocked_recursos,NULL);
+    pthread_create(&detener_blocked_prioridad,NULL,(void*) detener_cola_blocked_prioridad,NULL);
     pthread_detach(detener_new);
     pthread_detach(detener_ready);
     pthread_detach(detener_exec);
     pthread_detach(detener_blocked);
+    pthread_detach(detener_blocked_recursos);
+    pthread_detach(detener_blocked_prioridad);
 }
 void detener_cola_new(void* arg)
 {
@@ -167,9 +171,26 @@ void detener_cola_blocked(void* arg)
     sem_wait(&semPlaniBlocked);
 }
 
+void detener_cola_blocked_recursos(void* arg)
+{
+    sem_wait(&semPlaniBlockedRecursos);
+}
+
+void detener_cola_blocked_prioridad(void* arg)
+{
+    sem_wait(&semPlaniReadyClock);
+}
+
 void iniciar_planificacion() {
     sem_post(&semPlaniNew);
     sem_post(&semPlaniReady);
     sem_post(&semPlaniRunning);
     sem_post(&semPlaniBlocked);
+    sem_post(&semPlaniBlockedRecursos);
+    sem_post(&semPlaniReadyClock);
 }
+
+void modificar_grado_multiprogramacion(int valor) {
+    grado_multiprogramacion = valor;
+}
+
