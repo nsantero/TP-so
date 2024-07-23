@@ -51,7 +51,8 @@ PCB* crearPCB(char* path) {
         return NULL; 
     }
     nuevoPCB -> PID = generarPID();
-    nuevoPCB -> recursoBloqueante = list_create();
+    nuevoPCB -> recursosEnUso = list_create();
+    nuevoPCB -> recursoBloqueante = NULL;
     nuevoPCB -> cpuRegisters.PC = 0;
     nuevoPCB -> cpuRegisters.AX = 0;
     nuevoPCB -> cpuRegisters.BX = 0;
@@ -138,25 +139,25 @@ void finalizarProceso(uint32_t pid){
         list_add(lista_EXIT, proceso);
         //Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
         //recurso->instancias++;
-        for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
-            //Recurso* recurso=buscarRecurso(proceso->recursoBloqueante);
-            PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
-            Recurso *recursobuscado = list_get(procesoBloqueado->recursoBloqueante,i);
-            for(int j=0; j<list_size(procesoBloqueado->recursoBloqueante); i++){
-                if (strcmp(recursobuscado->nombre, recurso->nombre) == 0) {
-                    // lo muevo a ready
+        for(int i=0; i<list_size(proceso->recursosEnUso); i++){
+            Recurso *recursoALiberar = list_get(proceso->recursosEnUso,i);
+            for(int j=0; i<list_size(lista_BLOCKED_RECURSOS); j++){
+                PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, j);
+                if (strcmp(recursoALiberar->nombre, procesoBloqueado->recursoBloqueante) == 0){
                     pthread_mutex_lock(&mutexListaBlockedRecursos);
                     pthread_mutex_lock(&mutexListaReady);
-                    procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, i);
+                    procesoBloqueado = list_remove(lista_BLOCKED_RECURSOS, j);
                     procesoBloqueado->estado = READY;
                     list_add(lista_READY, procesoBloqueado);
                     pthread_mutex_unlock(&mutexListaBlockedRecursos);
                     pthread_mutex_unlock(&mutexListaReady);
                     sem_post(&semListaReady);
-                    log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoBloqueado->PID, recurso->nombre);
+                    log_info(loggerKernel,"Proceso %d desbloqueado por finalizacion de proceso: %d de recurso %s\n", procesoBloqueado->PID, proceso->PID, procesoBloqueado->recursoBloqueante);
                 }
-			}
+            }
+            
         }
+        
         paquete_memoria_finalizar_proceso(pid);
     }
     
