@@ -165,7 +165,10 @@ void finalizarProceso(uint32_t pid){
     if(proceso != NULL){
         paquete_CPU_interrumpir_proceso_finalizado(pid);
     }
-    log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INTERRUPTED_BY_USER>\n", proceso->PID);
+    if(proceso!= NULL){
+        log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INTERRUPTED_BY_USER>\n", proceso->PID);
+    }
+    
     
     pthread_mutex_unlock(&mutexListaNew);
     pthread_mutex_unlock(&mutexListaReady);

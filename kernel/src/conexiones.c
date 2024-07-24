@@ -54,7 +54,6 @@ t_paquete* recibirPaquete(int socket){
 	return paquete;
 }
 
-// INICIAR_PROCESO /home/utnso/tp-2024-1c-File-System-Fanatics/kernel/preliminares/script_solo_cpu.txt
 void* conexionesDispatch()
 {
 	
@@ -191,18 +190,20 @@ void* conexionesDispatch()
 					pthread_mutex_lock(&mutexListaRunning);
 					procesoKernel = list_get(lista_RUNNING, 0);
 					list_add(procesoKernel->recursosEnUso,recursoEncontrado);
-					log_info(loggerKernel,"Proceso <%d> pudo utilizar recurso %s.\n",procesoKernel->PID, recursoRecibido);
+					log_info(loggerKernel,"Proceso <%d> pudo utilizar recurso %s.\n",procesoKernel->PID, recursoEncontrado->nombre);
 					pthread_mutex_unlock(&mutexListaRunning);
 				} 
 
 				// Si el recurso existe pero no hay instancias del mismo se bloquea el proceso
 				else {
+					recursoEncontrado->instancias--;
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
 					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>\n", procesoKernel->PID);
 					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoEncontrado->nombre);
-					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, recursoRecibido);
+					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, recursoEncontrado->nombre);
 					
 				}
+				free(recursoRecibido);
 				break;
 			}
 			case PROCESO_SIGNAL:
@@ -244,23 +245,25 @@ void* conexionesDispatch()
 					// busco si hay algún proceso esperando el recurso
 					for (int i=0; i<list_size(lista_BLOCKED_RECURSOS); i++) {
 						PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
-						if (strcmp(procesoBloqueado->recursoBloqueante, recursoRecibido) == 0) {
+						if (strcmp(procesoBloqueado->recursoBloqueante, recursoEncontrado->nombre) == 0) {
 							// lo muevo a ready
 							pthread_mutex_lock(&mutexListaBlockedRecursos);
 							pthread_mutex_lock(&mutexListaReady);
 							procesoKernel = list_remove(lista_BLOCKED_RECURSOS, i);
 							procesoKernel->estado = READY;
+							procesoKernel->recursoBloqueante = NULL;
 							list_add(lista_READY, procesoKernel);
 							pthread_mutex_unlock(&mutexListaBlockedRecursos);
 							pthread_mutex_unlock(&mutexListaReady);
 							sem_post(&semListaReady);
-							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoRecibido);
+							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoEncontrado->nombre);
 						}
 
 						
 					}
 					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);
 				}
+				free(recursoRecibido);
 				break;
 			}
 			case RESIZE_ERROR:
@@ -797,6 +800,9 @@ void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
 	procesoKernel = list_remove(lista_RUNNING, 0);
 	actualizarProceso(procesoCPU, procesoKernel);
 	free(procesoCPU);
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
 	procesoKernel->recursoBloqueante = recurso;
 	procesoKernel->estado = BLOCKED;
 	list_add(lista_BLOCKED_RECURSOS, procesoKernel);

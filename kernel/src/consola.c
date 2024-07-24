@@ -78,10 +78,8 @@ void liberarPCB(PCB* pcb) {
     if (pcb != NULL) {
         // Liberar la lista de recursos en uso
         if (pcb->recursosEnUso != NULL) {
-            list_destroy_and_destroy_elements(pcb->recursosEnUso, free);  // Ajusta el segundo parámetro si necesitas liberar elementos específicos
+            list_destroy(pcb->recursosEnUso);  // Ajusta el segundo parámetro si necesitas liberar elementos específicos
         }
-        // Liberar el PCB
-        free(pcb->recursoBloqueante); // Si se ha asignado memoria a recursoBloqueante
         free(pcb);
     }
 }
@@ -90,7 +88,7 @@ void liberarPCB(PCB* pcb) {
 void liberarTodasLasListas() {
     // Definir un array de listas
     t_list* listas[] = { lista_NEW, lista_READY, lista_READYPRI, lista_EXIT, lista_BLOCKED, lista_BLOCKED_RECURSOS, lista_RUNNING };
-    int numListas = sizeof(listas) / sizeof(t_list*);
+    int numListas = 7;
 
     // Recorrer cada lista
     for (int i = 0; i < numListas; i++) {
@@ -129,6 +127,8 @@ void terminarKernel(){
     close(cpu_dispatch_fd);
     close(cpu_interrupt_fd);
     close(server_fd);
+    limpiarConfig();
+    log_destroy(loggerKernel);
 }
 
 void ejecutarScript(char* path){

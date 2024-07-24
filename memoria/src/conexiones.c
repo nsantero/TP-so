@@ -252,6 +252,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
             }
         }
     }
+    return NULL;
 }
 
 void enviar_paquete_cpu_marco(int marco_encontrado,int socketCliente){
@@ -553,7 +554,7 @@ void* manejarClienteCpu(void *arg)
             }
             default:
             {   
-                log_error(loggerMemoria, "Error");
+                //log_error(loggerMemoria, "Error");
                 break;
             }
 
@@ -632,7 +633,7 @@ void* manejarClienteKernel(void *arg)
             }
             default:
             {   
-                log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
+                //log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
@@ -791,7 +792,7 @@ void* manejarClienteEntradaSalida(void *arg)
 
             default:
             {   
-                log_error(loggerMemoria, "Error");
+                //log_error(loggerMemoria, "Error");
                 break;
             }
 
