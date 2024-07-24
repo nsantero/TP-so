@@ -42,35 +42,39 @@ void recibirPeticionDeIO_GEN(){
 
         switch (paquete->codigo_operacion)  
         {
-        case IO_GEN_SLEEP:
+            case IO_GEN_SLEEP:
+            {
+                Peticion_Interfaz_Generica *peticion=malloc(sizeof(Peticion_Interfaz_Generica));
+                int bytes;
+                
+                stream+=sizeof(int);
+                memcpy(&peticion->unidades_de_trabajo, stream, sizeof(int));
+                stream += sizeof(int);
+                stream += sizeof(int);
+                memcpy(&peticion->PID, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&bytes, stream, sizeof(int));
+                stream += sizeof(int);
+                peticion->nombre_interfaz = malloc(bytes);
+                memcpy(peticion->nombre_interfaz, stream, bytes);
 
-            Peticion_Interfaz_Generica *peticion=malloc(sizeof(Peticion_Interfaz_Generica));
-            int bytes;
             
-            stream+=sizeof(int);
-            memcpy(&peticion->unidades_de_trabajo, stream, sizeof(int));
-            stream += sizeof(int);
-            stream += sizeof(int);
-            memcpy(&peticion->PID, stream, sizeof(int));
-            stream += sizeof(int);
-            memcpy(&bytes, stream, sizeof(int));
-            stream += sizeof(int);
-            peticion->nombre_interfaz = malloc(bytes);
-            memcpy(peticion->nombre_interfaz, stream, bytes);
 
+                pthread_mutex_lock(&mutex_cola_ig);
+                list_add(cola_procesos_ig,peticion);
+                pthread_mutex_unlock(&mutex_cola_ig);
+                sem_post(&sem_hay_en_cola_ig);
+
+                
+
+                break;
+            }
+            default:
+            {
+                //log_info(loggerIO,"Llega peticion incompatible");
+                break;
+            }
            
-
-            pthread_mutex_lock(&mutex_cola_ig);
-            list_add(cola_procesos_ig,peticion);
-            pthread_mutex_unlock(&mutex_cola_ig);
-            sem_post(&sem_hay_en_cola_ig);
-
-            
-
-            break;
-        default:
-            //log_info(loggerIO,"Llega peticion incompatible");
-            break;
         }
         free(paquete->buffer->stream);
         free(paquete->buffer);
@@ -93,35 +97,35 @@ void recibirPeticionDeIO_STDIN(){
 
         switch (paquete->codigo_operacion)  
         {
-        case IO_STDIN_READ:
-            
-            Peticion_Interfaz_STDIN *peticion=malloc(sizeof(Peticion_Interfaz_STDIN));
-            int bytes;
-            
-            memcpy(&peticion->direccion, stream, sizeof(uint32_t));
-            stream += sizeof(uint32_t);
-            memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
-            stream += sizeof(uint32_t);
-            memcpy(&peticion->PID, stream, sizeof(uint32_t));
-            stream += sizeof(uint32_t);
-            memcpy(&bytes, stream, sizeof(int));
-            stream+=sizeof(int);
-            peticion->nombre_interfaz = malloc(bytes);
-            memcpy(peticion->nombre_interfaz, stream, bytes);
+            case IO_STDIN_READ:
+            {
+                Peticion_Interfaz_STDIN *peticion=malloc(sizeof(Peticion_Interfaz_STDIN));
+                int bytes;
+                
+                memcpy(&peticion->direccion, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->PID, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&bytes, stream, sizeof(int));
+                stream+=sizeof(int);
+                peticion->nombre_interfaz = malloc(bytes);
+                memcpy(peticion->nombre_interfaz, stream, bytes);
 
-           
+                pthread_mutex_lock(&mutex_cola_STDIN);
+                list_add(cola_procesos_STDIN,peticion);
+                pthread_mutex_unlock(&mutex_cola_STDIN);
+                sem_post(&sem_hay_en_cola_STDIN);
 
-            pthread_mutex_lock(&mutex_cola_STDIN);
-            list_add(cola_procesos_STDIN,peticion);
-            pthread_mutex_unlock(&mutex_cola_STDIN);
-            sem_post(&sem_hay_en_cola_STDIN);
+                break;
 
-            
-
-            break;
-        default:
-            //log_info(loggerIO,"Llega peticion incompatible");
-            break;
+            }   
+            default:
+            {
+                //log_info(loggerIO,"Llega peticion incompatible");
+                break;
+            }  
         }
         free(paquete->buffer->stream);
         free(paquete->buffer);
@@ -133,7 +137,6 @@ void recibirPeticionDeIO_STDIN(){
 void recibirPeticionDeIO_STDOUT(){
     while(1){
     
-        
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
@@ -145,34 +148,37 @@ void recibirPeticionDeIO_STDOUT(){
 
         switch (paquete->codigo_operacion)  
         {
-        case IO_STDOUT_WRITE:
-            
-            Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
-            int bytes;
-            
-            memcpy(&peticion->direccion, stream, sizeof(uint32_t));
-            stream += sizeof(uint32_t);
-            memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
-            stream += sizeof(uint32_t);
-            memcpy(&peticion->PID, stream, sizeof(int));
-            stream += sizeof(int);
-            memcpy(&bytes, stream, sizeof(int));
-            stream+=sizeof(int);
-            peticion->nombre_interfaz = malloc(bytes);
-            memcpy(peticion->nombre_interfaz, stream, bytes);
+            case IO_STDOUT_WRITE:
+            {
+                Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
+                int bytes;
+                
+                memcpy(&peticion->direccion, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->PID, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&bytes, stream, sizeof(int));
+                stream+=sizeof(int);
+                peticion->nombre_interfaz = malloc(bytes);
+                memcpy(peticion->nombre_interfaz, stream, bytes);
 
-           
-
-            pthread_mutex_lock(&mutex_cola_STDOUT);
-            list_add(cola_procesos_STDOUT,peticion);
-            pthread_mutex_unlock(&mutex_cola_STDOUT);
-            sem_post(&sem_hay_en_cola_STDOUT);
             
 
-            break;
-        default:
-            //log_info(loggerIO,"Llega peticion incompatible");
-            break;
+                pthread_mutex_lock(&mutex_cola_STDOUT);
+                list_add(cola_procesos_STDOUT,peticion);
+                pthread_mutex_unlock(&mutex_cola_STDOUT);
+                sem_post(&sem_hay_en_cola_STDOUT);
+
+                break;
+                
+            }
+            default:
+            {
+                //log_info(loggerIO,"Llega peticion incompatible");
+                break;
+            }
         }
         free(paquete->buffer->stream);
         free(paquete->buffer);

@@ -74,18 +74,18 @@ int main(int argc, char *argv[])
     server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
 	log_info(loggerMemoria, "Servidor listo para recibir al cliente");
 
-    pthread_t hiloCpu;
-    pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);
+    /*pthread_t hiloCpu;
+    pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);*/
 
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel, NULL);
 
-    pthread_t hiloEntradaSalida;
-    pthread_create(&hiloEntradaSalida, NULL, atenderPeticionesEntradaSalida, NULL);
+    //pthread_t hiloEntradaSalida;
+    //pthread_create(&hiloEntradaSalida, NULL, atenderPeticionesEntradaSalida, NULL);
 
-    pthread_detach(hiloCpu);
+    //pthread_detach(hiloCpu);
     pthread_detach(hiloKernel);
-    pthread_detach(hiloEntradaSalida);
+    //pthread_detach(hiloEntradaSalida);
 
 
     while(1){

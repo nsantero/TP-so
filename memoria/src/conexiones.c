@@ -596,6 +596,7 @@ void* manejarClienteKernel(void *arg)
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+        void *stream = paquete->buffer->stream;
         
         switch(paquete->codigo_operacion){
 
@@ -603,7 +604,7 @@ void* manejarClienteKernel(void *arg)
             {
                 Proceso *proceso = malloc(sizeof(Proceso));
 
-                void *stream = paquete->buffer->stream;
+                
                 int pathLenght;
 
                 memcpy(&proceso->pid, stream, sizeof(int));
@@ -625,11 +626,203 @@ void* manejarClienteKernel(void *arg)
             {   
                 //CHECK
                 int pid_remover;
-                void *stream = paquete->buffer->stream;
                 memcpy(&pid_remover, stream, sizeof(int));
                 remover_proceso(pid_remover);
                 log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
                 break;
+            }
+            //CPU
+            case PEDIDO_TAM_PAGINA:
+            {   
+                log_info(loggerMemoria, "CPU solicito el tamaño de pagina. \n");
+                paquete_cpu_envio_tam_pagina(socketCliente);
+                break;
+            }
+
+            case PEDIDO_INSTRUCCION:
+            {   
+                int pid_solicitado;
+                int pc_solicitado;
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&pc_solicitado, stream, sizeof(int));
+                log_info(loggerMemoria, "Se solicita la intruccion del PID:%d", pid_solicitado);
+                log_info(loggerMemoria, "Se solicita el PC:%d", pc_solicitado);
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
+                break;
+            }
+
+            case MOV_OUT:
+            {   
+                int pid_mov_out; // es necesario????????
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                uint32_t datos;
+                Proceso *proceso = malloc(sizeof(Proceso));
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                //proceso = obtener_proceso(pid_mov_out);
+
+                //(void* valor, uint32_t tamanio, uint32_t direccion_fisica).
+                //Escribir en memoria
+                memcpy((char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out, stream, sizeof(uint32_t));
+
+                // Leer el valor de la memoria :)
+                uint32_t valor;
+                char* ptr = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                memcpy(&valor, ptr, sizeof(uint32_t));
+                log_info(loggerMemoria, "valor escrito:%d", valor);
+                //
+
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                enviar_paquete_cpu_mov_out(OK,socketCliente);
+
+                break;
+            }
+
+            case MOV_IN:
+            {   
+                int pid_mov_out;
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                uint32_t datos;
+                Proceso *proceso = malloc(sizeof(Proceso));
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+
+
+                char* direccion = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                memcpy(&datos, direccion, sizeof(uint32_t));
+
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+
+                enviar_paquete_cpu_mov_in(datos,socketCliente);
+               
+                break;
+            }
+
+            case RESIZE:
+            {   
+                int nuevo_tamaño;
+                int pid_a_cambiar;
+
+                op_code resultado_cambio;
+
+                memcpy(&pid_a_cambiar, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&nuevo_tamaño, stream, sizeof(int));
+                log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
+                log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
+                resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
+                break;
+            }
+            case SOLICITUD_MARCO:
+            {   
+                int pid_solicitado;
+                int pagina_solicitada;
+
+                memcpy(&pid_solicitado, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&pagina_solicitada, stream, sizeof(int));
+
+                log_info(loggerMemoria, "Se solicita la pagina del PID:%d", pid_solicitado);
+                log_info(loggerMemoria, "Se solicita la pagina:%d", pagina_solicitada);
+
+                int marco_encontrado;
+                marco_encontrado= obtener_marco(pid_solicitado,pagina_solicitada);
+                enviar_paquete_cpu_marco(marco_encontrado,socketCliente);
+                break;
+            }
+            case IO_MEM_FS_READ:
+            {
+                uint32_t tamanio;
+                uint32_t direc;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,tamanio);
+                
+                //Guardar buffer
+
+                free(buffer);
+                break;
+            }
+            case  IO_MEM_FS_WRITE:
+            {
+                uint32_t tamanio;
+                uint32_t direc;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
+                
+                //Lee la direccion
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                
+
+                break;
+
+            }
+            case  IO_MEM_STDIN_READ :
+            {
+                uint32_t tamanio;
+                uint32_t direccion;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,sizeof(tamanio));
+
+                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
+                // solicitar la traduccion de dl a df
+                //Devolver ok?
+                free(buffer);
+                break;
+            }
+            case  IO_MEM_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+                uint32_t tamanio;
+                uint32_t direccion;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+
+                //TODO busca la direccion y la mete en el buffer;
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                break;
+                
             }
             default:
             {   

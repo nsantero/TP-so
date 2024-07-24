@@ -31,6 +31,12 @@ int iniciar_servidor(t_log *logger,char* server_name, char* puerto)
 		close(socketServidor);
 		exit(EXIT_FAILURE);
 	}
+
+	int optval = 1;
+    if (setsockopt(socketServidor, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1) {
+        close(socketServidor);
+        exit(EXIT_FAILURE);
+    }
 						
 	// Asociamos el socket a un puerto
 
@@ -81,6 +87,11 @@ int iniciarServidorV2(t_log *logger, char* puerto)
 		close(socketServidor);
 		exit(EXIT_FAILURE);
 	}
+	int optval = 1;
+    if (setsockopt(socketServidor, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1) {
+        close(socketServidor);
+        exit(EXIT_FAILURE);
+    }
 						
 	// Asociamos el socket a un puerto
 
