@@ -252,6 +252,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
             }
         }
     }
+    return NULL;
 }
 
 void enviar_paquete_cpu_marco(int marco_encontrado,int socketCliente){
@@ -391,21 +392,26 @@ int obtener_marco(int pid,int pagina){
 
                 
 
-void* atenderPeticionesCpu() {
+
+
+
+//-----------------------------conexion kernel y memoria------------------------------------
+void* atenderPeticionesKernel() {
 
     while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
         int* pclient = malloc(sizeof(int));
         *pclient = socketCliente;
-        pthread_create(&client_thread, NULL, manejarClienteCpu, pclient);
+        pthread_create(&client_thread, NULL, manejarClienteKernel, pclient);
         pthread_detach(client_thread);
     }
 
     return NULL;
+
 }
 
-void* manejarClienteCpu(void *arg)
+void* manejarClienteKernel(void *arg)
 {
     int socketCliente = *((int*)arg);
     free(arg);
@@ -414,11 +420,47 @@ void* manejarClienteCpu(void *arg)
 
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
+
         recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
+        paquete->buffer->stream = malloc(paquete->buffer->size);
+        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
+        void *stream = paquete->buffer->stream;
         
         switch(paquete->codigo_operacion){
 
+            case CREAR_PROCESO:
+            {
+                Proceso *proceso = malloc(sizeof(Proceso));
+
+                
+                int pathLenght;
+
+                memcpy(&proceso->pid, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&pathLenght, stream, sizeof(int));
+                stream += sizeof(int);
+                proceso->path = malloc(pathLenght);
+                memcpy(proceso->path, stream, pathLenght);
+                log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
+                log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
+                cargarInstrucciones(proceso, proceso->path);
+                log_info(loggerMemoria, "Se cargaron las instrucciones");
+                proceso->tam_proceso = 0;
+                proceso->tabla_de_paginas = list_create();
+                list_add(lista_ProcesosActivos,proceso);
+                break;
+            }
+            case FINALIZAR_PROCESO:
+            {   
+                //CHECK
+                int pid_remover;
+                memcpy(&pid_remover, stream, sizeof(int));
+                remover_proceso(pid_remover);
+                log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+                break;
+            }
+            //CPU
             case PEDIDO_TAM_PAGINA:
             {   
                 log_info(loggerMemoria, "CPU solicito el tamaño de pagina. \n");
@@ -430,9 +472,6 @@ void* manejarClienteCpu(void *arg)
             {   
                 int pid_solicitado;
                 int pc_solicitado;
-                paquete->buffer->stream = malloc(paquete->buffer->size);
-                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-                void *stream = paquete->buffer->stream;
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pc_solicitado, stream, sizeof(int));
@@ -451,10 +490,6 @@ void* manejarClienteCpu(void *arg)
                 void * datos;
                 int size;
                 Proceso *proceso = malloc(sizeof(Proceso));
-
-                paquete->buffer->stream = malloc(paquete->buffer->size);
-                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-                void *stream = paquete->buffer->stream;
 
                 memcpy(&pid_mov_out, stream, sizeof(int));
                 stream += sizeof(int);
@@ -491,10 +526,6 @@ void* manejarClienteCpu(void *arg)
                 uint32_t datos;
                 Proceso *proceso = malloc(sizeof(Proceso));
 
-                paquete->buffer->stream = malloc(paquete->buffer->size);
-                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-                void *stream = paquete->buffer->stream;
-
                 memcpy(&pid_mov_out, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&marco_mov_out, stream, sizeof(int));
@@ -519,9 +550,6 @@ void* manejarClienteCpu(void *arg)
                 int pid_a_cambiar;
 
                 op_code resultado_cambio;
-                paquete->buffer->stream = malloc(paquete->buffer->size);
-                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-                void *stream = paquete->buffer->stream;
 
                 memcpy(&pid_a_cambiar, stream, sizeof(int));
                 stream += sizeof(int);
@@ -538,10 +566,6 @@ void* manejarClienteCpu(void *arg)
                 int pid_solicitado;
                 int pagina_solicitada;
 
-                paquete->buffer->stream = malloc(paquete->buffer->size);
-                recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-                void *stream = paquete->buffer->stream;
-
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pagina_solicitada, stream, sizeof(int));
@@ -554,88 +578,89 @@ void* manejarClienteCpu(void *arg)
                 enviar_paquete_cpu_marco(marco_encontrado,socketCliente);
                 break;
             }
-            default:
-            {   
-                //log_error(loggerMemoria, "Error");
-                break;
-            }
 
-        }
+            //-----------------------------conexion EntradaSalida------------------------------------
 
-        eliminar_paquete(paquete);
-    }
-
-}
-
-
-//-----------------------------conexion kernel y memoria------------------------------------
-void* atenderPeticionesKernel() {
-
-    while (1) {
-        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
-        pthread_t client_thread;
-        int* pclient = malloc(sizeof(int));
-        *pclient = socketCliente;
-        pthread_create(&client_thread, NULL, manejarClienteKernel, pclient);
-        pthread_detach(client_thread);
-    }
-
-    return NULL;
-
-}
-
-void* manejarClienteKernel(void *arg)
-{
-    int socketCliente = *((int*)arg);
-    free(arg);
-
-    while(1){
-
-        t_paquete* paquete = malloc(sizeof(t_paquete));
-        paquete->buffer = malloc(sizeof(t_buffer));
-
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-        
-        switch(paquete->codigo_operacion){
-
-            case CREAR_PROCESO:
+            case IO_MEM_FS_READ:
             {
-                Proceso *proceso = malloc(sizeof(Proceso));
+                uint32_t tamanio;
+                uint32_t direc;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,tamanio);
+                
+                //Guardar buffer
 
-                void *stream = paquete->buffer->stream;
-                int pathLenght;
-
-                memcpy(&proceso->pid, stream, sizeof(int));
-                stream += sizeof(int);
-                memcpy(&pathLenght, stream, sizeof(int));
-                stream += sizeof(int);
-                proceso->path = malloc(pathLenght);
-                memcpy(proceso->path, stream, pathLenght);
-                log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
-                log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
-                cargarInstrucciones(proceso, proceso->path);
-                log_info(loggerMemoria, "Se cargaron las instrucciones");
-                proceso->tam_proceso = 0;
-                proceso->tabla_de_paginas = list_create();
-                list_add(lista_ProcesosActivos,proceso);
+                free(buffer);
                 break;
             }
-            case FINALIZAR_PROCESO:
-            {   
-                //CHECK
-                int pid_remover;
-                void *stream = paquete->buffer->stream;
-                memcpy(&pid_remover, stream, sizeof(int));
-                remover_proceso(pid_remover);
-                log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+            case  IO_MEM_FS_WRITE:
+            {
+                uint32_t tamanio;
+                uint32_t direc;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direc,stream,sizeof(uint32_t));
+                
+                //Lee la direccion
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                
+
                 break;
+
+            }
+            case  IO_MEM_STDIN_READ :
+            {
+                uint32_t tamanio;
+                uint32_t direccion;
+                void* buffer;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                buffer=malloc(tamanio);
+                memcpy(buffer,stream,sizeof(tamanio));
+
+                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
+                // solicitar la traduccion de dl a df
+                //Devolver ok?
+                free(buffer);
+                break;
+            }
+            case  IO_MEM_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+                uint32_t tamanio;
+                uint32_t direccion;
+                memcpy(&tamanio,stream,sizeof(uint32_t));
+                stream+=sizeof(uint32_t);
+                memcpy(&direccion,stream,sizeof(uint32_t));
+
+                //TODO busca la direccion y la mete en el buffer;
+                char* hardcodeo="Esta prueba esta hardcodeada";
+                void* bufferEncontrado=hardcodeo;
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                break;
+                
             }
             default:
             {   
-                //log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
@@ -676,128 +701,4 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
     }
     
     fclose(file);
-}
-
-//-----------------------------conexion EntradaSalida------------------------------------
-
-void* atenderPeticionesEntradaSalida() {
-
-    while (1) {
-        int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
-        pthread_t client_thread;
-        int* pclient = malloc(sizeof(int));
-        *pclient = socketCliente;
-        pthread_create(&client_thread, NULL, manejarClienteEntradaSalida, pclient);
-        pthread_detach(client_thread);
-    }
-
-    return NULL;
-}
-
-void* manejarClienteEntradaSalida(void *arg)
-{
-    int socketCliente = *((int*)arg);
-    free(arg);
-
-    while(1){
-
-        t_paquete* paquete = malloc(sizeof(t_paquete));
-        paquete->buffer = malloc(sizeof(t_buffer));
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
-        recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
-        paquete->buffer->stream = malloc(paquete->buffer->size);
-        recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
-        void *stream = paquete->buffer->stream;
-        
-        switch(paquete->codigo_operacion){
-
-            case IO_MEM_FS_READ:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                void* buffer;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                buffer=malloc(tamanio);
-                memcpy(buffer,stream,tamanio);
-                
-                //Guardar buffer
-
-
-
-                free(buffer);
-            }
-            case  IO_MEM_FS_WRITE:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                
-                //Lee la direccion
-                char* hardcodeo="Esta prueba esta hardcodeada";
-                void* bufferEncontrado=hardcodeo;
-
-                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
-                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
-                enviar_paquete(paqueteDevolverAIO,socketCliente);
-                free(paqueteDevolverAIO->buffer);
-                free(paqueteDevolverAIO);
-                
-
-
-
-            }
-            case  IO_MEM_STDIN_READ :
-            {
-                uint32_t tamanio;
-                uint32_t direccion;
-                void* buffer;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direccion,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                buffer=malloc(tamanio);
-                memcpy(buffer,stream,sizeof(tamanio));
-
-                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
-                // solicitar la traduccion de dl a df
-                //Devolver ok?
-                free(buffer);
-            }
-            case  IO_MEM_STDOUT_WRITE :
-            {
-                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
-                uint32_t tamanio;
-                uint32_t direccion;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direccion,stream,sizeof(uint32_t));
-
-                //TODO busca la direccion y la mete en el buffer;
-                char* hardcodeo="Esta prueba esta hardcodeada";
-                void* bufferEncontrado=hardcodeo;
-
-                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
-                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
-                enviar_paquete(paqueteDevolverAIO,socketCliente);
-                free(paqueteDevolverAIO->buffer);
-                free(paqueteDevolverAIO);
-                
-            }
-
-            default:
-            {   
-                //log_error(loggerMemoria, "Error");
-                break;
-            }
-
-        }
-
-        eliminar_paquete(paquete);
-    }
-
 }

@@ -37,15 +37,15 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion){
 
     aDevolver.nombre=nombre;
     aDevolver.tipoInterfaz=config_get_string_value(configuracion,"TIPO_INTERFAZ");
-    aDevolver.tiempoUnidadTrabajo=NULL;
+    aDevolver.tiempoUnidadTrabajo=-1;
     aDevolver.ipKernel=config_get_string_value(configuracion,"IP_KERNEL");
     aDevolver.puertoKernel=config_get_string_value(configuracion,"PUERTO_KERNEL");
-    aDevolver.blockCount=NULL;
-    aDevolver.blockSize=NULL;
+    aDevolver.blockCount=-1;
+    aDevolver.blockSize=-1;
     aDevolver.ipMemoria=config_get_string_value(configuracion,"IP_MEMORIA");
     aDevolver.puertoMemoria=config_get_string_value(configuracion,"PUERTO_MEMORIA");
     aDevolver.pathBaseDialfs=NULL;
-    aDevolver.retrasoCompactacion=NULL;
+    aDevolver.retrasoCompactacion=-1;
     
 
     return aDevolver;
@@ -57,6 +57,7 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     agregar_entero_a_paquete32(paquete_direccion,peticion->tamanio);
     agregar_entero_a_paquete32(paquete_direccion, peticion->direccion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
+    free(paquete_direccion->buffer->stream);
     free(paquete_direccion->buffer);
     free(paquete_direccion);
 
@@ -74,11 +75,13 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     
     memcpy(&bytes,stream,sizeof(int));
     stream+=sizeof(int);
-    buffer=malloc(bytes);
+    buffer=malloc(bytes+1);
     memcpy(buffer,stream,bytes);
 
     
+
     char* contenido_memoria = buffer;//Aca no se si va a faltar el \0
+    contenido_memoria[bytes] = '\0';
     printf("El contenido encontrado en la direccion de memoria %d es: %s\n", (int)peticion->direccion, contenido_memoria);
     
     free(paquete->buffer->stream);

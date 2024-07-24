@@ -1,4 +1,5 @@
 #include <loggersIO.h>
+#include <stdlib.h>
 
 t_log *loggerIO;
 char* path;

@@ -359,9 +359,7 @@ direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
 
     direccion->numero_frame = buscar_frame(nro_pagina,pid);
     direccion->desplazamiento = dl - nro_pagina * tam_pagina;
-    
-    //char cadena_datos = (char)datos;
-    
+     
     return direccion;
 }
 
@@ -576,7 +574,12 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             void* registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
+
             int size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+
+            
+            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+
 
             op_code operacion;
 

@@ -9,6 +9,7 @@
 #include <kernel.h>
 #include <mostrarProcesos.h>
 #include <planificadores.h>
+#include <configs.h>
 
 void *manejadorDeConsola();
 void ejecutarScript(char* path);

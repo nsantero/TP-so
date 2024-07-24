@@ -15,6 +15,8 @@ void paquete_memoria_pedido_tam_pagina(){
 
     t_paquete *paquete_memoria = crear_paquete(PEDIDO_TAM_PAGINA);
 
+    agregar_entero_a_paquete32(paquete_memoria, 1);
+
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
