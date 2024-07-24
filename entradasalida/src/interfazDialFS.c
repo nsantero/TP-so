@@ -222,14 +222,14 @@ void borrarFile(Peticion_Interfaz_DialFS* peticion){
             remove(path);
 
             log_info(loggerIO,"PID: %d - Eliminar Archivo: %s",peticion->PID,nombre);
-            close(dir);
+            closedir(dir);
             terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
             free(path);
             return;
         }
     }
     log_info(loggerIO,"No existe el archivo en el FS");
-    close(dir);
+    closedir(dir);
     avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
 
     
