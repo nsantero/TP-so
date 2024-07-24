@@ -37,15 +37,15 @@ Interfaz generarNuevaInterfazSTDOUT(char* nombre,t_config* configuracion){
 
     aDevolver.nombre=nombre;
     aDevolver.tipoInterfaz=config_get_string_value(configuracion,"TIPO_INTERFAZ");
-    aDevolver.tiempoUnidadTrabajo=NULL;
+    aDevolver.tiempoUnidadTrabajo=-1;
     aDevolver.ipKernel=config_get_string_value(configuracion,"IP_KERNEL");
     aDevolver.puertoKernel=config_get_string_value(configuracion,"PUERTO_KERNEL");
-    aDevolver.blockCount=NULL;
-    aDevolver.blockSize=NULL;
+    aDevolver.blockCount=-1;
+    aDevolver.blockSize=-1;
     aDevolver.ipMemoria=config_get_string_value(configuracion,"IP_MEMORIA");
     aDevolver.puertoMemoria=config_get_string_value(configuracion,"PUERTO_MEMORIA");
     aDevolver.pathBaseDialfs=NULL;
-    aDevolver.retrasoCompactacion=NULL;
+    aDevolver.retrasoCompactacion=-1;
     
 
     return aDevolver;

@@ -1,0 +1,31 @@
+==22573== Memcheck, a memory error detector
+==22573== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==22573== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==22573== Command: ./bin/entradasalida TECLADO
+==22573== Parent PID: 22564
+==22573== 
+==22573== 
+==22573== HEAP SUMMARY:
+==22573==     in use at exit: 320 bytes in 4 blocks
+==22573==   total heap usage: 282 allocs, 278 frees, 26,638 bytes allocated
+==22573== 
+==22573== 272 bytes in 1 blocks are possibly lost in loss record 4 of 4
+==22573==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==22573==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==22573==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==22573==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==22573==    by 0x490A7B4: allocate_stack (allocatestack.c:430)
+==22573==    by 0x490A7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==22573==    by 0x10AFAD: main (entradasalida.c:91)
+==22573== 
+==22573== LEAK SUMMARY:
+==22573==    definitely lost: 0 bytes in 0 blocks
+==22573==    indirectly lost: 0 bytes in 0 blocks
+==22573==      possibly lost: 272 bytes in 1 blocks
+==22573==    still reachable: 48 bytes in 3 blocks
+==22573==         suppressed: 0 bytes in 0 blocks
+==22573== Reachable blocks (those to which a pointer was found) are not shown.
+==22573== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==22573== 
+==22573== For lists of detected and suppressed errors, rerun with: -s
+==22573== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
