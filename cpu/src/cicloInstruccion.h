@@ -14,6 +14,10 @@ char* fetch(Proceso *proceso);
 
 op_code recibir_confirmacion_memoria_resize();
 
+int valorDelRegistro(char *dl,CPU_Registers registros);
+
+int calculo_cantiad_paginas(uint32_t dl, int pid, int desplazamiento,int size_dato);
+
 int recibir_marco_memoria();
 
 int buscar_frame(int pagina,int pid);
@@ -35,6 +39,8 @@ void agregar_marco_tlb(int pid,int marco_memoria,int pagina);
 op_code buscar_en_tlb(int pid, int pagina);
 
 direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid);
+
+uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros);
 
 t_instruccion decode(char *instruccionDecodificar, int pid);
 
