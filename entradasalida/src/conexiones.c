@@ -88,6 +88,9 @@ void recibirPeticionDeIO_STDIN(){
         
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->codigo_operacion = 0;
+	    paquete->buffer->size = 0;
+	    paquete->buffer->stream = NULL;
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -139,6 +142,9 @@ void recibirPeticionDeIO_STDOUT(){
     
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->codigo_operacion = 0;
+	    paquete->buffer->size = 0;
+	    paquete->buffer->stream = NULL;
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);

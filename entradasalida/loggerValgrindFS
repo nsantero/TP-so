@@ -1,19 +1,226 @@
-==36455== Memcheck, a memory error detector
-==36455== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==36455== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==36455== Command: ./bin/entradasalida FS
-==36455== Parent PID: 36444
-==36455== 
-==36455== Argument 'size' of function malloc has a fishy (possibly negative) value: -72539124
-==36455==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==36455==    by 0x10BC7D: recibirPeticionDeIO_DialFS (conexiones.c:200)
-==36455==    by 0x10B19B: main (entradasalida.c:108)
-==36455== 
-==36455== Syscall param socketcall.recvfrom(buf) points to unaddressable byte(s)
-==36455==    at 0x499D6BE: __libc_recv (recv.c:28)
-==36455==    by 0x499D6BE: recv (recv.c:23)
-==36455==    by 0x10BCAC: recibirPeticionDeIO_DialFS (conexiones.c:201)
-==36455==    by 0x10B19B: main (entradasalida.c:108)
-==36455==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
-==36455== 
-==36455== Warning: set address range perms: large range [0x0, 0xfffffffffbad240c) (defined)
+==42245== Memcheck, a memory error detector
+==42245== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==42245== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==42245== Command: ./bin/entradasalida FS
+==42245== Parent PID: 38429
+==42245== 
+==42245== 
+==42245== HEAP SUMMARY:
+==42245==     in use at exit: 662,581 bytes in 16,566 blocks
+==42245==   total heap usage: 67,211 allocs, 50,645 frees, 1,400,086 bytes allocated
+==42245== 
+==42245== 4 bytes in 1 blocks are definitely lost in loss record 1 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10E1AA: cambiarInfoDeArchivo (interfazDialFS.c:583)
+==42245==    by 0x10D0C7: truncarArchivo (interfazDialFS.c:282)
+==42245==    by 0x10C795: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:115)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 8 bytes in 1 blocks are definitely lost in loss record 2 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x110243: agregar_entero_a_paquete32 (paquetes.c:46)
+==42245==    by 0x10D37D: escribirEnArchivo (interfazDialFS.c:324)
+==42245==    by 0x10C7C8: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:119)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 6 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10DFE7: obtenerInfoDeArchivo (interfazDialFS.c:554)
+==42245==    by 0x10CECC: truncarArchivo (interfazDialFS.c:247)
+==42245==    by 0x10C795: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:115)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 7 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E061: obtenerInfoDeArchivoOffset (interfazDialFS.c:562)
+==42245==    by 0x10E015: obtenerInfoDeArchivo (interfazDialFS.c:556)
+==42245==    by 0x10CECC: truncarArchivo (interfazDialFS.c:247)
+==42245==    by 0x10C795: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:115)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 8 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E0C1: obtenerInfoDeArchivoTamanio (interfazDialFS.c:568)
+==42245==    by 0x10E02F: obtenerInfoDeArchivo (interfazDialFS.c:557)
+==42245==    by 0x10CECC: truncarArchivo (interfazDialFS.c:247)
+==42245==    by 0x10C795: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:115)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 9 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E132: cambiarInfoDeArchivo (interfazDialFS.c:575)
+==42245==    by 0x10D0C7: truncarArchivo (interfazDialFS.c:282)
+==42245==    by 0x10C795: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:115)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 10 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10DFE7: obtenerInfoDeArchivo (interfazDialFS.c:554)
+==42245==    by 0x10D75B: leerDelArchivo (interfazDialFS.c:384)
+==42245==    by 0x10C7FB: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:123)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 11 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E061: obtenerInfoDeArchivoOffset (interfazDialFS.c:562)
+==42245==    by 0x10E015: obtenerInfoDeArchivo (interfazDialFS.c:556)
+==42245==    by 0x10D75B: leerDelArchivo (interfazDialFS.c:384)
+==42245==    by 0x10C7FB: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:123)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 12 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E0C1: obtenerInfoDeArchivoTamanio (interfazDialFS.c:568)
+==42245==    by 0x10E02F: obtenerInfoDeArchivo (interfazDialFS.c:557)
+==42245==    by 0x10D75B: leerDelArchivo (interfazDialFS.c:384)
+==42245==    by 0x10C7FB: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:123)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 13 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10DFE7: obtenerInfoDeArchivo (interfazDialFS.c:554)
+==42245==    by 0x10D2D6: escribirEnArchivo (interfazDialFS.c:315)
+==42245==    by 0x10C7C8: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:119)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245==    by 0x499BA03: clone (clone.S:100)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 14 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E061: obtenerInfoDeArchivoOffset (interfazDialFS.c:562)
+==42245==    by 0x10E015: obtenerInfoDeArchivo (interfazDialFS.c:556)
+==42245==    by 0x10D2D6: escribirEnArchivo (interfazDialFS.c:315)
+==42245==    by 0x10C7C8: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:119)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 15 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E0C1: obtenerInfoDeArchivoTamanio (interfazDialFS.c:568)
+==42245==    by 0x10E02F: obtenerInfoDeArchivo (interfazDialFS.c:557)
+==42245==    by 0x10D2D6: escribirEnArchivo (interfazDialFS.c:315)
+==42245==    by 0x10C7C8: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:119)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 16 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E061: obtenerInfoDeArchivoOffset (interfazDialFS.c:562)
+==42245==    by 0x10E015: obtenerInfoDeArchivo (interfazDialFS.c:556)
+==42245==    by 0x10CD5C: borrarFile (interfazDialFS.c:213)
+==42245==    by 0x10C75F: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:111)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 29 bytes in 1 blocks are definitely lost in loss record 17 of 22
+==42245==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x486F64B: string_append (in /usr/lib/libcommons.so)
+==42245==    by 0x4870461: _string_append_with_format_list (in /usr/lib/libcommons.so)
+==42245==    by 0x486F83F: string_from_vformat (in /usr/lib/libcommons.so)
+==42245==    by 0x486F7D0: string_from_format (in /usr/lib/libcommons.so)
+==42245==    by 0x10ECEA: generarPathAArchivoFS (interfazDialFS.c:801)
+==42245==    by 0x10E0C1: obtenerInfoDeArchivoTamanio (interfazDialFS.c:568)
+==42245==    by 0x10E02F: obtenerInfoDeArchivo (interfazDialFS.c:557)
+==42245==    by 0x10CD5C: borrarFile (interfazDialFS.c:213)
+==42245==    by 0x10C75F: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:111)
+==42245==    by 0x10C267: manejo_interfaz_DialFS (interfazDialFS.c:27)
+==42245==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==42245== 
+==42245== 272 bytes in 1 blocks are possibly lost in loss record 21 of 22
+==42245==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==42245==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==42245==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==42245==    by 0x490B7B4: allocate_stack (allocatestack.c:430)
+==42245==    by 0x490B7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==42245==    by 0x10B185: main (entradasalida.c:106)
+==42245== 
+==42245== 661,800 bytes in 16,545 blocks are definitely lost in loss record 22 of 22
+==42245==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==42245==    by 0x10BD16: recibirPeticionDeIO_DialFS (conexiones.c:210)
+==42245==    by 0x10B19B: main (entradasalida.c:108)
+==42245== 
+==42245== LEAK SUMMARY:
+==42245==    definitely lost: 662,160 bytes in 16,559 blocks
+==42245==    indirectly lost: 0 bytes in 0 blocks
+==42245==      possibly lost: 272 bytes in 1 blocks
+==42245==    still reachable: 149 bytes in 6 blocks
+==42245==         suppressed: 0 bytes in 0 blocks
+==42245== Reachable blocks (those to which a pointer was found) are not shown.
+==42245== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==42245== 
+==42245== For lists of detected and suppressed errors, rerun with: -s
+==42245== ERROR SUMMARY: 16 errors from 16 contexts (suppressed: 0 from 0)

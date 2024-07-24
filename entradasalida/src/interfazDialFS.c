@@ -323,6 +323,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     agregar_entero_a_paquete32(paquete_direccion,tamanio);
     agregar_entero_a_paquete32(paquete_direccion,direcion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
+    free(paquete_direccion->buffer->stream);
     free(paquete_direccion->buffer);
     free(paquete_direccion);
     //recibir info de memoria
@@ -797,8 +798,9 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
 }
 
 char* generarPathAArchivoFS(char* nombreArchivo){
-
-    return string_from_format("%s%s",interfaz_DialFS.pathBaseDialfs,nombreArchivo);
+    char* aDevolver =NULL;
+    aDevolver=string_from_format("%s%s",interfaz_DialFS.pathBaseDialfs,nombreArchivo);
+    return aDevolver;
 
 
 
