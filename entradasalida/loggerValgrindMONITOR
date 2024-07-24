@@ -1,39 +1,83 @@
-==22613== Memcheck, a memory error detector
-==22613== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==22613== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==22613== Command: ./bin/entradasalida MONITOR
-==22613== Parent PID: 22604
-==22613== 
-==22613== 
-==22613== HEAP SUMMARY:
-==22613==     in use at exit: 392 bytes in 9 blocks
-==22613==   total heap usage: 266 allocs, 257 frees, 25,275 bytes allocated
-==22613== 
-==22613== 8 bytes in 1 blocks are definitely lost in loss record 2 of 9
-==22613==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==22613==    by 0x110141: agregar_entero_a_paquete32 (paquetes.c:46)
-==22613==    by 0x10F38E: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:58)
-==22613==    by 0x10F1EB: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
-==22613==    by 0x4909AC2: start_thread (pthread_create.c:442)
-==22613==    by 0x499AA03: clone (clone.S:100)
-==22613== 
-==22613== 272 bytes in 1 blocks are possibly lost in loss record 9 of 9
-==22613==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==22613==    by 0x40147D9: calloc (rtld-malloc.h:44)
-==22613==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
-==22613==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
-==22613==    by 0x490A7B4: allocate_stack (allocatestack.c:430)
-==22613==    by 0x490A7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
-==22613==    by 0x10B089: main (entradasalida.c:99)
-==22613== 
-==22613== LEAK SUMMARY:
-==22613==    definitely lost: 8 bytes in 1 blocks
-==22613==    indirectly lost: 0 bytes in 0 blocks
-==22613==      possibly lost: 272 bytes in 1 blocks
-==22613==    still reachable: 112 bytes in 7 blocks
-==22613==         suppressed: 0 bytes in 0 blocks
-==22613== Reachable blocks (those to which a pointer was found) are not shown.
-==22613== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==22613== 
-==22613== For lists of detected and suppressed errors, rerun with: -s
-==22613== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+==36478== Memcheck, a memory error detector
+==36478== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==36478== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==36478== Command: ./bin/entradasalida MONITOR
+==36478== Parent PID: 36468
+==36478== 
+==36478== Thread 2:
+==36478== Invalid read of size 1
+==36478==    at 0x484ED24: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x48ECD30: __vfprintf_internal (vfprintf-internal.c:1517)
+==36478==    by 0x48D679E: printf (printf.c:33)
+==36478==    by 0x10F4D5: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:83)
+==36478==    by 0x10F1E2: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
+==36478==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==36478==    by 0x499BA03: clone (clone.S:100)
+==36478==  Address 0x4aac9aa is 0 bytes after a block of size 10 alloc'd
+==36478==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x10F48B: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:77)
+==36478==    by 0x10F1E2: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
+==36478==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==36478==    by 0x499BA03: clone (clone.S:100)
+==36478== 
+==36478== Thread 1:
+==36478== Conditional jump or move depends on uninitialised value(s)
+==36478==    at 0x4848842: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x10BA90: recibirPeticionDeIO_STDOUT (conexiones.c:145)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478==  Uninitialised value was created by a heap allocation
+==36478==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x10BA2C: recibirPeticionDeIO_STDOUT (conexiones.c:141)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478== 
+==36478== Syscall param recvfrom(len) contains uninitialised byte(s)
+==36478==    at 0x499D6BE: __libc_recv (recv.c:28)
+==36478==    by 0x499D6BE: recv (recv.c:23)
+==36478==    by 0x10BABF: recibirPeticionDeIO_STDOUT (conexiones.c:146)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478==  Uninitialised value was created by a heap allocation
+==36478==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x10BA2C: recibirPeticionDeIO_STDOUT (conexiones.c:141)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478== 
+==36478== Conditional jump or move depends on uninitialised value(s)
+==36478==    at 0x10BAD9: recibirPeticionDeIO_STDOUT (conexiones.c:149)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478==  Uninitialised value was created by a heap allocation
+==36478==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x10BA1E: recibirPeticionDeIO_STDOUT (conexiones.c:140)
+==36478==    by 0x10B0BF: main (entradasalida.c:101)
+==36478== 
+==36478== 
+==36478== HEAP SUMMARY:
+==36478==     in use at exit: 328 bytes in 5 blocks
+==36478==   total heap usage: 625,261 allocs, 625,256 frees, 6,692,086 bytes allocated
+==36478== 
+==36478== 8 bytes in 1 blocks are definitely lost in loss record 1 of 5
+==36478==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x1101BA: agregar_entero_a_paquete32 (paquetes.c:46)
+==36478==    by 0x10F385: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:58)
+==36478==    by 0x10F1E2: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
+==36478==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==36478==    by 0x499BA03: clone (clone.S:100)
+==36478== 
+==36478== 272 bytes in 1 blocks are possibly lost in loss record 5 of 5
+==36478==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==36478==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==36478==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==36478==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==36478==    by 0x490B7B4: allocate_stack (allocatestack.c:430)
+==36478==    by 0x490B7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==36478==    by 0x10B0A9: main (entradasalida.c:99)
+==36478== 
+==36478== LEAK SUMMARY:
+==36478==    definitely lost: 8 bytes in 1 blocks
+==36478==    indirectly lost: 0 bytes in 0 blocks
+==36478==      possibly lost: 272 bytes in 1 blocks
+==36478==    still reachable: 48 bytes in 3 blocks
+==36478==         suppressed: 0 bytes in 0 blocks
+==36478== Reachable blocks (those to which a pointer was found) are not shown.
+==36478== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==36478== 
+==36478== For lists of detected and suppressed errors, rerun with: -s
+==36478== ERROR SUMMARY: 279 errors from 6 contexts (suppressed: 0 from 0)
