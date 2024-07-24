@@ -87,7 +87,6 @@ void* ciclo_de_instruccion() {
     return NULL;
 }
 
-
 char* fetch(Proceso *procesoEjecutando) {
     // Obtener la instrucción de la memoria usando el PC
     // Actualizar el PC para la siguiente instrucción
@@ -297,6 +296,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
     return instruccion;
     
 }
+
 uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
 	if (strcmp(dl,"AX")==0){
 		return registros.AX;
@@ -321,6 +321,30 @@ uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
 	}else {/*TODO ERROR*/}
 }
 
+int valorDelRegistro(char *dl,CPU_Registers registros){
+	if (strcmp(dl,"AX")==0){
+		return 1;
+	}else if (strcmp(dl,"BX")==0){
+		return 1;
+	}else if (strcmp(dl,"CX")==0){
+		return 1;
+	}else if (strcmp(dl,"DX")==0){
+		return 1;
+	}else if (strcmp(dl,"EAX")==0){
+		return 4;
+	}else if (strcmp(dl,"EBX")==0){
+		return 4;
+	}else if (strcmp(dl,"ECX")==0){
+		return 4;
+	}else if (strcmp(dl,"EDX")==0){
+		return 4;
+	}else if (strcmp(dl,"SI")==0){
+		return 4;
+	}else if (strcmp(dl,"DI")==0){
+		return 4;
+	}else {/*TODO ERROR*/}
+}
+
 direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
 
     direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
@@ -340,7 +364,6 @@ direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
     
     return direccion;
 }
-
 
 int obtener_frame_en_tlb(int pid, int pagina){
 
@@ -476,6 +499,20 @@ op_code buscar_en_tlb(int pid, int pagina){
     return MISS;
 }
 
+int calculo_cantiad_paginas(uint32_t dl, int pid, int desplazamiento,int size_dato){
+
+    int cantidadDePaginas = 0;
+
+    int valor = desplazamiento + size_dato;
+
+    double calculo = (double)valor/tam_pagina;
+    
+    cantidadDePaginas = ceil(calculo);
+
+    return cantidadDePaginas;
+
+}
+
 int buscar_frame(int pagina, int pid){
 
     //  PRIMERO: buscar en tlb
@@ -533,25 +570,50 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
         case MOV_OUT:
         {
-            //MOV_OUT (Registro Dirección, Registro Datos): 
-            //Lee el valor del Registro Datos y 
-            //lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
-    
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
-            uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+
+            void* registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+
+            int size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
             op_code operacion;
 
-            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+            int cantidadDePaginas = 0;
+            int nro_pagina;
 
-            enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,registro_datos);
+            nro_pagina = floor(direccion_logica / tam_pagina); 
+            direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+    
+            cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
+            int tam=0;
+            for(int i=0; i<cantidadDePaginas;i++){
 
-            operacion = recibir_confirmacion_memoria_mov_out();
+                nro_pagina = floor(direccion_logica / tam_pagina)+i; 
+                
+                int desplazamiento = 0;
+                direccion_fisica->PID = pid;
 
-            if(operacion == OK){
+                direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
+                direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+                
+                desplazamiento = direccion_fisica->desplazamiento;
+
+                if (i==0) {
+                    tam = (desplazamiento + size_dato)-tam_pagina;
+                }else
+                {
+                    tam = size_dato - tam;
+                }
+                
+                enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,registro_datos);
+                
+                operacion = recibir_confirmacion_memoria_mov_out();
+                
+                if(operacion == OK){
                 printf("Instrucción resize realizada!! \n");
+                }
             }
 
             break;
@@ -668,7 +730,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
-         case MOV_OUT:
+        case MOV_OUT:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_OUT> - <%s> <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1,instruccion_a_ejecutar.operando2);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
@@ -750,7 +812,6 @@ op_code recibir_confirmacion_memoria_mov_out(){
     return PROCESO_EXIT;   
 
 }
-
 
 op_code recibir_confirmacion_memoria_resize(){
 

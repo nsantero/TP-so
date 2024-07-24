@@ -448,7 +448,8 @@ void* manejarClienteCpu(void *arg)
                 int pid_mov_out; // es necesario????????
                 int marco_mov_out;
                 int desplazamiento_mov_out;
-                uint32_t datos;
+                void * datos;
+                int size;
                 Proceso *proceso = malloc(sizeof(Proceso));
 
                 paquete->buffer->stream = malloc(paquete->buffer->size);
@@ -461,18 +462,20 @@ void* manejarClienteCpu(void *arg)
                 stream += sizeof(int);
                 memcpy(&desplazamiento_mov_out, stream, sizeof(int));
                 stream += sizeof(int);
+                memcpy(&size, stream, sizeof(int));
+                stream += sizeof(int);
                 //proceso = obtener_proceso(pid_mov_out);
 
                 //(void* valor, uint32_t tamanio, uint32_t direccion_fisica).
                 //Escribir en memoria
-                memcpy((char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out, stream, sizeof(uint32_t));
+                memcpy((char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out, stream, size);
 
                 // Leer el valor de la memoria :)
-                uint32_t valor;
+                void* valor;
                 char* ptr = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
-                memcpy(&valor, ptr, sizeof(uint32_t));
+                memcpy(&valor, ptr, size);
                 log_info(loggerMemoria, "valor escrito:%d", valor);
-                //
+                //s
 
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 enviar_paquete_cpu_mov_out(OK,socketCliente);
@@ -553,7 +556,7 @@ void* manejarClienteCpu(void *arg)
             }
             default:
             {   
-                log_error(loggerMemoria, "Error");
+                //log_error(loggerMemoria, "Error");
                 break;
             }
 
@@ -632,7 +635,7 @@ void* manejarClienteKernel(void *arg)
             }
             default:
             {   
-                log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
+                //log_error(loggerMemoria, "Se recibio un operacion de kernel NO valido");
                 break;
             }
         }
@@ -788,7 +791,7 @@ void* manejarClienteEntradaSalida(void *arg)
 
             default:
             {   
-                log_error(loggerMemoria, "Error");
+                //log_error(loggerMemoria, "Error");
                 break;
             }
 
