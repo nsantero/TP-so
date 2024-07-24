@@ -69,7 +69,7 @@ void recibirPeticionDeIO_GEN(){
 
             break;
         default:
-            log_info(loggerIO,"Llega peticion incompatible");
+            //log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
         free(paquete->buffer->stream);
@@ -120,7 +120,7 @@ void recibirPeticionDeIO_STDIN(){
 
             break;
         default:
-            log_info(loggerIO,"Llega peticion incompatible");
+            //log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
         free(paquete->buffer->stream);
@@ -171,7 +171,7 @@ void recibirPeticionDeIO_STDOUT(){
 
             break;
         default:
-            log_info(loggerIO,"Llega peticion incompatible");
+            //log_info(loggerIO,"Llega peticion incompatible");
             break;
         }
         free(paquete->buffer->stream);
@@ -279,7 +279,7 @@ void recibirPeticionDeIO_DialFS(){
 
                 break;
             default:
-                log_info(loggerIO,"Llega peticion incompatible");
+                //log_info(loggerIO,"Llega peticion incompatible");
                 break;
             }
         free(paquete->buffer->stream);

@@ -726,6 +726,7 @@ void* manejarClienteEntradaSalida(void *arg)
 
 
                 free(buffer);
+                break;
             }
             case  IO_MEM_FS_WRITE:
             {
@@ -746,7 +747,7 @@ void* manejarClienteEntradaSalida(void *arg)
                 free(paqueteDevolverAIO);
                 
 
-
+                break;
 
             }
             case  IO_MEM_STDIN_READ :
@@ -765,6 +766,7 @@ void* manejarClienteEntradaSalida(void *arg)
                 // solicitar la traduccion de dl a df
                 //Devolver ok?
                 free(buffer);
+                break;
             }
             case  IO_MEM_STDOUT_WRITE :
             {
@@ -784,6 +786,7 @@ void* manejarClienteEntradaSalida(void *arg)
                 enviar_paquete(paqueteDevolverAIO,socketCliente);
                 free(paqueteDevolverAIO->buffer);
                 free(paqueteDevolverAIO);
+                break;
                 
             }
 

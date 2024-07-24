@@ -56,6 +56,7 @@ char* leer_texto_ingresado(uint32_t tamanio,int PID) {
     printf("Ingrese el texto deseado para el proceso de PID=%d. Tamaño maximo %d: \n",PID,tamanio);
     fgets(texto, tamanio+1, stdin);
     texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
+    printf(texto);
     return texto;
 }
 
@@ -72,7 +73,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     agregar_entero_a_paquete32(paquete_entrada,peticion->direccion);
     agregar_string_a_paquete(paquete_entrada,texto_leido); 
 
-	
+	printf("se envio paquete a memoria");
 	enviar_paquete(paquete_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
 	
     
@@ -83,6 +84,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     free(texto_leido);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDIN_READ",peticion->PID);
+    printf("se envio q termino a kernel");
     terminoEjecucionInterfaz(interfaz_STDIN.nombre,peticion->PID);
     
 }
