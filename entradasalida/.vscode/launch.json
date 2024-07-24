@@ -8,7 +8,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
-      "args": ["GENERICA"],
+      "args": ["IO_GEN_SLEEP"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
