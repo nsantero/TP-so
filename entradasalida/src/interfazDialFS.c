@@ -151,7 +151,7 @@ void inicializar_bitmap_dat(Interfaz interfaz){
     
     FILE* bitmapDat= txt_open_for_append(path_bitmap);
 
-    size_t size =(interfaz.blockCount/8)+1;
+    size_t size =(interfaz.blockCount/8)+1;//TODO cambiar a redondeo de verdad, esto puedo hacer cagada
     char buffer[size];
     memset(buffer,0,size);
     fwrite(buffer,1,size,bitmapDat);
@@ -672,7 +672,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 
 //ejecuto tarea LA PUTA MADRE, ACA PIERDO TODAS LAS REFERENCIAS NO SIRVE HAY Q HACERLO POR ARCHIVO :)))))))
     //mueve todos los archivos anteriores y el mismo archivo al principio del archivo
-    for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){
+    for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
         if(bitarray_test_bit(bitmapAddr,i)){
 
             offsetAux = buscarBloqueLibre();
@@ -688,7 +688,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
     //mueve todos los archivos posteriores al final del archivo
     int ultimoBloqueAControlar=interfaz_DialFS.blockCount-1;
     int hayArchivosParaMover=0;
-    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i++){
+    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1)/*TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD*/;i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i++){
                                                                                               // si es menor va a tirar false en la primera iteracion y listo       
         if(bitarray_test_bit(bitmapAddr,i)){
             hayArchivosParaMover=1;
@@ -702,8 +702,8 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
                 offsetAux = buscarBloqueLibreDesdeElFinal();
                 moverArchivo(nombreAMover,offsetAux);
             }
-            ultimoBloqueAControlar=ultimoBloqueAControlar-((tamanioEnBytesDelArchivo/8)+1);
-            i=offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1;
+            ultimoBloqueAControlar=ultimoBloqueAControlar-((tamanioEnBytesDelArchivo/8)+1);//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
+            i=offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1;//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
             hayArchivosParaMover=0;
         }
             
@@ -762,7 +762,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     int tamanioEnBytes;
     off_t bloqueInicialOriginal;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialOriginal,&tamanioEnBytes);
-    int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;
+    int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
 
 
     cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,-1);
