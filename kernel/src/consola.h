@@ -1,6 +1,6 @@
 #ifndef CONSOLA_H
 #define CONSOLA_H
-
+// INICIAR_PROCESO /home/utnso/Documents/tp-2024-1c-File-System-Fanatics/kernel/preliminares/script_solo_cpu.txt
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

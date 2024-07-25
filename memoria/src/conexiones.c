@@ -302,24 +302,29 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente){
 
 void remover_proceso(int pid_remover){
 
+    int j = 0;
+    int i = 0;
     Proceso *proceso = NULL;
 
-    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+    for (i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
         proceso = list_get(lista_ProcesosActivos,i);
 
         if (proceso->pid == pid_remover) {
-
+            if (proceso->cantidad_paginas_asiganadas == 0) {
+                
+                break;
+            }
             //liberar frames
 
-            for (int i = (proceso->cantidad_paginas_asiganadas-1); i >=0; i--) {
+            for (j = (proceso->cantidad_paginas_asiganadas-1); j >=0; j--) {
                 
-                Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
+                Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,j);
                 
                 log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);
                 int frame_liberar = reg_tp_proceso->numero_de_frame;
                 liberarFrame(frame_liberar); 
-                list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+                list_remove_and_destroy_element(proceso->tabla_de_paginas, j,destroy_page_entry);
 
             }
             
