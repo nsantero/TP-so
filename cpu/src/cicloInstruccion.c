@@ -597,17 +597,20 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             uint32_t registro_datos_32;
 
             int size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-
+            u_int32_t uintDevuelve;
+            void* loQueDevuelve=&uintDevuelve;
             if (size_dato == 1){
                 
-               registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-               datos_a_escribir = registro_datos_8;
+                
+                registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                datos_a_escribir = registro_datos_8;
 
             }
             if (size_dato == 4){
-                void* datos_a_escribir= malloc(sizeof(uint32_t));
-                //registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                registro_datos_32 = 12345678910;
+                
+                
+                registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                //registro_datos_32 = 12345678910;
                 //memcpy(datos_a_escribir,&registro_datos_32,sizeof(uint32_t));
                 datos_a_escribir = &registro_datos_32;
             }
@@ -626,40 +629,58 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
             int tam=0;
             void* datos_leidos=NULL;
-
+            void* buffer;
             
+
+            uint32_t bytesDisponiblesEnPag;
                     
             for(int i=0; i<cantidadDePaginas;i++){
 
                 nro_pagina = floor(direccion_logica / tam_pagina)+i; 
                 
-                int desplazamiento = 0;
+                direccion_fisica->desplazamiento = 0;
                 direccion_fisica->PID = pid;
 
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
-                direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
                 
-                desplazamiento = direccion_fisica->desplazamiento;
+                
 
                 if (i==0) {
-                    tam = (desplazamiento + size_dato)-tam_pagina;
+                    direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
+                    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+                    if(size_dato<=bytesDisponiblesEnPag){
+                        tam=size_dato;
+                    }else{
+                        tam=bytesDisponiblesEnPag;
+                    }
+                    buffer=malloc(tam);
+                    memcpy(buffer,datos_a_escribir,tam);
+                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
 
-                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,datos_a_escribir);
-                
-                }else
-                {
-
-                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato,datos_a_escribir+tam);
-                
+                    datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    memcpy(loQueDevuelve, buffer,tam);
+                    free(buffer);
+                }else if (i<(cantidadDePaginas-1)){
+                    buffer=malloc(tam_pagina);
+                    memcpy(buffer,datos_a_escribir+tam,tam_pagina);
+                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+                    tam+=tam_pagina;
+                    
+                    datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
+                    free(buffer);
+                }else{
+                    buffer=malloc(size_dato-tam);
+                    memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
+                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
+                    datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
+                    free(buffer);
                 }
                 
 
-                datos_leidos = recibir_confirmacion_memoria_mov_out();
-
                 
-                memcpy(datos_leidos + 2, datos_a_escribir+2, 2);
-                printf("datos: %d\n",(uint32_t)datos_leidos);
-
+                
                 
                 //if(operacion == OK){
 
@@ -667,7 +688,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                 //}
             }
-
+            printf("datos: %d\n",uintDevuelve);
+            
+            
             break;
         }
         default:
@@ -861,7 +884,7 @@ void* recibir_confirmacion_memoria_mov_out(){
 
                 memcpy(&size,stream,sizeof(int));
                 stream += sizeof(int);
-
+                valor_leido=malloc(size);
                 memcpy(valor_leido,stream,size);
 
                 return valor_leido;
