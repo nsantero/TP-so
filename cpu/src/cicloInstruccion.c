@@ -533,27 +533,36 @@ int buscar_frame(int pagina, int pid){
     //  PRIMERO: buscar en tlb
     //  SEGUNDO: preguntar a memoria
 
-    switch (buscar_en_tlb(pid,pagina)){
-    case HIT:
-    {
-        int marco_encontrado;
-        marco_encontrado = obtener_frame_en_tlb(pid,pagina);
-        return marco_encontrado;
+    if(configuracionCpu.CANTIDAD_ENTRADAS_TLB!=0){
+        switch (buscar_en_tlb(pid,pagina)){
+        case HIT:
+        {
+            int marco_encontrado;
+            marco_encontrado = obtener_frame_en_tlb(pid,pagina);
+            return marco_encontrado;
+        }
+        case MISS:
+        {
+            paquete_memoria_marco(pid,pagina);
+
+            int marco_memoria;
+            marco_memoria = recibir_marco_memoria();
+            agregar_marco_tlb(pid,marco_memoria,pagina);
+            return marco_memoria;
+        }
+        default:
+        
+            break;
+        }
     }
-    case MISS:
-    {
+    else{
         paquete_memoria_marco(pid,pagina);
 
         int marco_memoria;
         marco_memoria = recibir_marco_memoria();
-        agregar_marco_tlb(pid,marco_memoria,pagina);
         return marco_memoria;
     }
-    default:
     
-        break;
-    }
-
 }
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
@@ -603,7 +612,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 
                 
                 registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                datos_a_escribir = registro_datos_8;
+                datos_a_escribir = &registro_datos_8;
 
             }
             if (size_dato == 4){
