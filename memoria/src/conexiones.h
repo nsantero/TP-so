@@ -32,7 +32,7 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente);
 
 void remover_proceso(int pid_remover);
 
-void enviar_paquete_cpu_mov_out(op_code resultado,int socketCliente);
+void enviar_paquete_cpu_mov_out(op_code resultado,void* datos_leidos, int size_datos, int socketCliente);
 
 void* manejarClienteCpu(void *arg);
 

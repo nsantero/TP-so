@@ -145,8 +145,7 @@ void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int 
     agregar_entero_a_paquete32(paquete_memoria, pid);
     agregar_entero_a_paquete32(paquete_memoria, marco);
     agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
-    agregar_entero_a_paquete32(paquete_memoria, size);
-    agregar_entero_a_paquete32(paquete_memoria, datos);
+    agregar_a_paquete(paquete_memoria,datos, size);
     
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
