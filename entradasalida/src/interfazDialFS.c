@@ -801,7 +801,4 @@ char* generarPathAArchivoFS(char* nombreArchivo){
     char* aDevolver =NULL;
     aDevolver=string_from_format("%s%s",interfaz_DialFS.pathBaseDialfs,nombreArchivo);
     return aDevolver;
-
-
-
 }

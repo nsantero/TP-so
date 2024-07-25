@@ -9,6 +9,8 @@ pthread_mutex_t mutexListaBlockedRecursos = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaRunning= PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexListaExit = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t mutexLogger = PTHREAD_MUTEX_INITIALIZER;
+
 pthread_mutex_t mutexHiloQuantum = PTHREAD_MUTEX_INITIALIZER;
 
 sem_t semListaNew;
