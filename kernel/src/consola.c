@@ -120,15 +120,6 @@ void terminarKernel(){
     pthread_mutex_unlock(&mutexListaBlockedRecursos);
     pthread_mutex_unlock(&mutexListaRunning);
     pthread_mutex_unlock(&mutexListaExit);
-
-    destruirSemaforos();
-
-    close(memoria_fd);
-    close(cpu_dispatch_fd);
-    close(cpu_interrupt_fd);
-    close(server_fd);
-    limpiarConfig();
-    log_destroy(loggerKernel);
 }
 
 void ejecutarScript(char* path){

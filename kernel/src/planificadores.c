@@ -10,21 +10,26 @@ int64_t tiempoEjecutando;
 
 int totalProcesosEnSistema(){
     pthread_mutex_lock(&mutexListaReady);
+    pthread_mutex_lock(&mutexListaReadyPri);
     pthread_mutex_lock(&mutexListaBlocked);
     pthread_mutex_lock(&mutexListaBlockedRecursos);
     pthread_mutex_lock(&mutexListaRunning);
 
     int procesosReady = list_size(lista_READY);
+    int procesosReadyPri = list_size(lista_READYPRI);
     int procesosBlocked = list_size(lista_BLOCKED);
     int procesosRunning = list_size(lista_RUNNING);
     int procesosBlockedRecursos = list_size(lista_BLOCKED_RECURSOS);
+    
 
     pthread_mutex_unlock(&mutexListaReady);
+    pthread_mutex_unlock(&mutexListaReadyPri);
     pthread_mutex_unlock(&mutexListaBlocked);
-    pthread_mutex_unlock(&mutexListaRunning);
     pthread_mutex_unlock(&mutexListaBlockedRecursos);
+    pthread_mutex_unlock(&mutexListaRunning);
+    
 
-    return procesosReady+procesosBlocked+procesosRunning+procesosBlockedRecursos;
+    return procesosReady+procesosReadyPri+procesosRunning+procesosBlockedRecursos+procesosBlocked;
 }
 
 void* planificadorNew(){
@@ -120,7 +125,9 @@ void cambiarAReady(t_list* cola){
     PCB *proceso = list_remove(cola, 0);
     proceso->estado = READY;
     list_add(lista_READY, proceso);
-    log_info(loggerKernel,"PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", proceso->PID);
+    pthread_mutex_lock(&mutexLogger);
+    log_info(loggerKernel,"PID: %d - Estado Anterior: <NEW> - Estado Actual: <READY>", proceso->PID);
+    pthread_mutex_unlock(&mutexLogger);
 
     return;
 }
@@ -129,7 +136,9 @@ PCB* cambiarARunning(t_list* lista){
         PCB *proceso = list_remove(lista, 0);
         proceso->estado = RUNNING;
         list_add(lista_RUNNING, proceso);
-        log_info(loggerKernel,"PID: <%d> - Estado Anterior: <READY> - Estado Actual: <RUNNING>", proceso->PID);
+        pthread_mutex_lock(&mutexLogger);
+        log_info(loggerKernel,"PID: %d - Estado Anterior: <READY> - Estado Actual: <RUNNING>", proceso->PID);
+        pthread_mutex_unlock(&mutexLogger);
         return proceso;
     }
     return NULL;

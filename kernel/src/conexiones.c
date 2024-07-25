@@ -77,8 +77,9 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 				}
 				else{
+					pthread_mutex_lock(&mutexLogger);
 					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
-
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(procesoCPU);
 				procesoKernel->estado = EXIT;
@@ -90,7 +91,9 @@ void* conexionesDispatch()
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <SUCCESS>\n", procesoKernel->PID);
+				pthread_mutex_lock(&mutexLogger);
+				log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <SUCCESS>\n", procesoKernel->PID);
+				pthread_mutex_unlock(&mutexLogger);
 
 				//eliminarProceso(procesoKernel);
 				break;
@@ -128,12 +131,14 @@ void* conexionesDispatch()
 				sem_wait(&semPlaniRunning);
 				sem_post(&semPlaniRunning);
 				
-				pthread_mutex_lock(&mutexListaRunning);
 				pthread_mutex_lock(&mutexListaReady);
+				pthread_mutex_lock(&mutexListaRunning);
 				sem_wait(&semPlaniReadyClock);
 				sem_post(&semPlaniReadyClock);
 				procesoKernel = list_remove(lista_RUNNING, 0);
-				log_info(loggerKernel, "PID: <%d> - Desalojado por fin Quantum\n", procesoKernel->PID);
+				pthread_mutex_lock(&mutexLogger);
+				log_info(loggerKernel, "PID: %d - Desalojado por fin Quantum", procesoKernel->PID);
+				pthread_mutex_unlock(&mutexLogger);
 				if(!strcmp(configuracionKernel.ALGORITMO_PLANIFICACION, "VRR")){
 					procesoKernel->quantum=configuracionKernel.QUANTUM;
 				}
@@ -141,7 +146,9 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <READY>\n", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <READY>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(procesoCPU);
 				
@@ -175,7 +182,10 @@ void* conexionesDispatch()
 					free(procesoCPU);
 					procesoKernel->estado = EXIT;
 					list_add(lista_EXIT, procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_RESOURCE:%s>\n", procesoKernel->PID, recursoRecibido);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_RESOURCE:%s>", procesoKernel->PID, recursoRecibido);
+					pthread_mutex_unlock(&mutexLogger);
+
 					pthread_mutex_unlock(&mutexListaRunning);
 					pthread_mutex_unlock(&mutexListaExit);
 					sem_post(&semListaRunning);
@@ -190,7 +200,10 @@ void* conexionesDispatch()
 					pthread_mutex_lock(&mutexListaRunning);
 					procesoKernel = list_get(lista_RUNNING, 0);
 					list_add(procesoKernel->recursosEnUso,recursoEncontrado);
-					log_info(loggerKernel,"Proceso <%d> pudo utilizar recurso %s.\n",procesoKernel->PID, recursoEncontrado->nombre);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel,"Proceso %d pudo utilizar recurso %s.",procesoKernel->PID, recursoEncontrado->nombre);
+					pthread_mutex_unlock(&mutexLogger);
+
 					pthread_mutex_unlock(&mutexListaRunning);
 				} 
 
@@ -198,9 +211,12 @@ void* conexionesDispatch()
 				else {
 					recursoEncontrado->instancias--;
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>\n", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>", procesoKernel->PID, recursoEncontrado->nombre);
+					pthread_mutex_unlock(&mutexLogger);
 					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoEncontrado->nombre);
-					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, recursoEncontrado->nombre);
+					
 					
 				}
 				free(recursoRecibido);
@@ -236,7 +252,9 @@ void* conexionesDispatch()
 					sem_post(&semListaRunning);
 					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 
-					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d\n", recursoRecibido, procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d", recursoRecibido, procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 
    				}
 				// Si el recurso existe
@@ -247,8 +265,8 @@ void* conexionesDispatch()
 						PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, i);
 						if (strcmp(procesoBloqueado->recursoBloqueante, recursoEncontrado->nombre) == 0) {
 							// lo muevo a ready
-							pthread_mutex_lock(&mutexListaBlockedRecursos);
 							pthread_mutex_lock(&mutexListaReady);
+							pthread_mutex_lock(&mutexListaBlockedRecursos);
 							procesoKernel = list_remove(lista_BLOCKED_RECURSOS, i);
 							procesoKernel->estado = READY;
 							procesoKernel->recursoBloqueante = NULL;
@@ -256,7 +274,9 @@ void* conexionesDispatch()
 							pthread_mutex_unlock(&mutexListaBlockedRecursos);
 							pthread_mutex_unlock(&mutexListaReady);
 							sem_post(&semListaReady);
-							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s\n", procesoKernel->PID, recursoEncontrado->nombre);
+							pthread_mutex_lock(&mutexLogger);
+							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s", procesoKernel->PID, recursoEncontrado->nombre);
+							pthread_mutex_unlock(&mutexLogger);
 						}
 
 						
@@ -289,8 +309,9 @@ void* conexionesDispatch()
 				sem_post(&semListaRunning);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(procesoKernel->PID);
-
-				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <OUT_OF_MEMORY>\n", procesoKernel->PID);
+				pthread_mutex_lock(&mutexLogger);
+				log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <OUT_OF_MEMORY>", procesoKernel->PID);
+				pthread_mutex_unlock(&mutexLogger);
 				break;
 			}
 			// INSTRUCCIONES I/O
@@ -330,12 +351,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteIOGen,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOGen);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, interfazGenerica.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, interfazGenerica.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel); //TODO falta pasarle la lista para bloquearla
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
@@ -382,13 +407,17 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, interfazsSTDIN.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, interfazsSTDIN.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
 					//eliminarProceso(proceso); //TODO
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(interfazsSTDIN.nombre_interfaz);
 
@@ -438,12 +467,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteSTDOUT,socketClienteInterfaz);
 					eliminar_paquete(paqueteSTDOUT);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionSTDOUT.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionSTDOUT.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionSTDOUT.nombre_interfaz);
 				
@@ -494,12 +527,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -551,12 +588,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -611,12 +652,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -677,12 +722,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -743,12 +792,16 @@ void* conexionesDispatch()
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>”\n", procesoKernel->PID);
-					log_info(loggerKernel, "PID: <%d> - Bloqueado por: <%s>\n", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel, "PID: %d - Bloqueado por: <%s>", procesoKernel->PID, peticionFS.nombre_interfaz);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
 					terminarProceso(procesoKernel);
-					log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
+					pthread_mutex_unlock(&mutexLogger);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -795,8 +848,8 @@ void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
 	void *stream = paquete->buffer->stream;
 	enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
 	procesoCPU = recibirProcesoContextoEjecucion(stream);
-	pthread_mutex_lock(&mutexListaRunning);
 	pthread_mutex_lock(&mutexListaBlockedRecursos);
+	pthread_mutex_lock(&mutexListaRunning);
 	procesoKernel = list_remove(lista_RUNNING, 0);
 	actualizarProceso(procesoCPU, procesoKernel);
 	free(procesoCPU);
@@ -879,7 +932,9 @@ void* manejarClienteIO(void *arg)
 				interfazBuffer->socketCliente = socketCliente;
 				list_add(interfacesConectadas, interfazBuffer);
 				//TODO agregar q si se vuelve a conectar una interfaz
+				pthread_mutex_lock(&mutexLogger);
 				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
+				pthread_mutex_unlock(&mutexLogger);
 				
 				break;
 			}
@@ -928,7 +983,9 @@ void* manejarClienteIO(void *arg)
 					pthread_mutex_unlock(&mutexListaReady);
 					sem_post(&semListaReady);
 				}
-				log_info(loggerKernel,"PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", proceso->PID);
+				pthread_mutex_lock(&mutexLogger);
+				log_info(loggerKernel,"PID: %d - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", proceso->PID);
+				pthread_mutex_unlock(&mutexLogger);
 				break;
 			}
 			case ERROR_EN_INTERFAZ:
@@ -951,8 +1008,10 @@ void* manejarClienteIO(void *arg)
 				pthread_mutex_unlock(&mutexListaExit);
 				//mutex conexion memoria
 				paquete_memoria_finalizar_proceso(proceso->PID);
-				log_info(loggerKernel, "PID: <%d> - Estado Anterior: BLOCKED> - Estado Actual: <EXIT>\n", proceso->PID);
-				log_info(loggerKernel, "Finaliza el proceso <%d> - Motivo: <ERROR_DE_INTERFAZ:%s>\n", proceso->PID, nombre);
+				pthread_mutex_lock(&mutexLogger);
+				log_info(loggerKernel, "PID: %d - Estado Anterior: BLOCKED> - Estado Actual: <EXIT>", proceso->PID);
+				log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <ERROR_DE_INTERFAZ:%s>", proceso->PID, nombre);
+				pthread_mutex_unlock(&mutexLogger);
 
 				break;
 			}

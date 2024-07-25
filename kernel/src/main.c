@@ -55,5 +55,19 @@ int main(int argc, char *argv[]) {
     pthread_detach(hiloInterfaz);
     pthread_join(hiloConsola, NULL);
 
+    pthread_cancel(procesosNew);
+    pthread_cancel(procesosReady);
+    pthread_cancel(hiloDispatch);
+    pthread_cancel(hiloInterfaz);
+    pthread_cancel(hiloConsola);
+
+    destruirSemaforos();
+    close(memoria_fd);
+    close(cpu_dispatch_fd);
+    close(cpu_interrupt_fd);
+    close(server_fd);
+    limpiarConfig();
+    log_destroy(loggerKernel);
+
     return 0;
 }
