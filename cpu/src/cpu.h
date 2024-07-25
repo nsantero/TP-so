@@ -11,6 +11,12 @@ typedef struct {
     int numero_frame;
     int desplazamiento;
 } direccion_fisica;
+
+typedef struct {
+    int numero_frame;
+    int desplazamiento;
+    int bytes
+} Direccion_fisicaIO_interno_cpu;
 typedef struct {
     int pid;
     int pagina;

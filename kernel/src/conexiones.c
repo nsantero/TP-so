@@ -375,6 +375,8 @@ void* conexionesDispatch()
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 
 				memcpy(&pathLength, stream, sizeof(uint32_t));
@@ -383,12 +385,15 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
-				stream+=sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.direccion_fisica, stream, sizeof(Direccion_fisicaIO));
+				stream+=sizeof(Direccion_fisicaIO);
 				//segundoRegistro
 				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
-				
+				memcpy(&interfazsSTDIN.tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 
 				interfazsSTDIN.PID=procesoKernel->PID;
 
@@ -400,10 +405,17 @@ void* conexionesDispatch()
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOSTDIN=crear_paquete(IO_STDIN_READ);
-					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion);
+					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.direccion_fisica, sizeof(Direccion_fisicaIO));
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamanio);
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.PID);
-					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
+					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamPag);
+					agregar_entero_a_paquete32(paqueteIOSTDIN, cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteIOSTDIN,frameAux);
+					}				
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
 					bloquearProceso(procesoKernel);
@@ -437,6 +449,8 @@ void* conexionesDispatch()
 				Peticion_Interfaz_STDOUT peticionSTDOUT;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -444,10 +458,14 @@ void* conexionesDispatch()
 				memcpy(peticionSTDOUT.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&peticionSTDOUT.direccion, stream, sizeof(uint32_t));
-				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.direccion_fisica, stream, sizeof(Direccion_fisicaIO));
+				stream+=sizeof(Direccion_fisicaIO);
 				//segundoRegistro
 				memcpy(&peticionSTDOUT.tamanio, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				
 
@@ -460,11 +478,18 @@ void* conexionesDispatch()
 				}
 				if(socketClienteInterfaz){
 					t_paquete* paqueteSTDOUT=crear_paquete(IO_STDOUT_WRITE);
-					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion);
+					agregar_a_paquete(paqueteSTDOUT,&peticionSTDOUT.direccion_fisica, sizeof(Direccion_fisicaIO));
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamanio);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.PID);
-					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteSTDOUT,socketClienteInterfaz);
+					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamPag);
+					agregar_entero_a_paquete32(paqueteSTDOUT, cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteSTDOUT,frameAux);
+					}
+					enviar_paquete(paqueteSTDOUT, socketClienteInterfaz);
 					eliminar_paquete(paqueteSTDOUT);
 					bloquearProceso(procesoKernel);
 					pthread_mutex_lock(&mutexLogger);

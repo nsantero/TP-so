@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <cicloInstruccion.h>
 #include <cpu.h>
+#include <math.h>
 
 int memoria_fd;
 int fd_cpu_dispatch;
@@ -11,6 +12,8 @@ t_list* listaPCBS;
 t_instruccion instruccionActual;
 extern int interrumpir;
 op_code codigo_op_hilo_interrupt_cpu;
+
+
 
 t_paquete * paqueteProceso(op_code codigoDeOperacion){
     t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);
@@ -49,21 +52,43 @@ void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfa
     eliminar_paquete(paquete_Kernel);
 }
 void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
+
+    uint32_t tamanio=leerValorDelRegistro(registro2,procesoEjecutando->cpuRegisters);
     uint32_t dirLog=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
-    uint32_t desplazamientoFisica;
+
     direccion_fisica* dirFis = traduccion_mmu(dirLog,procesoEjecutando->PID);
 
-    desplazamientoFisica=(dirFis->numero_frame*tam_pagina)+dirFis->desplazamiento;
-    
-    uint32_t tamanio=leerValorDelRegistro(registro2,procesoEjecutando->cpuRegisters);
+    Direccion_fisicaIO_interno_cpu dirFisIO;
+    dirFisIO.desplazamiento = dirFis->desplazamiento;
+    dirFisIO.numero_frame = dirFis->numero_frame;
+
+    int bytesDisponiblesEnPag = tam_pagina-dirFis->desplazamiento;
+    if(tamanio<=bytesDisponiblesEnPag){
+        dirFisIO.bytes=tamanio;
+    }else{
+        dirFisIO.bytes=bytesDisponiblesEnPag;
+    }
+    int cantidadDePaginas = calculo_cantiad_paginas(dirLog,procesoEjecutando->PID,dirFis->desplazamiento,tamanio);
+    int nro_pagina =0;
+    uint32_t nro_frame = 0;
+
     t_paquete *paquete_Kernel = paqueteProceso(codigoDeOperacion);
 
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
     agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
-
-    agregar_entero_a_paquete32(paquete_Kernel, desplazamientoFisica);   
+    agregar_a_paquete(paquete_Kernel, &dirFisIO, sizeof(Direccion_fisicaIO_interno_cpu));  
     agregar_entero_a_paquete32(paquete_Kernel, tamanio);
+    agregar_entero_a_paquete32(paquete_Kernel, tam_pagina);
     
+    agregar_entero_a_paquete32(paquete_Kernel, cantidadDePaginas);
+    for(int i =1; i<cantidadDePaginas; i++){
+
+        nro_pagina = floor(dirLog / tam_pagina)+i; 
+
+        nro_frame = buscar_frame(nro_pagina,procesoEjecutando->PID);
+        agregar_entero_a_paquete32(paquete_Kernel, nro_frame);
+        
+    }
     enviar_paquete(paquete_Kernel, socketCliente);
     eliminar_paquete(paquete_Kernel);
     free(dirFis);

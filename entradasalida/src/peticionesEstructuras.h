@@ -2,22 +2,34 @@
 #define ESTRUCTURAS_PETICIONES_H
 
 #include <stdint.h>
+#include <commons/collections/list.h>
+
+typedef struct {
+    uint32_t numero_frame;
+    uint32_t desplazamiento;
+    uint32_t bytes
+}Direccion_fisicaIO;
 
 typedef struct
 {
-    uint32_t direccion;
     uint32_t tamanio;
     int PID;
     char *nombre_interfaz;
+    Direccion_fisicaIO direccion_fisica;
+    t_list* frames; //lista de enteros, nro de frames
+    uint32_t tamPag;
 }Peticion_Interfaz_STDOUT;
 
 typedef struct
 {
-    uint32_t direccion;
     uint32_t tamanio;
-    uint32_t PID;
+    int PID;
     char *nombre_interfaz;
+    Direccion_fisicaIO direccion_fisica;
+    t_list* frames; //lista de enteros, nro de frames
+    uint32_t tamPag;
 }Peticion_Interfaz_STDIN;
+
 
 typedef struct
 {

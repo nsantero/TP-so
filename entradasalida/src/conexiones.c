@@ -103,10 +103,12 @@ void recibirPeticionDeIO_STDIN(){
             case IO_STDIN_READ:
             {
                 Peticion_Interfaz_STDIN *peticion=malloc(sizeof(Peticion_Interfaz_STDIN));
+                peticion->frames=list_create();
                 int bytes;
+                int cantPags;
                 
-                memcpy(&peticion->direccion, stream, sizeof(uint32_t));
-                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica, stream, sizeof(Direccion_fisicaIO));
+                stream += sizeof(Direccion_fisicaIO);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->PID, stream, sizeof(uint32_t));
@@ -115,6 +117,19 @@ void recibirPeticionDeIO_STDIN(){
                 stream+=sizeof(int);
                 peticion->nombre_interfaz = malloc(bytes);
                 memcpy(peticion->nombre_interfaz, stream, bytes);
+                stream+=bytes;
+                memcpy(&peticion->tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+
+                for(int i =1; i<cantPags; i++){
+                    uint32_t *frameAux;
+                    memcpy(frameAux, stream, sizeof(uint32_t));
+                    stream+=sizeof(uint32_t);
+                    list_add(peticion->frames, frameAux);
+				}		
+
 
                 pthread_mutex_lock(&mutex_cola_STDIN);
                 list_add(cola_procesos_STDIN,peticion);
@@ -157,20 +172,32 @@ void recibirPeticionDeIO_STDOUT(){
             case IO_STDOUT_WRITE:
             {
                 Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
+                peticion->frames=list_create();
                 int bytes;
+                int cantPags;
                 
-                memcpy(&peticion->direccion, stream, sizeof(uint32_t));
-                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica, stream, sizeof(Direccion_fisicaIO));
+                stream += sizeof(Direccion_fisicaIO);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
-                memcpy(&peticion->PID, stream, sizeof(int));
-                stream += sizeof(int);
+                memcpy(&peticion->PID, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
                 memcpy(&bytes, stream, sizeof(int));
                 stream+=sizeof(int);
                 peticion->nombre_interfaz = malloc(bytes);
                 memcpy(peticion->nombre_interfaz, stream, bytes);
+                stream+=bytes;
+                memcpy(&peticion->tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 
-            
+                for(int i =1; i<cantPags; i++){
+                    uint32_t *frameAux;
+                    memcpy(frameAux, stream, sizeof(uint32_t));
+                    stream+=sizeof(uint32_t);
+                    list_add(peticion->frames, frameAux);
+				}	
 
                 pthread_mutex_lock(&mutex_cola_STDOUT);
                 list_add(cola_procesos_STDOUT,peticion);
