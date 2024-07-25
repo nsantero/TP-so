@@ -79,10 +79,11 @@ void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente){
     eliminar_paquete(paquete_cpu);
 }
 
-void enviar_paquete_cpu_mov_out(op_code resultado,int socketCliente){
+void enviar_paquete_cpu_mov_out(op_code resultado,void* datos_leidos, int size_datos, int socketCliente){
    
     t_paquete *paquete_cpu = crear_paquete(resultado);
     
+    agregar_a_paquete(paquete_cpu,datos_leidos,size_datos);
     enviar_paquete(paquete_cpu, socketCliente);
 
     log_info(loggerMemoria, "Se envio a CPU el resultado del mov out.");
@@ -487,7 +488,7 @@ void* manejarClienteKernel(void *arg)
                 int pid_mov_out; // es necesario????????
                 int marco_mov_out;
                 int desplazamiento_mov_out;
-                void * datos;
+                void* datos;
                 int size;
                 Proceso *proceso = malloc(sizeof(Proceso));
 
@@ -499,21 +500,25 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
-                //proceso = obtener_proceso(pid_mov_out);
 
-                //(void* valor, uint32_t tamanio, uint32_t direccion_fisica).
-                //Escribir en memoria
-                memcpy((char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out, stream, size);
+                void* direccion = memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                memcpy(direccion, stream, size);
 
                 // Leer el valor de la memoria :)
                 void* valor;
                 char* ptr = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 memcpy(&valor, ptr, size);
                 log_info(loggerMemoria, "valor escrito:%d", valor);
-                //s
+                //
+                uint32_t prueba = 123456789;
+                
+                void* datos_a_escribir = &prueba;
+                memcpy(direccion+2 , datos_a_escribir+2, 2);
+                printf("datos: %d\n",(uint32_t)direccion);
 
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
-                enviar_paquete_cpu_mov_out(OK,socketCliente);
+                enviar_paquete_cpu_mov_out(OK,direccion,size,socketCliente);
+
 
                 break;
             }

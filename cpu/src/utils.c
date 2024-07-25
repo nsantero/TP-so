@@ -51,7 +51,7 @@ void mandarPaqueteaKernelGenerica(op_code codigoDeOperacion, char* nombreInterfa
 void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, char *registro1, char *registro2){
     uint32_t dirLog=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
     uint32_t desplazamientoFisica;
-    direccion_fisica* dirFis = traduccion_mmu(desplazamientoFisica,dirLog,procesoEjecutando->PID);
+    direccion_fisica* dirFis = traduccion_mmu(dirLog,procesoEjecutando->PID);
 
     desplazamientoFisica=(dirFis->numero_frame*tam_pagina)+dirFis->desplazamiento;
     
@@ -99,7 +99,7 @@ void mandarPaqueteaKernelFStrun(op_code codigoDeOperacion, char* nombreInterfaz,
 void mandarPaqueteaKernelFSWR(op_code codigoDeOperacion, char* nombreInterfaz, char *archivo, char *registro1, char *registro2, char* registro3){
     uint32_t dirLog=leerValorDelRegistro(registro1,procesoEjecutando->cpuRegisters);
     uint32_t desplazamientoFisica;
-    direccion_fisica* dirFis = traduccion_mmu(desplazamientoFisica,dirLog,procesoEjecutando->PID);
+    direccion_fisica* dirFis = traduccion_mmu(dirLog,procesoEjecutando->PID);
 
     desplazamientoFisica=(dirFis->numero_frame*tam_pagina)+dirFis->desplazamiento;
     

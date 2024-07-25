@@ -319,6 +319,21 @@ uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
 	}else if (strcmp(dl,"DI")==0){
 		return registros.DI;
 	}else {/*TODO ERROR*/}
+    return 0;
+}
+
+
+uint8_t leerValorDelRegistro_8(char *dl,CPU_Registers registros){
+	if (strcmp(dl,"AX")==0){
+		return registros.AX;
+	}else if (strcmp(dl,"BX")==0){
+		return registros.BX;
+	}else if (strcmp(dl,"CX")==0){
+		return registros.CX;
+	}else if (strcmp(dl,"DX")==0){
+		return registros.DX;
+	}else {/*TODO ERROR*/}
+    return 0;
 }
 
 int valorDelRegistro(char *dl,CPU_Registers registros){
@@ -343,9 +358,10 @@ int valorDelRegistro(char *dl,CPU_Registers registros){
 	}else if (strcmp(dl,"DI")==0){
 		return 4;
 	}else {/*TODO ERROR*/}
+    return 0;
 }
 
-direccion_fisica *traduccion_mmu(uint32_t datos,uint32_t dl, int pid){
+direccion_fisica *traduccion_mmu(uint32_t dl, int pid){
 
     direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
@@ -378,6 +394,7 @@ int obtener_frame_en_tlb(int pid, int pagina){
             return reg_TLB->marco;
         }
     }
+    return 0;
 }
 
 void algoritmoLRU(int pid,int marco_memoria,int pagina){
@@ -554,8 +571,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
             uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
 
-            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+            direccion_fisica = traduccion_mmu(direccion_logica,pid);
             
+
             enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento);
 
             uint32_t valor_leido;
@@ -572,13 +590,29 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
 
-            void* registro_datos = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            //void* registro_datos = &(leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters));
+            void* datos_a_escribir;
 
+            uint8_t registro_datos_8;
+            uint32_t registro_datos_32;
 
             int size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
-            
-            direccion_fisica = traduccion_mmu(registro_datos,direccion_logica,pid);
+            if (size_dato == 1){
+                
+               registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+               datos_a_escribir = registro_datos_8;
+
+            }
+            if (size_dato == 4){
+                void* datos_a_escribir= malloc(sizeof(uint32_t));
+                //registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                registro_datos_32 = 12345678910;
+                //memcpy(datos_a_escribir,&registro_datos_32,sizeof(uint32_t));
+                datos_a_escribir = &registro_datos_32;
+            }
+
+            direccion_fisica = traduccion_mmu(direccion_logica,pid);
 
 
             op_code operacion;
@@ -591,6 +625,10 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
     
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
             int tam=0;
+            void* datos_leidos=NULL;
+
+            
+                    
             for(int i=0; i<cantidadDePaginas;i++){
 
                 nro_pagina = floor(direccion_logica / tam_pagina)+i; 
@@ -605,18 +643,29 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                 if (i==0) {
                     tam = (desplazamiento + size_dato)-tam_pagina;
+
+                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,datos_a_escribir);
+                
                 }else
                 {
-                    tam = size_dato - tam;
+
+                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato,datos_a_escribir+tam);
+                
                 }
                 
-                enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,registro_datos);
+
+                datos_leidos = recibir_confirmacion_memoria_mov_out();
+
                 
-                operacion = recibir_confirmacion_memoria_mov_out();
+                memcpy(datos_leidos + 2, datos_a_escribir+2, 2);
+                printf("datos: %d\n",(uint32_t)datos_leidos);
+
                 
-                if(operacion == OK){
-                printf("Instrucción resize realizada!! \n");
-                }
+                //if(operacion == OK){
+
+                //printf("Instrucción resize realizada!! \n");
+
+                //}
             }
 
             break;
@@ -792,18 +841,30 @@ uint32_t recibir_leer_memoria_mov_in(){
     }       
 }
 
-op_code recibir_confirmacion_memoria_mov_out(){
+void* recibir_confirmacion_memoria_mov_out(){
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+
     switch(paquete->codigo_operacion){
             case OK:
             {
-                return OK;
-                break;
+                int size=0;
+                void* valor_leido = NULL;
+
+                memcpy(&size,stream,sizeof(int));
+                stream += sizeof(int);
+
+                memcpy(valor_leido,stream,size);
+
+                return valor_leido;
             }
             default:
             {   
