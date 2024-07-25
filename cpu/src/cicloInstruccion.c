@@ -610,8 +610,6 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 
                 
                 registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                //registro_datos_32 = 12345678910;
-                //memcpy(datos_a_escribir,&registro_datos_32,sizeof(uint32_t));
                 datos_a_escribir = &registro_datos_32;
             }
 
@@ -623,8 +621,8 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             int cantidadDePaginas = 0;
             int nro_pagina;
 
-            nro_pagina = floor(direccion_logica / tam_pagina); 
-            direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
+            //nro_pagina = floor(direccion_logica / tam_pagina); 
+            //direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
     
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
             int tam=0;
@@ -642,7 +640,6 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 direccion_fisica->PID = pid;
 
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
-                
                 
 
                 if (i==0) {
