@@ -454,7 +454,9 @@ void* manejarClienteKernel(void *arg)
                 log_info(loggerMemoria, "Se cargaron las instrucciones");
                 proceso->tam_proceso = 0;
                 proceso->tabla_de_paginas = list_create();
+                pthread_mutex_lock(&listaProcesosActivos);
                 list_add(lista_ProcesosActivos,proceso);
+                pthread_mutex_unlock(&listaProcesosActivos);
                 break;
             }
             case FINALIZAR_PROCESO:
@@ -462,7 +464,9 @@ void* manejarClienteKernel(void *arg)
                 //CHECK
                 int pid_remover;
                 memcpy(&pid_remover, stream, sizeof(int));
+                pthread_mutex_lock(&listaProcesosActivos);
                 remover_proceso(pid_remover);
+                pthread_mutex_unlock(&listaProcesosActivos);
                 log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
                 break;
             }
@@ -506,8 +510,10 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
 
+                pthread_mutex_lock(&accesoAMemoria);
                 void* direccion = memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 memcpy(direccion, stream, size);
+                pthread_mutex_unlock(&accesoAMemoria);
 
                 // Leer el valor de la memoria :)
                 void* valor=malloc(size);
@@ -621,12 +627,12 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
-                
+
+                pthread_mutex_lock(&accesoAMemoria);
                 uint32_t dirFis=(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 void* direccion = memoria.espacioUsuario+dirFis;
                 memcpy(direccion, stream, size);
-
-                
+                pthread_mutex_unlock(&accesoAMemoria);
 
                 
                 log_info(loggerMemoria,"PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
@@ -652,13 +658,13 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
-                
+
+                pthread_mutex_lock(&accesoAMemoria);
                 uint32_t dirFis=(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 void* direccion = memoria.espacioUsuario+dirFis;
                 void* buffer=malloc(size);
                 memcpy(buffer,direccion,size);
-                
-
+                pthread_mutex_unlock(&accesoAMemoria);
                 
                 log_info(loggerMemoria,"PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
                 

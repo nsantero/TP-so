@@ -5,4 +5,7 @@
 extern pthread_mutex_t mutexSocketKernel;
 extern pthread_mutex_t mutexSocketCpu;
 
+extern pthread_mutex_t accesoAMemoria;
+extern pthread_mutex_t listaProcesosActivos;
+
 #endif
