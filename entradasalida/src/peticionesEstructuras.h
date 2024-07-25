@@ -7,7 +7,7 @@
 typedef struct {
     uint32_t numero_frame;
     uint32_t desplazamiento;
-    uint32_t bytes
+    uint32_t bytes;
 }Direccion_fisicaIO;
 
 typedef struct

@@ -21,6 +21,7 @@ void* manejo_interfaz_STDIN(){
         pthread_mutex_unlock(&mutex_cola_STDIN);
 
         EJECUTAR_INTERFAZ_STDIN(peticion_STDIN);
+        list_destroy(peticion_STDIN->frames);
         free(peticion_STDIN->nombre_interfaz);
         free(peticion_STDIN);
     }
@@ -60,27 +61,56 @@ char* leer_texto_ingresado(uint32_t tamanio,int PID) {
     return texto;
 }
 
+
+
+
 void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	char* texto_leido = NULL;
 
+	uint32_t* marco=NULL;
 	
-	t_paquete* paquete_entrada = crear_paquete(IO_MEM_STDIN_READ);
 
-
+    uint32_t bytes=peticion->direccion_fisica.bytes;
 	texto_leido = leer_texto_ingresado(peticion->tamanio,peticion->PID);
-    peticion->tamanio=strlen(texto_leido)+1;
-	agregar_entero_a_paquete32(paquete_entrada,peticion->tamanio);
-    agregar_entero_a_paquete32(paquete_entrada,peticion->direccion);
-    agregar_string_a_paquete(paquete_entrada,texto_leido); 
+    //peticion->tamanio=strlen(texto_leido)+1;
+	void* buffer=NULL;
+    for(int i=0; i<(list_size(peticion->frames)+1);i++){
+        
 
-	printf("se envio paquete a memoria");
-	enviar_paquete(paquete_entrada, memoria_fd); //le mando a memoria el buffer con el texto ingresado
+        if (i==0) {
+            
+            buffer=malloc(bytes);
+            memcpy(buffer,texto_leido,peticion->direccion_fisica.bytes);
+            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes,buffer);
+            
+            free(buffer);
+        }else if (i<(list_size(peticion->frames))){
+            buffer=malloc(peticion->tamPag);
+            memcpy(buffer,texto_leido+bytes,peticion->tamPag);
+            marco=list_remove(peticion->frames,0);
+            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,*marco,0,peticion->tamPag,buffer);
+            
+            bytes+=peticion->tamPag;
+            
+            free(marco);
+            free(buffer);
+        }else{
+            buffer=malloc(peticion->tamanio-bytes);
+            memcpy(buffer,texto_leido+bytes,peticion->tamanio-bytes);
+            marco=list_remove(peticion->frames,0);
+            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,*marco,0,peticion->tamanio-bytes,buffer);
+            
+            free(marco);
+            free(buffer);
+        }
+
+    }
+    printf("se envio paquete a memoria");
+	
 	
     
     
-    free(paquete_entrada->buffer->stream);
-	free(paquete_entrada->buffer);
-	free(paquete_entrada);
+    
     free(texto_leido);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDIN_READ",peticion->PID);

@@ -21,6 +21,8 @@ void recibirPeticionDeIO_DialFS();
 
 void avisarErrorAKernel(char* nombre,int PID);
 void terminoEjecucionInterfaz(char* nombre,int PID);
-//TODO hay q ver si sirve esta info para kernel.
+
+int enviarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size, void* datos);
+void* solicitarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size);
 
 #endif

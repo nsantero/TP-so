@@ -587,7 +587,7 @@ void* manejarClienteKernel(void *arg)
             }
 
             //-----------------------------conexion EntradaSalida------------------------------------
-
+             
             case IO_MEM_FS_READ:
             {
                 uint32_t tamanio;
@@ -604,6 +604,77 @@ void* manejarClienteKernel(void *arg)
 
                 free(buffer);
                 break;
+            }
+            case  IO_MEM_STDIN_READ :
+            {
+                int pid_mov_out; // es necesario????????
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                //void* datos;
+                int size;
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&size, stream, sizeof(int));
+                stream += sizeof(int);
+                
+                uint32_t dirFis=(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                void* direccion = memoria.espacioUsuario+dirFis;
+                memcpy(direccion, stream, size);
+
+                
+
+                
+                log_info(loggerMemoria,"PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
+                
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                enviar_paquete_cpu_mov_out(OK,direccion,size,socketCliente); 
+                break;
+            }
+            case  IO_MEM_STDOUT_WRITE :
+            {
+                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
+                int pid_mov_out; // es necesario????????
+                int marco_mov_out;
+                int desplazamiento_mov_out;
+                //void* datos;
+                int size;
+
+                memcpy(&pid_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&marco_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&size, stream, sizeof(int));
+                stream += sizeof(int);
+                
+                uint32_t dirFis=(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                void* direccion = memoria.espacioUsuario+dirFis;
+                void* buffer=malloc(size);
+                memcpy(buffer,direccion,size);
+                
+
+                
+                log_info(loggerMemoria,"PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
+                
+                usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                
+                
+
+                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
+                agregar_a_paquete(paqueteDevolverAIO,buffer,size);
+                enviar_paquete(paqueteDevolverAIO,socketCliente);
+                free(buffer);
+                free(paqueteDevolverAIO->buffer->stream);
+                free(paqueteDevolverAIO->buffer);
+                free(paqueteDevolverAIO);
+                break;
+                
             }
             case  IO_MEM_FS_WRITE:
             {
@@ -626,45 +697,6 @@ void* manejarClienteKernel(void *arg)
 
                 break;
 
-            }
-            case  IO_MEM_STDIN_READ :
-            {
-                uint32_t tamanio;
-                uint32_t direccion;
-                void* buffer;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direccion,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                buffer=malloc(tamanio);
-                memcpy(buffer,stream,sizeof(tamanio));
-
-                //TODO aca tiene q escribir el buffer en la direccion q le manda IO
-                // solicitar la traduccion de dl a df
-                //Devolver ok?
-                free(buffer);
-                break;
-            }
-            case  IO_MEM_STDOUT_WRITE :
-            {
-                //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
-                uint32_t tamanio;
-                uint32_t direccion;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direccion,stream,sizeof(uint32_t));
-
-                //TODO busca la direccion y la mete en el buffer;
-                char* hardcodeo="Esta prueba esta hardcodeada";
-                void* bufferEncontrado=hardcodeo;
-
-                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_STDOUT_WRITE);
-                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
-                enviar_paquete(paqueteDevolverAIO,socketCliente);
-                free(paqueteDevolverAIO->buffer);
-                free(paqueteDevolverAIO);
-                break;
-                
             }
             default:
             {   

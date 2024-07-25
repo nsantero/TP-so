@@ -107,8 +107,12 @@ void recibirPeticionDeIO_STDIN(){
                 int bytes;
                 int cantPags;
                 
-                memcpy(&peticion->direccion_fisica, stream, sizeof(Direccion_fisicaIO));
-                stream += sizeof(Direccion_fisicaIO);
+                memcpy(&peticion->direccion_fisica.bytes, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica.numero_frame, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->PID, stream, sizeof(uint32_t));
@@ -124,7 +128,7 @@ void recibirPeticionDeIO_STDIN(){
 				stream+=sizeof(uint32_t);
 
                 for(int i =1; i<cantPags; i++){
-                    uint32_t *frameAux;
+                    uint32_t *frameAux=malloc(sizeof(uint32_t));
                     memcpy(frameAux, stream, sizeof(uint32_t));
                     stream+=sizeof(uint32_t);
                     list_add(peticion->frames, frameAux);
@@ -176,8 +180,12 @@ void recibirPeticionDeIO_STDOUT(){
                 int bytes;
                 int cantPags;
                 
-                memcpy(&peticion->direccion_fisica, stream, sizeof(Direccion_fisicaIO));
-                stream += sizeof(Direccion_fisicaIO);
+                memcpy(&peticion->direccion_fisica.bytes, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->direccion_fisica.numero_frame, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->PID, stream, sizeof(uint32_t));
@@ -193,7 +201,7 @@ void recibirPeticionDeIO_STDOUT(){
 				stream+=sizeof(uint32_t);
 
                 for(int i =1; i<cantPags; i++){
-                    uint32_t *frameAux;
+                    uint32_t *frameAux=malloc(sizeof(uint32_t));
                     memcpy(frameAux, stream, sizeof(uint32_t));
                     stream+=sizeof(uint32_t);
                     list_add(peticion->frames, frameAux);
@@ -350,5 +358,58 @@ void terminoEjecucionInterfaz(char* nombre,int PID){
     enviar_paquete(paquete,kernel_fd);
     eliminar_paquete(paquete);
 }
+int enviarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size, void* datos){
+    t_paquete *paquete_memoria = crear_paquete(operacion);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, marco);
+    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
+    agregar_a_paquete(paquete_memoria,datos, size);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    if(paquete->codigo_operacion==OK){return 1;}
+    else{return -1;}
+    free(paquete);
+
+
+}
+void* solicitarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size){
+    t_paquete *paquete_memoria = crear_paquete(operacion);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, marco);
+    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
+    agregar_entero_a_paquete32(paquete_memoria, size);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    void* buffer=malloc(size);
+    memcpy(buffer,stream+4,size);
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
+    return buffer;
+
+
+}
+
 
     

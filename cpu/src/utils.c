@@ -76,7 +76,9 @@ void mandarPaqueteaKernelSTD(op_code codigoDeOperacion, char* nombreInterfaz, ch
 
     agregar_entero_a_paquete32(paquete_Kernel, (strlen(nombreInterfaz)+1));
     agregar_string_a_paquete(paquete_Kernel, nombreInterfaz);
-    agregar_a_paquete(paquete_Kernel, &dirFisIO, sizeof(Direccion_fisicaIO_interno_cpu));  
+    agregar_entero_a_paquete32(paquete_Kernel, dirFisIO.bytes); 
+    agregar_entero_a_paquete32(paquete_Kernel, dirFisIO.desplazamiento); 
+    agregar_entero_a_paquete32(paquete_Kernel, dirFisIO.numero_frame);  
     agregar_entero_a_paquete32(paquete_Kernel, tamanio);
     agregar_entero_a_paquete32(paquete_Kernel, tam_pagina);
     

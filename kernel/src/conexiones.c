@@ -385,8 +385,12 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&interfazsSTDIN.direccion_fisica, stream, sizeof(Direccion_fisicaIO));
-				stream+=sizeof(Direccion_fisicaIO);
+				memcpy(&interfazsSTDIN.direccion_fisica.bytes, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.direccion_fisica.numero_frame, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				//segundoRegistro
 				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -405,7 +409,9 @@ void* conexionesDispatch()
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOSTDIN=crear_paquete(IO_STDIN_READ);
-					agregar_a_paquete(paqueteIOSTDIN,&interfazsSTDIN.direccion_fisica, sizeof(Direccion_fisicaIO));
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamanio);
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.PID);
 					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);
@@ -458,8 +464,12 @@ void* conexionesDispatch()
 				memcpy(peticionSTDOUT.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&peticionSTDOUT.direccion_fisica, stream, sizeof(Direccion_fisicaIO));
-				stream+=sizeof(Direccion_fisicaIO);
+				memcpy(&peticionSTDOUT.direccion_fisica.bytes, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.direccion_fisica.numero_frame, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				//segundoRegistro
 				memcpy(&peticionSTDOUT.tamanio, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -478,7 +488,9 @@ void* conexionesDispatch()
 				}
 				if(socketClienteInterfaz){
 					t_paquete* paqueteSTDOUT=crear_paquete(IO_STDOUT_WRITE);
-					agregar_a_paquete(paqueteSTDOUT,&peticionSTDOUT.direccion_fisica, sizeof(Direccion_fisicaIO));
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamanio);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.PID);
 					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);
