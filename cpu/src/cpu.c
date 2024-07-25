@@ -55,7 +55,9 @@ int pedir_tam_pagina_memoria(){
             }
     }      
     
-
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
     return 0;
 }
 int socketCliente;
@@ -248,6 +250,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_t hiloCicloDeEjecucion;
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);
+                free(procesoEjecutando);
                 break;
             }
             
