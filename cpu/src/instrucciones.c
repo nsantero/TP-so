@@ -18,6 +18,10 @@ void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor)
         registros->ECX = valor;
     } else if (strcmp(registro, "EDX") == 0) {
         registros->EDX = valor;
+    } else if (strcmp(registro, "SI") == 0) {
+        registros->SI = valor;
+    } else if (strcmp(registro, "DI") == 0) {
+        registros->DI = valor;
     } else if (strcmp(registro, "PC") == 0) {
         registros->PC = valor;
     } else {
@@ -213,6 +217,7 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
     int nro_pagina =0;
     int tam =0;
     void* buffer;
+    void* datos_leidos=NULL;
 
     void* datos_a_escribir = &procesoEjecutando->cpuRegisters.SI;
 
@@ -222,7 +227,7 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
 
     uint32_t bytesDisponiblesEnPag;
             
-    for(int i=0; i<cantidadDePaginas;i++){
+    for(int i=0; i<=cantidadDePaginas;i++){
 
         nro_pagina = floor(procesoEjecutando->cpuRegisters.DI / tam_pagina)+i; 
         
@@ -243,18 +248,20 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
             buffer=malloc(tam);
             memcpy(buffer,datos_a_escribir,tam);
             enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam,buffer);
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
             free(buffer);
         }else if (i<(cantidadDePaginas-1)){
             buffer=malloc(tam_pagina);
             memcpy(buffer,datos_a_escribir+tam,tam_pagina);
             enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam_pagina,buffer);
             tam+=tam_pagina;
-            
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
             free(buffer);
         }else{
             buffer=malloc(sizeDato-tam);
             memcpy(buffer,datos_a_escribir+tam,sizeDato-tam);
             enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,sizeDato-tam,buffer);
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
             free(buffer);
         }
     }

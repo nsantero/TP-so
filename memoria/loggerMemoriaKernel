@@ -1,144 +1,144 @@
-==30161== Memcheck, a memory error detector
-==30161== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==30161== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==30161== Command: ./bin/memoria
-==30161== Parent PID: 30154
-==30161== 
-==30161== Thread 3:
-==30161== Invalid read of size 1
-==30161==    at 0x484ED24: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x49D3D30: __vfprintf_internal (vfprintf-internal.c:1517)
-==30161==    by 0x49BD79E: printf (printf.c:33)
-==30161==    by 0x10BAB4: manejarClienteKernel (conexiones.c:525)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Address 0x4bb9d51 is 0 bytes after a block of size 1 alloc'd
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10BA2C: manejarClienteKernel (conexiones.c:519)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== Thread 6:
-==30161== Syscall param socketcall.sendto(msg) points to uninitialised byte(s)
-==30161==    at 0x4A848FE: __libc_send (send.c:28)
-==30161==    by 0x4A848FE: send (send.c:23)
-==30161==    by 0x10D047: enviar_paquete (shared.c:271)
-==30161==    by 0x10C00D: manejarClienteKernel (conexiones.c:677)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Address 0x4c4535c is 12 bytes inside a block of size 28 alloc'd
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10D5D8: serializar_paquete (paquetes.c:103)
-==30161==    by 0x10D02A: enviar_paquete (shared.c:269)
-==30161==    by 0x10C00D: manejarClienteKernel (conexiones.c:677)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Uninitialised value was created by a heap allocation
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10C3BA: inicializarMemoria (memoria.c:47)
-==30161==    by 0x10C484: main (memoria.c:71)
-==30161== 
-==30161== Thread 7:
-==30161== Conditional jump or move depends on uninitialised value(s)
-==30161==    at 0x4848842: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B644: manejarClienteKernel (conexiones.c:432)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Uninitialised value was created by a heap allocation
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B5D1: manejarClienteKernel (conexiones.c:428)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== Syscall param recvfrom(len) contains uninitialised byte(s)
-==30161==    at 0x4A846BE: __libc_recv (recv.c:28)
-==30161==    by 0x4A846BE: recv (recv.c:23)
-==30161==    by 0x10B679: manejarClienteKernel (conexiones.c:433)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Uninitialised value was created by a heap allocation
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B5D1: manejarClienteKernel (conexiones.c:428)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== Conditional jump or move depends on uninitialised value(s)
-==30161==    at 0x10B69F: manejarClienteKernel (conexiones.c:436)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161==  Uninitialised value was created by a heap allocation
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B5C0: manejarClienteKernel (conexiones.c:427)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== 
-==30161== Process terminating with default action of signal 1 (SIGHUP)
-==30161==    at 0x49F2219: pthread_create@@GLIBC_2.34 (pthread_create.c:835)
-==30161==    by 0x10B564: atenderPeticionesKernel (conexiones.c:412)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== HEAP SUMMARY:
-==30161==     in use at exit: 53,537 bytes in 983 blocks
-==30161==   total heap usage: 131,377 allocs, 130,394 frees, 1,623,582 bytes allocated
-==30161== 
-==30161== Thread 1:
-==30161== 48 bytes in 3 blocks are definitely lost in loss record 17 of 34
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x486D2AE: list_create (in /usr/lib/libcommons.so)
-==30161==    by 0x10B7D5: manejarClienteKernel (conexiones.c:456)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== 183 bytes in 3 blocks are definitely lost in loss record 21 of 34
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B713: manejarClienteKernel (conexiones.c:449)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== 272 bytes in 1 blocks are possibly lost in loss record 22 of 34
-==30161==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x40147D9: calloc (rtld-malloc.h:44)
-==30161==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
-==30161==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
-==30161==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
-==30161==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
-==30161==    by 0x10C4E8: main (memoria.c:81)
-==30161== 
-==30161== 2,064 bytes in 43 blocks are definitely lost in loss record 28 of 34
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x10B954: manejarClienteKernel (conexiones.c:502)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== 7,564 (48 direct, 7,516 indirect) bytes in 3 blocks are definitely lost in loss record 33 of 34
-==30161==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x486D2AE: list_create (in /usr/lib/libcommons.so)
-==30161==    by 0x10C178: cargarInstrucciones (conexiones.c:731)
-==30161==    by 0x10B7A2: manejarClienteKernel (conexiones.c:453)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== 32,368 bytes in 119 blocks are possibly lost in loss record 34 of 34
-==30161==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==30161==    by 0x40147D9: calloc (rtld-malloc.h:44)
-==30161==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
-==30161==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
-==30161==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
-==30161==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
-==30161==    by 0x10B564: atenderPeticionesKernel (conexiones.c:412)
-==30161==    by 0x49F1AC2: start_thread (pthread_create.c:442)
-==30161==    by 0x4A82A03: clone (clone.S:100)
-==30161== 
-==30161== LEAK SUMMARY:
-==30161==    definitely lost: 2,343 bytes in 52 blocks
-==30161==    indirectly lost: 7,516 bytes in 504 blocks
-==30161==      possibly lost: 32,640 bytes in 120 blocks
-==30161==    still reachable: 11,038 bytes in 307 blocks
-==30161==         suppressed: 0 bytes in 0 blocks
-==30161== Reachable blocks (those to which a pointer was found) are not shown.
-==30161== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==30161== 
-==30161== For lists of detected and suppressed errors, rerun with: -s
-==30161== ERROR SUMMARY: 47823 errors from 11 contexts (suppressed: 0 from 0)
+==31983== Memcheck, a memory error detector
+==31983== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==31983== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==31983== Command: ./bin/memoria
+==31983== Parent PID: 31961
+==31983== 
+==31983== Thread 3:
+==31983== Invalid read of size 1
+==31983==    at 0x484ED24: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x49D3D30: __vfprintf_internal (vfprintf-internal.c:1517)
+==31983==    by 0x49BD79E: printf (printf.c:33)
+==31983==    by 0x10BAB4: manejarClienteKernel (conexiones.c:525)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Address 0x4bc6111 is 0 bytes after a block of size 1 alloc'd
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10BA2C: manejarClienteKernel (conexiones.c:519)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== Thread 5:
+==31983== Syscall param socketcall.sendto(msg) points to uninitialised byte(s)
+==31983==    at 0x4A848FE: __libc_send (send.c:28)
+==31983==    by 0x4A848FE: send (send.c:23)
+==31983==    by 0x10D047: enviar_paquete (shared.c:271)
+==31983==    by 0x10C00D: manejarClienteKernel (conexiones.c:677)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Address 0x4c3b9ac is 12 bytes inside a block of size 28 alloc'd
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10D5D8: serializar_paquete (paquetes.c:103)
+==31983==    by 0x10D02A: enviar_paquete (shared.c:269)
+==31983==    by 0x10C00D: manejarClienteKernel (conexiones.c:677)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Uninitialised value was created by a heap allocation
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10C3BA: inicializarMemoria (memoria.c:47)
+==31983==    by 0x10C484: main (memoria.c:71)
+==31983== 
+==31983== Thread 7:
+==31983== Conditional jump or move depends on uninitialised value(s)
+==31983==    at 0x4848842: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B644: manejarClienteKernel (conexiones.c:432)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Uninitialised value was created by a heap allocation
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B5D1: manejarClienteKernel (conexiones.c:428)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== Syscall param recvfrom(len) contains uninitialised byte(s)
+==31983==    at 0x4A846BE: __libc_recv (recv.c:28)
+==31983==    by 0x4A846BE: recv (recv.c:23)
+==31983==    by 0x10B679: manejarClienteKernel (conexiones.c:433)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Uninitialised value was created by a heap allocation
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B5D1: manejarClienteKernel (conexiones.c:428)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== Conditional jump or move depends on uninitialised value(s)
+==31983==    at 0x10B69F: manejarClienteKernel (conexiones.c:436)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983==  Uninitialised value was created by a heap allocation
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B5C0: manejarClienteKernel (conexiones.c:427)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== 
+==31983== Process terminating with default action of signal 1 (SIGHUP)
+==31983==    at 0x49F2219: pthread_create@@GLIBC_2.34 (pthread_create.c:835)
+==31983==    by 0x10B564: atenderPeticionesKernel (conexiones.c:412)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== HEAP SUMMARY:
+==31983==     in use at exit: 31,041 bytes in 734 blocks
+==31983==   total heap usage: 76,404 allocs, 75,670 frees, 1,011,477 bytes allocated
+==31983== 
+==31983== Thread 1:
+==31983== 48 bytes in 3 blocks are definitely lost in loss record 17 of 34
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x486D2AE: list_create (in /usr/lib/libcommons.so)
+==31983==    by 0x10B7D5: manejarClienteKernel (conexiones.c:456)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== 183 bytes in 3 blocks are definitely lost in loss record 21 of 34
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B713: manejarClienteKernel (conexiones.c:449)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== 272 bytes in 1 blocks are possibly lost in loss record 22 of 34
+==31983==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==31983==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==31983==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==31983==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
+==31983==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==31983==    by 0x10C4E8: main (memoria.c:81)
+==31983== 
+==31983== 2,064 bytes in 43 blocks are definitely lost in loss record 28 of 34
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x10B954: manejarClienteKernel (conexiones.c:502)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== 7,564 (48 direct, 7,516 indirect) bytes in 3 blocks are definitely lost in loss record 33 of 34
+==31983==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x486D2AE: list_create (in /usr/lib/libcommons.so)
+==31983==    by 0x10C178: cargarInstrucciones (conexiones.c:731)
+==31983==    by 0x10B7A2: manejarClienteKernel (conexiones.c:453)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== 12,240 bytes in 45 blocks are possibly lost in loss record 34 of 34
+==31983==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==31983==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==31983==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==31983==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==31983==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
+==31983==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==31983==    by 0x10B564: atenderPeticionesKernel (conexiones.c:412)
+==31983==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==31983==    by 0x4A82A03: clone (clone.S:100)
+==31983== 
+==31983== LEAK SUMMARY:
+==31983==    definitely lost: 2,343 bytes in 52 blocks
+==31983==    indirectly lost: 7,516 bytes in 504 blocks
+==31983==      possibly lost: 12,512 bytes in 46 blocks
+==31983==    still reachable: 8,670 bytes in 132 blocks
+==31983==         suppressed: 0 bytes in 0 blocks
+==31983== Reachable blocks (those to which a pointer was found) are not shown.
+==31983== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==31983== 
+==31983== For lists of detected and suppressed errors, rerun with: -s
+==31983== ERROR SUMMARY: 7465 errors from 11 contexts (suppressed: 0 from 0)

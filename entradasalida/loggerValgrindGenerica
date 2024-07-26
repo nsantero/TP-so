@@ -1,0 +1,58 @@
+==39248== Memcheck, a memory error detector
+==39248== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==39248== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==39248== Command: ./bin/entradasalida GENERICA
+==39248== Parent PID: 31353
+==39248== 
+==39248== Conditional jump or move depends on uninitialised value(s)
+==39248==    at 0x4848842: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39248==    by 0x10B721: recibirPeticionDeIO_GEN (conexiones.c:39)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248==  Uninitialised value was created by a heap allocation
+==39248==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39248==    by 0x10B6AD: recibirPeticionDeIO_GEN (conexiones.c:33)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248== 
+==39248== Syscall param recvfrom(len) contains uninitialised byte(s)
+==39248==    at 0x499D6BE: __libc_recv (recv.c:28)
+==39248==    by 0x499D6BE: recv (recv.c:23)
+==39248==    by 0x10B750: recibirPeticionDeIO_GEN (conexiones.c:40)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248==  Uninitialised value was created by a heap allocation
+==39248==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39248==    by 0x10B6AD: recibirPeticionDeIO_GEN (conexiones.c:33)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248== 
+==39248== Conditional jump or move depends on uninitialised value(s)
+==39248==    at 0x10B76A: recibirPeticionDeIO_GEN (conexiones.c:43)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248==  Uninitialised value was created by a heap allocation
+==39248==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39248==    by 0x10B693: recibirPeticionDeIO_GEN (conexiones.c:31)
+==39248==    by 0x10AF67: main (entradasalida.c:85)
+==39248== 
+==39248== 
+==39248== HEAP SUMMARY:
+==39248==     in use at exit: 320 bytes in 4 blocks
+==39248==   total heap usage: 103,756 allocs, 103,752 frees, 1,129,451 bytes allocated
+==39248== 
+==39248== 272 bytes in 1 blocks are possibly lost in loss record 4 of 4
+==39248==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39248==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==39248==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==39248==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==39248==    by 0x490B7B4: allocate_stack (allocatestack.c:430)
+==39248==    by 0x490B7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==39248==    by 0x10AF51: main (entradasalida.c:83)
+==39248== 
+==39248== LEAK SUMMARY:
+==39248==    definitely lost: 0 bytes in 0 blocks
+==39248==    indirectly lost: 0 bytes in 0 blocks
+==39248==      possibly lost: 272 bytes in 1 blocks
+==39248==    still reachable: 48 bytes in 3 blocks
+==39248==         suppressed: 0 bytes in 0 blocks
+==39248== Reachable blocks (those to which a pointer was found) are not shown.
+==39248== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==39248== 
+==39248== For lists of detected and suppressed errors, rerun with: -s
+==39248== ERROR SUMMARY: 43 errors from 4 contexts (suppressed: 0 from 0)

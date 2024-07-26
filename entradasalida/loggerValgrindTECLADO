@@ -1,1 +1,85 @@
-
+==39252== Memcheck, a memory error detector
+==39252== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==39252== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==39252== Command: ./bin/entradasalida TECLADO
+==39252== Parent PID: 31307
+==39252== 
+==39252== Thread 2:
+==39252== Syscall param socketcall.sendto(msg) points to uninitialised byte(s)
+==39252==    at 0x499D8FE: __libc_send (send.c:28)
+==39252==    by 0x499D8FE: send (send.c:23)
+==39252==    by 0x110611: enviar_paquete (shared.c:271)
+==39252==    by 0x10C419: enviarFragmentoAMemoria (conexiones.c:372)
+==39252==    by 0x10F519: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:87)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252==  Address 0x4aadfba is 26 bytes inside a block of size 40 alloc'd
+==39252==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39252==    by 0x110BA2: serializar_paquete (paquetes.c:103)
+==39252==    by 0x1105F4: enviar_paquete (shared.c:269)
+==39252==    by 0x10C419: enviarFragmentoAMemoria (conexiones.c:372)
+==39252==    by 0x10F519: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:87)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252==  Uninitialised value was created by a heap allocation
+==39252==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39252==    by 0x10F3E8: leer_texto_ingresado (interfazSTDIN.c:57)
+==39252==    by 0x10F49A: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:76)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252== 
+==39252== Syscall param socketcall.sendto(msg) points to uninitialised byte(s)
+==39252==    at 0x499D8FE: __libc_send (send.c:28)
+==39252==    by 0x499D8FE: send (send.c:23)
+==39252==    by 0x110611: enviar_paquete (shared.c:271)
+==39252==    by 0x10C419: enviarFragmentoAMemoria (conexiones.c:372)
+==39252==    by 0x10F67E: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:105)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252==  Address 0x4aae378 is 24 bytes inside a block of size 34 alloc'd
+==39252==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39252==    by 0x110BA2: serializar_paquete (paquetes.c:103)
+==39252==    by 0x1105F4: enviar_paquete (shared.c:269)
+==39252==    by 0x10C419: enviarFragmentoAMemoria (conexiones.c:372)
+==39252==    by 0x10F67E: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:105)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252==  Uninitialised value was created by a heap allocation
+==39252==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39252==    by 0x10F3E8: leer_texto_ingresado (interfazSTDIN.c:57)
+==39252==    by 0x10F49A: EJECUTAR_INTERFAZ_STDIN (interfazSTDIN.c:76)
+==39252==    by 0x10F25F: manejo_interfaz_STDIN (interfazSTDIN.c:23)
+==39252==    by 0x490AAC2: start_thread (pthread_create.c:442)
+==39252==    by 0x499BA03: clone (clone.S:100)
+==39252== 
+==39252== 
+==39252== HEAP SUMMARY:
+==39252==     in use at exit: 320 bytes in 4 blocks
+==39252==   total heap usage: 90,885 allocs, 90,881 frees, 993,690 bytes allocated
+==39252== 
+==39252== Thread 1:
+==39252== 272 bytes in 1 blocks are possibly lost in loss record 4 of 4
+==39252==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==39252==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==39252==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==39252==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==39252==    by 0x490B7B4: allocate_stack (allocatestack.c:430)
+==39252==    by 0x490B7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==39252==    by 0x10B02D: main (entradasalida.c:91)
+==39252== 
+==39252== LEAK SUMMARY:
+==39252==    definitely lost: 0 bytes in 0 blocks
+==39252==    indirectly lost: 0 bytes in 0 blocks
+==39252==      possibly lost: 272 bytes in 1 blocks
+==39252==    still reachable: 48 bytes in 3 blocks
+==39252==         suppressed: 0 bytes in 0 blocks
+==39252== Reachable blocks (those to which a pointer was found) are not shown.
+==39252== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==39252== 
+==39252== For lists of detected and suppressed errors, rerun with: -s
+==39252== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 0 from 0)
