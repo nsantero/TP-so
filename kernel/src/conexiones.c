@@ -746,8 +746,10 @@ void* conexionesDispatch()
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.tamPag,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				memcpy(&cantPags, stream, sizeof(uint32_t));
-
+				stream+=sizeof(uint32_t);
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_WRITE;
 				//MUTEX
@@ -833,7 +835,10 @@ void* conexionesDispatch()
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.tamPag,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_READ;
 				//MUTEX

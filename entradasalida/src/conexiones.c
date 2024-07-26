@@ -324,6 +324,7 @@ void recibirPeticionDeIO_DialFS(){
                 stream += sizeof(int);
                 peticion->nombre_interfaz = malloc(bytes);
                 memcpy(peticion->nombre_interfaz, stream, bytes);
+                stream+=bytes;
                 memcpy(&cantPags, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 

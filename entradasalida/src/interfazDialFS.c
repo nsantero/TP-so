@@ -816,13 +816,6 @@ void enviarBufferAMemoria(Peticion_Interfaz_DialFS* peticion,void* texto_leido){
         }
 
     }
-    
-	
-	
-    
-    
-    
-    free(texto_leido);
 }
 void* recibirBufferDeMememoria(Peticion_Interfaz_DialFS* peticion){
     uint32_t* marco=NULL;
