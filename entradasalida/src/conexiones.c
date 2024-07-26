@@ -246,6 +246,7 @@ void recibirPeticionDeIO_DialFS(){
 
         Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
         int bytes;
+        int cantPags;
 
         switch (paquete->codigo_operacion)  
         {
@@ -306,7 +307,11 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                //memcpy(&peticion->direcion, stream, sizeof(uint32_t));
+                memcpy(&peticion->Direccion_fisica.bytes, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->Direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->Direccion_fisica.numero_frame, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
@@ -318,8 +323,15 @@ void recibirPeticionDeIO_DialFS(){
                 stream += sizeof(int);
                 peticion->nombre_interfaz = malloc(bytes);
                 memcpy(peticion->nombre_interfaz, stream, bytes);
+                memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 
-            
+                for(int i =1; i<cantPags; i++){
+                    uint32_t *frameAux=malloc(sizeof(uint32_t));
+                    memcpy(frameAux, stream, sizeof(uint32_t));
+                    stream+=sizeof(uint32_t);
+                    list_add(peticion->frames, frameAux);
+				}	
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
                 list_add(cola_procesos_DialFS,peticion);

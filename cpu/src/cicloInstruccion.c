@@ -664,6 +664,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
 
                     datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    free(datos_leidos);
                     memcpy(loQueDevuelve, buffer,tam);
                     free(buffer);
                 }else if (i<(cantidadDePaginas-1)){
@@ -673,6 +674,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     tam+=tam_pagina;
                     
                     datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    free(datos_leidos);
                     memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
                     free(buffer);
                 }else{
@@ -680,6 +682,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
                     enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
                     datos_leidos = recibir_confirmacion_memoria_mov_out();
+                    free(datos_leidos);
                     memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
                     free(buffer);
                 }

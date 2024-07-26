@@ -593,24 +593,7 @@ void* manejarClienteKernel(void *arg)
             }
 
             //-----------------------------conexion EntradaSalida------------------------------------
-             
             case IO_MEM_FS_READ:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                void* buffer;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                buffer=malloc(tamanio);
-                memcpy(buffer,stream,tamanio);
-                
-                //Guardar buffer
-
-                free(buffer);
-                break;
-            }
             case  IO_MEM_STDIN_READ :
             {
                 int pid_mov_out; // es necesario????????
@@ -641,6 +624,7 @@ void* manejarClienteKernel(void *arg)
                 enviar_paquete_cpu_mov_out(OK,direccion,size,socketCliente); 
                 break;
             }
+            case  IO_MEM_FS_WRITE:
             case  IO_MEM_STDOUT_WRITE :
             {
                 //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
@@ -682,28 +666,7 @@ void* manejarClienteKernel(void *arg)
                 break;
                 
             }
-            case  IO_MEM_FS_WRITE:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                
-                //Lee la direccion
-                char* hardcodeo="Esta prueba esta hardcodeada";
-                void* bufferEncontrado=hardcodeo;
-
-                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
-                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
-                enviar_paquete(paqueteDevolverAIO,socketCliente);
-                free(paqueteDevolverAIO->buffer);
-                free(paqueteDevolverAIO);
-                
-
-                break;
-
-            }
+            
             default:
             {   
                 break;

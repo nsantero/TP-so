@@ -851,13 +851,13 @@ void* conexionesDispatch()
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
 					agregar_entero_a_paquete32(paqueteFS,cantPags);
 					for(int i =1; i<cantPags; i++){
 						memcpy(&frameAux, stream, sizeof(uint32_t));
 						stream+=sizeof(uint32_t);
 						agregar_entero_a_paquete32(paqueteFS,frameAux);
 					}	
-					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
