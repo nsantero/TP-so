@@ -3,7 +3,6 @@
 #include <math.h>
 #include <configs.h>
 
-
 int server_fd = 0;
 
 //-----------------------------conexion cpu y memoria------------------------------------
@@ -12,7 +11,7 @@ void liberarFrame(int frame){
 
     bitarray_clean_bit(memoria.bitmap_frames, frame);
 
-    log_info(loggerMemoria, "Se liberó el frame:%d", frame);
+    //log_info(loggerMemoria, "Se liberó el frame:%d", frame);
 
 }
 
@@ -20,12 +19,16 @@ void destroy_page_entry(void *element) {
 
     Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
     free(reg_tp_proceso); 
+
 }
 
 void destroy_process_entry(void *element) {
 
     Proceso *proceso = (Proceso *)element;
+
+    free(proceso->path);
     free(proceso); 
+
 }
 
 int cantidadFrameLibre(){
@@ -44,27 +47,31 @@ int cantidadFrameLibre(){
 
     }
 
-    log_info(loggerMemoria, "Cantidad de frames libres:%d",cant_frames_libres-diferencia);
+    //log_info(loggerMemoria, "Cantidad de frames libres:%d",cant_frames_libres-diferencia);
     return cant_frames_libres-diferencia;
 }
 
 int asignarFrameLibre(){
 
+    int valor = 0;
+
     for (int i = 0; i < memoria.cantidad_frames; i++) {
     
-        int valor = bitarray_test_bit(memoria.bitmap_frames, i);
+        valor = bitarray_test_bit(memoria.bitmap_frames, i);
 
         if(!valor){
 
             bitarray_set_bit(memoria.bitmap_frames, i);
 
-            log_info(loggerMemoria, "Se asigno el frame:%d",i);
-            log_info(loggerMemoria, "El frame esta en :%d",bitarray_test_bit(memoria.bitmap_frames, i));
+            //log_info(loggerMemoria, "Se asigno el frame:%d",i);
+            //log_info(loggerMemoria, "El frame esta en :%d",bitarray_test_bit(memoria.bitmap_frames, i));
             
             return i;
         }
     
     }
+
+    return 0;
 
 }
 
@@ -74,23 +81,42 @@ void enviar_resultado_instruccion_resize(op_code resultado,int socket_cliente){
     
     enviar_paquete(paquete_cpu, socket_cliente);
 
-    log_info(loggerMemoria, "Se envio a CPU el resultado del resize.");
+    //log_info(loggerMemoria, "Se envio a CPU el resultado del resize.");
 
     eliminar_paquete(paquete_cpu);
 }
 
-void enviar_paquete_cpu_mov_out(op_code resultado,void* datos_leidos, int size_datos, int socketCliente){
+//Prueba demov_out
+void enviar_paquete_cpu_mov_out_prueba(op_code resultado,void* datos_leidos, int size_datos, int socketCliente){
    
     t_paquete *paquete_cpu = crear_paquete(resultado);
     
     agregar_a_paquete(paquete_cpu,datos_leidos,size_datos);
     enviar_paquete(paquete_cpu, socketCliente);
 
-    log_info(loggerMemoria, "Se envio a CPU el resultado del mov out.");
+    eliminar_paquete(paquete_cpu);
+}
+
+void enviar_paquete_cpu_mov_in(op_code resultado,void* datos_leidos, int size_datos, int socketCliente){
+   
+    t_paquete *paquete_cpu = crear_paquete(resultado);
+    
+    agregar_a_paquete(paquete_cpu,datos_leidos,size_datos);
+    enviar_paquete(paquete_cpu, socketCliente);
+
+    //log_info(loggerMemoria, "Se envio a CPU el resultado del mov out.");
 
     eliminar_paquete(paquete_cpu);
 }
 
+void enviar_paquete_cpu_mov_out(op_code resultado, int socketCliente){
+   
+    t_paquete *paquete_cpu = crear_paquete(resultado);
+    
+    enviar_paquete(paquete_cpu, socketCliente);
+
+    eliminar_paquete(paquete_cpu);
+}
 
 op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
@@ -119,9 +145,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             if(tam_actual != 0 && tam_actual>tam_a_cambiar){
 
                 //Remover paginas
-                
-                
-
+               
                 log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
                 // cant pag actuales 4
                 // cant pag a cambiar 3
@@ -162,8 +186,6 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                 return OUT_OF_MEMORY;
 
             }
-
-            
 
             //Caso Ampliacion de un proceso
             if(proceso->tam_proceso == 0){
@@ -233,10 +255,6 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
 }
 
-
-
-
-
 char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 
     Proceso *proceso = NULL;
@@ -271,7 +289,7 @@ void enviar_paquete_cpu_marco(int marco_encontrado,int socketCliente){
     
     enviar_paquete(paquete_cpu, socketCliente);
 
-    log_info(loggerMemoria, "Se envio a CPU el marco: %d",marco_encontrado);
+    //log_info(loggerMemoria, "Se envio a CPU el marco: %d",marco_encontrado);
 
     eliminar_paquete(paquete_cpu);
 
@@ -289,7 +307,7 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
     
     enviar_paquete(paquete_cpu, socket_cliente);
 
-    log_info(loggerMemoria, "Se envio a CPU la instruccion: %s",instruccion);
+    //log_info(loggerMemoria, "Se envio a CPU la instruccion: %s",instruccion);
 
     eliminar_paquete(paquete_cpu);
 
@@ -303,16 +321,27 @@ void paquete_cpu_envio_tam_pagina(int socket_cliente){
     
     enviar_paquete(paquete_cpu, socket_cliente);
 
-    log_info(loggerMemoria, "Se envio el tamaño de pagina a CPU: %d",memoria.pagina_tam);
+    //log_info(loggerMemoria, "Se envio el tamaño de pagina a CPU: %d",memoria.pagina_tam);
 
     eliminar_paquete(paquete_cpu);
+}
 
+void destruirInstruccion(void *elemento) {
+
+    Instruccion *instruccion = (Instruccion *)elemento;
+    free(instruccion->instruccion);
+    free(instruccion);
+}
+
+void limpiarInstrucciones(Proceso *proceso) {
+    list_destroy_and_destroy_elements(proceso->instrucciones, destruirInstruccion);
 }
 
 void remover_proceso(int pid_remover){
 
     int j = 0;
     int i = 0;
+    int frame_liberar = 0;
     Proceso *proceso = NULL;
 
     for (i = 0; i < list_size(lista_ProcesosActivos); i++) {
@@ -320,23 +349,24 @@ void remover_proceso(int pid_remover){
         proceso = list_get(lista_ProcesosActivos,i);
 
         if (proceso->pid == pid_remover) {
-            if (proceso->cantidad_paginas_asiganadas == 0) {
-                
-                break;
-            }
-            //liberar frames
 
-            for (j = (proceso->cantidad_paginas_asiganadas-1); j >=0; j--) {
+            if (proceso->cantidad_paginas_asiganadas != 0) {
+
+                for (j = (proceso->cantidad_paginas_asiganadas-1); j >=0; j--) {
                 
-                Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,j);
-                
-                log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);
-                int frame_liberar = reg_tp_proceso->numero_de_frame;
-                liberarFrame(frame_liberar); 
-                list_remove_and_destroy_element(proceso->tabla_de_paginas, j,destroy_page_entry);
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,j);
+                    
+                    //log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);
+                    frame_liberar = reg_tp_proceso->numero_de_frame;
+                    liberarFrame(frame_liberar); 
+                    list_remove_and_destroy_element(proceso->tabla_de_paginas, j,destroy_page_entry);
+
+                }
 
             }
-            
+
+            limpiarInstrucciones(proceso);
+
             list_remove_and_destroy_element(lista_ProcesosActivos, i,destroy_process_entry);
             cantidadFrameLibre();
             
@@ -360,8 +390,9 @@ Proceso* obtener_proceso(int pid_remover){
 
         }
     }
+    return NULL;
 }
-
+/*
 void enviar_paquete_cpu_mov_in(uint32_t datos,int socketCliente){
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_MOV_IN);
@@ -370,12 +401,13 @@ void enviar_paquete_cpu_mov_in(uint32_t datos,int socketCliente){
     
     enviar_paquete(paquete_cpu, socketCliente);
 
-    log_info(loggerMemoria, "Se envio a CPU el MOV_IN: %d",datos);
+    //log_info(loggerMemoria, "Se envio a CPU el MOV_IN: %d",datos);
 
     eliminar_paquete(paquete_cpu);
 
-
 }
+*/
+
 
 int obtener_marco(int pid,int pagina){
 
@@ -399,14 +431,9 @@ int obtener_marco(int pid,int pagina){
             }
         }
     }
-
+    return -1;
 
 }
-
-                
-
-
-
 
 //-----------------------------conexion kernel y memoria------------------------------------
 void* atenderPeticionesKernel() {
@@ -431,8 +458,13 @@ void* manejarClienteKernel(void *arg)
 
     while(1){
 
-        t_paquete* paquete = malloc(sizeof(t_paquete));
+        t_paquete* paquete = NULL;
+        paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->codigo_operacion = 0;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
         recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
@@ -444,10 +476,10 @@ void* manejarClienteKernel(void *arg)
 
             case CREAR_PROCESO:
             {
-                Proceso *proceso = malloc(sizeof(Proceso));
-
+                Proceso *proceso = NULL;
+                proceso = malloc(sizeof(Proceso));
                 
-                int pathLenght;
+                int pathLenght = 0;
 
                 memcpy(&proceso->pid, stream, sizeof(int));
                 stream += sizeof(int);
@@ -455,45 +487,52 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 proceso->path = malloc(pathLenght);
                 memcpy(proceso->path, stream, pathLenght);
-                log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
-                log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
+                
+                //log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
+                //log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
+
                 cargarInstrucciones(proceso, proceso->path);
-                log_info(loggerMemoria, "Se cargaron las instrucciones");
+                //log_info(loggerMemoria, "Se cargaron las instrucciones");
                 proceso->tam_proceso = 0;
+                proceso->cantidad_paginas_asiganadas = 0;
                 proceso->tabla_de_paginas = list_create();
+
                 pthread_mutex_lock(&listaProcesosActivos);
                 list_add(lista_ProcesosActivos,proceso);
                 pthread_mutex_unlock(&listaProcesosActivos);
+
                 break;
             }
             case FINALIZAR_PROCESO:
             {   
                 //CHECK
-                int pid_remover;
+                int pid_remover=0;
                 memcpy(&pid_remover, stream, sizeof(int));
+
                 pthread_mutex_lock(&listaProcesosActivos);
                 remover_proceso(pid_remover);
                 pthread_mutex_unlock(&listaProcesosActivos);
-                log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+                //log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+
                 break;
             }
             //CPU
             case PEDIDO_TAM_PAGINA:
             {   
-                log_info(loggerMemoria, "CPU solicito el tamaño de pagina. \n");
+                //log_info(loggerMemoria, "CPU solicito el tamaño de pagina. \n");
                 paquete_cpu_envio_tam_pagina(socketCliente);
                 break;
             }
 
             case PEDIDO_INSTRUCCION:
             {   
-                int pid_solicitado;
-                int pc_solicitado;
+                int pid_solicitado=0;
+                int pc_solicitado=0;
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pc_solicitado, stream, sizeof(int));
-                log_info(loggerMemoria, "Se solicita la intruccion del PID:%d", pid_solicitado);
-                log_info(loggerMemoria, "Se solicita el PC:%d", pc_solicitado);
+                //log_info(loggerMemoria, "Se solicita la intruccion del PID:%d", pid_solicitado);
+                //log_info(loggerMemoria, "Se solicita el PC:%d", pc_solicitado);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
                 break;
@@ -501,12 +540,10 @@ void* manejarClienteKernel(void *arg)
 
             case MOV_OUT:
             {   
-                int pid_mov_out; // es necesario????????
-                int marco_mov_out;
-                int desplazamiento_mov_out;
-                //void* datos;
-                int size;
-                Proceso *proceso = malloc(sizeof(Proceso));
+                int pid_mov_out = 0; // es necesario????????
+                int marco_mov_out = 0;
+                int desplazamiento_mov_out = 0;
+                int size=0;
 
                 memcpy(&pid_mov_out, stream, sizeof(int));
                 stream += sizeof(int);
@@ -517,22 +554,33 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
 
+
+                uint32_t dirFisica = (marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 pthread_mutex_lock(&accesoAMemoria);
                 void* direccion = memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 memcpy(direccion, stream, size);
                 pthread_mutex_unlock(&accesoAMemoria);
 
+                
+                /*
                 // Leer el valor de la memoria :)
                 void* valor=malloc(size);
                 char* ptr = memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 memcpy(valor, ptr, size);
-                log_info(loggerMemoria, "valor escrito:%d", valor);
+                //log_info(loggerMemoria, "valor escrito:%d", valor);
                 
-
                 printf("datos: %s\n",(char*)valor);
                 free(valor);
+
+                */
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFisica,size);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
-                enviar_paquete_cpu_mov_out(OK,direccion,size,socketCliente);
+
+                enviar_paquete_cpu_mov_out_prueba(OK,direccion,size,socketCliente);
+                //enviar_paquete_cpu_mov_out_prueba(OK,direccion,size,s);
 
 
                 break;
@@ -540,42 +588,54 @@ void* manejarClienteKernel(void *arg)
 
             case MOV_IN:
             {   
-                int pid_mov_out;
-                int marco_mov_out;
-                int desplazamiento_mov_out;
-                uint32_t datos;
-                Proceso *proceso = malloc(sizeof(Proceso));
+                int pid_mov_in = 0;
+                int marco_mov_in = 0;
+                int desplazamiento_mov_in = 0;
+                void* datos_leidos = 0;
+                int size = 0;
+                //Proceso *proceso = NULL;
+                //proceso = malloc(sizeof(Proceso));
 
-                memcpy(&pid_mov_out, stream, sizeof(int));
+                memcpy(&pid_mov_in, stream, sizeof(int));
                 stream += sizeof(int);
-                memcpy(&marco_mov_out, stream, sizeof(int));
+                memcpy(&marco_mov_in, stream, sizeof(int));
                 stream += sizeof(int);
-                memcpy(&desplazamiento_mov_out, stream, sizeof(int));
+                memcpy(&desplazamiento_mov_in, stream, sizeof(int));
+                stream += sizeof(int);
+                memcpy(&size, stream, sizeof(int));
                 stream += sizeof(int);
 
+                datos_leidos = malloc(size);
 
-                char* direccion = (char*)memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
-                memcpy(&datos, direccion, sizeof(uint32_t));
+                uint32_t dirfisica = (marco_mov_in*memoria.pagina_tam)+desplazamiento_mov_in;
+                char* direccion = (char*)memoria.espacioUsuario+(marco_mov_in*memoria.pagina_tam)+desplazamiento_mov_in;
+                
+                memcpy(datos_leidos, direccion,size);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño %d",pid_mov_in,dirfisica,size);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+                
 
-                enviar_paquete_cpu_mov_in(datos,socketCliente);
+                enviar_paquete_cpu_mov_in(OK,datos_leidos,size,socketCliente);
                
                 break;
             }
 
             case RESIZE:
             {   
-                int nuevo_tamaño;
-                int pid_a_cambiar;
+                int nuevo_tamaño=0;
+                int pid_a_cambiar=0;
 
                 op_code resultado_cambio;
 
                 memcpy(&pid_a_cambiar, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
-                log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
-                log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
+                //log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
+                //log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
                 resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
@@ -583,18 +643,20 @@ void* manejarClienteKernel(void *arg)
             }
             case SOLICITUD_MARCO:
             {   
-                int pid_solicitado;
-                int pagina_solicitada;
+                int pid_solicitado=0;
+                int pagina_solicitada=0;
+                int marco_encontrado=0;
 
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pagina_solicitada, stream, sizeof(int));
-
-                log_info(loggerMemoria, "Se solicita la pagina del PID:%d", pid_solicitado);
-                log_info(loggerMemoria, "Se solicita la pagina:%d", pagina_solicitada);
-
-                int marco_encontrado;
+        
                 marco_encontrado= obtener_marco(pid_solicitado,pagina_solicitada);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Pagina: %d - Marco %d",pagina_solicitada,pagina_solicitada,marco_encontrado);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 enviar_paquete_cpu_marco(marco_encontrado,socketCliente);
                 break;
             }
@@ -624,11 +686,12 @@ void* manejarClienteKernel(void *arg)
                 memcpy(direccion, stream, size);
                 pthread_mutex_unlock(&accesoAMemoria);
 
-                
+                pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
                 
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
-                enviar_paquete_cpu_mov_out(OK,direccion,size,socketCliente); 
+                enviar_paquete_cpu_mov_in(OK,direccion,size,socketCliente); 
                 break;
             }
             case  IO_MEM_FS_WRITE:
@@ -656,9 +719,11 @@ void* manejarClienteKernel(void *arg)
                 void* buffer=malloc(size);
                 memcpy(buffer,direccion,size);
                 pthread_mutex_unlock(&accesoAMemoria);
-                
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFis,size);
-                
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 
                 

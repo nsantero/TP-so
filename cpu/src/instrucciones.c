@@ -1,7 +1,7 @@
 #include <instrucciones.h>
 #include <math.h>
 
-void ejecutar_set(CPU_Registers *registros, const char* registro, uint8_t valor) {
+void ejecutar_set(CPU_Registers *registros, const char* registro, uint32_t valor) {
     if (strcmp(registro, "AX") == 0) {
         registros->AX = valor;
     } else if (strcmp(registro, "BX") == 0) {

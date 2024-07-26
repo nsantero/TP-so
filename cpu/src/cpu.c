@@ -126,19 +126,8 @@ void paquete_memoria_marco(int pid,int pagina){
        
 }
 
-void enviar_paquete_mov_in_memoria(int pid, int marco, int desplazamiento){
-    t_paquete *paquete_memoria = crear_paquete(MOV_IN);
 
-    agregar_entero_a_paquete32(paquete_memoria, pid);
-    agregar_entero_a_paquete32(paquete_memoria, marco);
-    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
-    
-    enviar_paquete(paquete_memoria, memoria_fd);
-    eliminar_paquete(paquete_memoria);
-}
-
-
-void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int size, void* datos){
+int enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int size, void* datos){
 
     t_paquete *paquete_memoria = crear_paquete(MOV_OUT);
 
@@ -146,6 +135,47 @@ void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int 
     agregar_entero_a_paquete32(paquete_memoria, marco);
     agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
     agregar_a_paquete(paquete_memoria,datos, size);
+    
+    enviar_paquete(paquete_memoria, memoria_fd);
+    eliminar_paquete(paquete_memoria);
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    
+    int resultado=-1;
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                resultado = 1;
+            }
+            default:
+            {   
+                break;
+            }
+    }
+
+    free(paquete);
+    return resultado;
+    
+}
+
+void enviar_paquete_mov_in_memoria( int pid, int marco, int desplazamiento,int size){
+
+    t_paquete *paquete_memoria = crear_paquete(MOV_OUT);
+
+    agregar_entero_a_paquete32(paquete_memoria, pid);
+    agregar_entero_a_paquete32(paquete_memoria, marco);
+    agregar_entero_a_paquete32(paquete_memoria, desplazamiento);
+    agregar_entero_a_paquete32(paquete_memoria, size);
     
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);

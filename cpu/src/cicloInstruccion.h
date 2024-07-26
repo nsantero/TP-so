@@ -32,7 +32,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid);
 
 uint32_t recibir_leer_memoria_mov_in();
 
-void* recibir_confirmacion_memoria_mov_out();
+op_code recibir_confirmacion_memoria_mov_out();
+
+void* recibir_confirmacion_memoria_mov_in();
 
 void algoritmoFIFO(int pid,int marco_memoria,int pagina);
 

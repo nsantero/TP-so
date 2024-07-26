@@ -34,7 +34,9 @@ extern int socketCliente;
 
 Proceso recibirProcesoAEjecutar(Proceso proceso);
 
-void enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int size, void* datos);
+int enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int size, void* datos);
+
+void enviar_paquete_mov_in_memoria( int pid, int marco, int desplazamiento,int size);
 
 void crearTLB();
 
