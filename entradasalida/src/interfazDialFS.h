@@ -83,6 +83,9 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial);
 void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal);
 
+void enviarBufferAMemoria();
+void* recibirBufferDeMememoria();
+
 char* generarPathAArchivoFS(char* nombreArchivo);
 
 

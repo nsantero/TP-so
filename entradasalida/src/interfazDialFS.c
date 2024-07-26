@@ -1,5 +1,6 @@
 #include <interfazDialFS.h>
 #include <unistd.h>
+#include <math.h>
 
 char* path_bitmap;
 char* path_bloques;// estas se usan solo en un hilo asi q no necesitan semaforos
@@ -152,7 +153,7 @@ void inicializar_bitmap_dat(Interfaz interfaz){
     
     FILE* bitmapDat= txt_open_for_append(path_bitmap);
 
-    size_t size =(interfaz.blockCount/8)+1;//TODO cambiar a redondeo de verdad, esto puedo hacer cagada
+    size_t size =ceil((double)(interfaz.blockCount/8));
     char buffer[size];
     memset(buffer,0,size);
     fwrite(buffer,1,size,bitmapDat);
@@ -320,42 +321,10 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
         return;
     }
     //solicitar info a memoria
-    t_paquete* paquete_direccion = crear_paquete(IO_MEM_FS_WRITE);
-    agregar_entero_a_paquete32(paquete_direccion,tamanio);
-    //agregar_entero_a_paquete32(paquete_direccion,direcion);
-    enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
-    free(paquete_direccion->buffer->stream);
-    free(paquete_direccion->buffer);
-    free(paquete_direccion);
-    //recibir info de memoria
-    //recivis un 
-    int bytes;//q tiene q ser igual a tamanio
-    void* buffer;//guarda las cosas
-
-    t_paquete* paquete = malloc(sizeof(t_paquete));
-    paquete->buffer = malloc(sizeof(t_buffer));
-    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
     
-    memcpy(&bytes,stream,sizeof(int));
-    stream+=sizeof(int);
-    buffer=malloc(bytes);
-    memcpy(buffer,stream,bytes);
-
-    free(paquete->buffer->stream);
-    free(paquete->buffer);
-    free(paquete);
+    void* buffer=NULL;//guarda las cosas
+    buffer=recibirBufferDeMememoria(peticion);
     
-    if(bytes!=tamanio){
-        //error con el mensaje HECHO
-        avisarErrorAKernel(interfaz_DialFS.nombre,peticion->PID);
-        log_info(loggerIO,"Error en el tamaño del buffer solicitado a memoria en escritura del archivo %s solicitado por el proceso %d",peticion->nombreArchivo,peticion->PID);
-        free(buffer);
-        return;
-    }
 
     //abro el FS
     int fdBl=open(path_bloques,O_RDWR);
@@ -405,13 +374,8 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     munmap(addrBloques,sbBl.st_size);
     close(fdBl);
     //enviar solicitud a memoria
-    t_paquete *paquete = crear_paquete(IO_MEM_FS_READ);
-    agregar_entero_a_paquete32(paquete,tamanio);
-    //agregar_entero_a_paquete32(paquete,direcion);
-    //agregar_a_paquete(paquete, buffer, tamanio);
-    enviar_paquete(paquete, memoria_fd);
-    eliminar_paquete(paquete);
-
+    
+    enviarBufferAMemoria(peticion,buffer);
 
     free(buffer);
 
@@ -655,6 +619,7 @@ void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
 }
 
 void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetInicialDelArchivo,int tamanioEnbytesActual){ 
+    uint32_t tamBloq=interfaz_DialFS.blockSize;
     off_t offsetAux;
     char* nombreAMover;
     int tamanioEnBytesDelArchivo;
@@ -668,20 +633,26 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 
     t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
 //abro el FS
-
-   
+    uint32_t cantBloqAux=ceil((double)((tamanioEnbytesActual/tamBloq)));
+    if(tamanioEnbytesActual==0){cantBloqAux++;}
+    uint32_t bloqueFin=offsetInicialDelArchivo+cantBloqAux-1;
 
 //ejecuto tarea LA PUTA MADRE, ACA PIERDO TODAS LAS REFERENCIAS NO SIRVE HAY Q HACERLO POR ARCHIVO :)))))))
     //mueve todos los archivos anteriores y el mismo archivo al principio del archivo
-    for(off_t i=0;i<(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1);i++){//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
+    for(off_t i=0;i<=offsetInicialDelArchivo;i++){
         if(bitarray_test_bit(bitmapAddr,i)){
-
+            
             offsetAux = buscarBloqueLibre();
             //devuelve char* nombre
+            
             nombreAMover =buscarArchivoConBloqueInicial(i);                             //buscar A q archivo pertenece(funcion)
-            moverArchivo(nombreAMover,offsetAux);                                       //mover la cantidad de bloques q tenga ese archivo(funcion mover archivo estaria bn)           
+            if(i>offsetAux){
+                moverArchivo(nombreAMover,offsetAux);                                       //mover la cantidad de bloques q tenga ese archivo(funcion mover archivo estaria bn)           
+            }
             obtenerInfoDeArchivoTamanio(nombreAMover,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
-            i=i+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
+            cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
+            if(tamanioEnbytesActual==0){cantBloqAux++;}
+            i+=cantBloqAux-1;             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
            
         }
     }//esto aca lee y mueve todos los archivos incluido el q quiere agrandar q estan al principio
@@ -689,22 +660,26 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
     //mueve todos los archivos posteriores al final del archivo
     int ultimoBloqueAControlar=interfaz_DialFS.blockCount-1;
     int hayArchivosParaMover=0;
-    for(off_t i=(offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1)/*TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD*/;i<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;i++){
-                                                                                              // si es menor va a tirar false en la primera iteracion y listo       
-        if(bitarray_test_bit(bitmapAddr,i)){
+    off_t paraElForDeAca=bloqueFin+1;
+    
+    for(;paraElForDeAca<=ultimoBloqueAControlar/*&&q no sea menor a donde empezo*/;paraElForDeAca++){
+                                               // si es menor va a tirar false en la primera iteracion y listo       
+        if(bitarray_test_bit(bitmapAddr,paraElForDeAca)){
             hayArchivosParaMover=1;
-            nombreAMover =buscarArchivoConBloqueInicial(i);       
+            nombreAMover =buscarArchivoConBloqueInicial(paraElForDeAca);       
             obtenerInfoDeArchivo(nombreAMover,&bloqueInicial,&tamanioEnBytesDelArchivo);
-            i=i+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);   
+            paraElForDeAca=paraElForDeAca+(tamanioEnBytesDelArchivo/interfaz_DialFS.blockSize);   
         }
 
-        if(i==ultimoBloqueAControlar&&hayArchivosParaMover){
-            if(hayLugarDespuesDelArchivo(1,bloqueInicial+(tamanioEnBytesDelArchivo/8))){
+        if(paraElForDeAca==ultimoBloqueAControlar&&hayArchivosParaMover){
+            if(hayLugarDespuesDelArchivo(1,bloqueInicial+(tamanioEnBytesDelArchivo/tamBloq))){
                 offsetAux = buscarBloqueLibreDesdeElFinal();
                 moverArchivo(nombreAMover,offsetAux);
             }
-            ultimoBloqueAControlar=ultimoBloqueAControlar-((tamanioEnBytesDelArchivo/8)+1);//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
-            i=offsetInicialDelArchivo+(tamanioEnbytesActual/8)+1;//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
+            cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
+            if(tamanioEnBytesDelArchivo==0){cantBloqAux++;}
+            ultimoBloqueAControlar-=cantBloqAux;
+            paraElForDeAca=bloqueFin;            
             hayArchivosParaMover=0;
         }
             
@@ -724,7 +699,6 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 
     munmap(addr,sb.st_size);
     close(fd);
-    free(nombreAMover);
 //espera pedida en el enunciado
     usleep(interfaz_DialFS.retrasoCompactacion*1000);
 }
@@ -734,14 +708,16 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
     struct dirent *entry;
     char *nombre;
     off_t offsetAux;
+    //TODO q no lea aca .. ni . ni bloques ni bit map
     while ((entry = readdir(dir)) != NULL)
     {
-        nombre=entry->d_name;
-        obtenerInfoDeArchivoOffset(nombre,&offsetAux);
-        if (offsetAux==offsetBloqueInicial){
-            return nombre;
+        if(strcmp(entry->d_name,".")&&strcmp(entry->d_name,"..")&&strcmp(entry->d_name,"bloques.dat")&&strcmp(entry->d_name,"bitmap.dat")){
+            nombre=entry->d_name;
+            obtenerInfoDeArchivoOffset(nombre,&offsetAux);
+            if (offsetAux==offsetBloqueInicial){
+                return nombre;
+            }
         }
-
     }
     closedir(dir);
     free(nombre);
@@ -763,8 +739,8 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     int tamanioEnBytes;
     off_t bloqueInicialOriginal;
     obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialOriginal,&tamanioEnBytes);
-    int cantidadDeBloques=(tamanioEnBytes/interfaz_DialFS.blockSize)+1;//TODO CAMBIAR EL +1 ACA A UN REDONDEO DE VERDAD
-
+    int cantidadDeBloques=ceil((double)(tamanioEnBytes/interfaz_DialFS.blockSize));
+    if(tamanioEnBytes==0){cantidadDeBloques++;}
 
     cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,-1);
 
@@ -797,6 +773,96 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
 
 
 }
+
+
+void enviarBufferAMemoria(Peticion_Interfaz_DialFS* peticion,void* texto_leido){
+    
+
+	uint32_t* marco=NULL;
+	
+
+    uint32_t bytes=peticion->Direccion_fisica.bytes;
+	
+    //peticion->tamanio=strlen(texto_leido)+1;
+	void* buffer=NULL;
+    
+    buffer=malloc(bytes);
+    memcpy(buffer,texto_leido,bytes);
+    enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,peticion->Direccion_fisica.numero_frame,peticion->Direccion_fisica.desplazamiento,bytes,buffer);
+    
+    free(buffer);
+
+    while(!list_is_empty(peticion->frames)){
+        
+
+        if(list_size(peticion->frames)>1){
+            buffer=malloc(peticion->tamPag);
+            memcpy(buffer,texto_leido+bytes,peticion->tamPag);
+            marco=list_remove(peticion->frames,0);
+            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,*marco,0,peticion->tamPag,buffer);
+            
+            bytes+=peticion->tamPag;
+            
+            free(marco);
+            free(buffer);
+        }else{
+            buffer=malloc(peticion->tamanio-bytes);
+            memcpy(buffer,texto_leido+bytes,peticion->tamanio-bytes);
+            marco=list_remove(peticion->frames,0);
+            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,*marco,0,peticion->tamanio-bytes,buffer);
+            
+            free(marco);
+            free(buffer);
+        }
+
+    }
+    
+	
+	
+    
+    
+    
+    free(texto_leido);
+}
+void* recibirBufferDeMememoria(Peticion_Interfaz_DialFS* peticion){
+    uint32_t* marco=NULL;
+	void* leidoEnMemoria=NULL;
+    leidoEnMemoria=malloc(peticion->tamanio);
+    uint32_t bytes=peticion->Direccion_fisica.bytes;
+	
+    
+	void* buffer=NULL;
+    buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,peticion->Direccion_fisica.numero_frame,peticion->Direccion_fisica.desplazamiento,bytes);
+    memcpy(leidoEnMemoria,buffer,bytes);
+
+    free(buffer);
+    while(!list_is_empty(peticion->frames)){
+        
+
+        if (list_size(peticion->frames)>1){
+            
+            marco=list_remove(peticion->frames,0);
+            buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,*marco,0,peticion->tamPag);
+            memcpy(leidoEnMemoria+bytes,buffer,peticion->tamPag);
+            bytes+=peticion->tamPag;
+            
+            free(marco);
+            free(buffer);
+        }else{
+            
+            marco=list_remove(peticion->frames,0);
+            buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,*marco,0,peticion->tamanio-bytes);
+            memcpy(leidoEnMemoria+bytes,buffer,peticion->tamanio-bytes);
+
+            free(marco);
+            free(buffer);
+        }
+
+    }
+    
+    return leidoEnMemoria;
+}
+
 
 char* generarPathAArchivoFS(char* nombreArchivo){
     char* aDevolver =NULL;
