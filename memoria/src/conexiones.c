@@ -557,7 +557,7 @@ void* manejarClienteKernel(void *arg)
 
                 uint32_t dirFisica = (marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
                 pthread_mutex_lock(&accesoAMemoria);
-                void* direccion = memoria.espacioUsuario+(marco_mov_out*memoria.pagina_tam)+desplazamiento_mov_out;
+                void* direccion = memoria.espacioUsuario+dirFisica;
                 memcpy(direccion, stream, size);
                 pthread_mutex_unlock(&accesoAMemoria);
 
@@ -608,7 +608,7 @@ void* manejarClienteKernel(void *arg)
                 datos_leidos = malloc(size);
 
                 uint32_t dirfisica = (marco_mov_in*memoria.pagina_tam)+desplazamiento_mov_in;
-                char* direccion = (char*)memoria.espacioUsuario+(marco_mov_in*memoria.pagina_tam)+desplazamiento_mov_in;
+                void* direccion = memoria.espacioUsuario+dirfisica;
                 
                 memcpy(datos_leidos, direccion,size);
 
@@ -619,7 +619,14 @@ void* manejarClienteKernel(void *arg)
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 
 
-                enviar_paquete_cpu_mov_in(OK,datos_leidos,size,socketCliente);
+                //enviar_paquete_cpu_mov_in(OK,datos_leidos,size,socketCliente);
+                t_paquete* paqueteDevolver=crear_paquete(OK);
+                agregar_a_paquete(paqueteDevolver,datos_leidos,size);
+                enviar_paquete(paqueteDevolver,socketCliente);
+                free(datos_leidos);
+                free(paqueteDevolver->buffer->stream);
+                free(paqueteDevolver->buffer);
+                free(paqueteDevolver);
                
                 break;
             }

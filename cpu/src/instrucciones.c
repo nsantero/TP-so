@@ -209,7 +209,7 @@ int recibir_resultado_recursos(){
     }       
     return respuesta;
 }
-void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
+/*void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
     int nro_pagina =0;
     int tam =0;
     void* buffer;
@@ -262,5 +262,5 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
         }
     }
 }
-
+*/
 

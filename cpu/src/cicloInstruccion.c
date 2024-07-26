@@ -579,7 +579,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             void* loQueDevuelve;
             uint8_t registro_datos_8;
             int size_dato = 0;
-            u_int32_t uintDevuelve;
+            uint32_t uintDevuelve;
             op_code operacion;
             uint32_t registro_datos_32;
             int cantidadDePaginas = 0;
@@ -592,20 +592,20 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
-            size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            size_dato = valorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             
             loQueDevuelve = &uintDevuelve;
 
             if (size_dato == 1){
                 
-                registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                //registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
                 datos_a_escribir = &registro_datos_8;
 
             }
 
             if (size_dato == 4){
                 
-                registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                //registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
                 datos_a_escribir = &registro_datos_32;
 
             }
@@ -648,18 +648,18 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     datos_leidos = recibir_confirmacion_memoria_mov_in();
 
                     memcpy(loQueDevuelve, datos_leidos,tam);
+                    free(datos_leidos);
 
                     
 
                 }else if (i<(cantidadDePaginas-1)){
 
                     enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
-
+                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+                    memcpy(loQueDevuelve +tam , datos_leidos, tam_pagina);
                     tam+=tam_pagina;
                     
-                    datos_leidos = recibir_confirmacion_memoria_mov_in();
-
-                    memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , datos_leidos, tam_pagina);
+                    free(datos_leidos);
 
                 }else{
                     
@@ -667,7 +667,8 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                     datos_leidos = recibir_confirmacion_memoria_mov_in();
 
-                    memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), datos_leidos, size_dato-tam);
+                    memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
+                    free(datos_leidos);
 
                 }
                 
@@ -862,7 +863,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         case COPY_STRING:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
-            ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
+            //ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
             break;
         }
         case IO_GEN_SLEEP:
@@ -1026,28 +1027,27 @@ void* recibir_confirmacion_memoria_mov_in(){
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
     void *stream = paquete->buffer->stream;
-
+    void* buffer = NULL;
+    int size = paquete->buffer->size - 4;
     switch(paquete->codigo_operacion){
-            case OK:
-            {
-                int size=0;
-                void* valor_leido = NULL;
-
-                memcpy(&size,stream,sizeof(int));
-                stream += sizeof(int);
-                valor_leido=malloc(size);
-                memcpy(valor_leido,stream,size);
-
-                return valor_leido;
-            }
-            default:
-            {   
-                //log_error(loggerCpu, "Error");
-                break;
-            }
-
+        case OK:
+        {
+            buffer = malloc(size);
+            memcpy(buffer,stream+4, size);
+        }
+        default:
+        {   
+            //log_error(loggerCpu, "Error");
+            break;
+        }
     }
-    return PROCESO_EXIT;   
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
+    return buffer;
+
+
+   // return PROCESO_EXIT;   
 
 }
 
