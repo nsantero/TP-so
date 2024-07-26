@@ -1,6 +1,7 @@
 #include <planificadores.h>
 #include <semaforos.h>
 #include <configs.h>
+#include <consola.h>
 
 //INICIALIZAR PLANIFICADORES
 
@@ -40,7 +41,7 @@ void* planificadorNew(){
 
         pthread_mutex_lock(&mutexListaNew);
         int procesosSistema = totalProcesosEnSistema();
-        if(!list_is_empty(lista_NEW) && procesosSistema <= configuracionKernel.GRADO_MULTIPROGRAMACION){
+        if(!list_is_empty(lista_NEW) && procesosSistema < configuracionKernel.GRADO_MULTIPROGRAMACION){
             pthread_mutex_lock(&mutexListaReady);
             cambiarAReady(lista_NEW);
             sem_post(&semListaReady);

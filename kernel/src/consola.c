@@ -26,7 +26,9 @@ void* manejadorDeConsola(){
                 segundoArgumento = strtok(NULL, " ");
                 if (segundoArgumento) {
                     //iniciar_proceso(segundoArgumento);
+                    detener_planificacion();
                     crearPCB(segundoArgumento);
+                    iniciar_planificacion();
                 } else {
                     printf("Error: Falta el argumento [PATH].\n");
                 }
@@ -167,7 +169,9 @@ void procesarLinea(char* linea,  const char* scriptBasePath) {
         if (argumento != NULL) {
             char* fullPath = construirPathCompleto(argumento);
             if (fullPath != NULL) {
+                detener_planificacion();
                 crearPCB(fullPath);
+                iniciar_planificacion();
                 free(fullPath);
             };
         } else {
@@ -249,6 +253,12 @@ void iniciar_planificacion() {
 }
 
 void modificar_grado_multiprogramacion(int valor) {
-    grado_multiprogramacion = valor;
+    configuracionKernel.GRADO_MULTIPROGRAMACION = valor;
+    pthread_mutex_lock(&mutexListaReady);
+    for (int i = 0; i < list_size(lista_NEW); i++) {
+        sem_post(&semListaNew);
+    }
+    pthread_mutex_unlock(&mutexListaReady);
+    
 }
 

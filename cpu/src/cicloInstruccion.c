@@ -656,7 +656,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
-            if(size_dato==1){
+            /*if(size_dato==1){
                 registro_datos_8=*(uint8_t*)loQueDevuelve;
                 printf("datos: %d\n",registro_datos_8);
             }else{
@@ -668,7 +668,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             
             
             // guardar en registros
-            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, (uint32_t)loQueDevuelve);
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, (uint32_t)loQueDevuelve);*/
             break;
         }
 
