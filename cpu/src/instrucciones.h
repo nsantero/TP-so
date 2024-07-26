@@ -14,6 +14,7 @@ int recibir_resultado_recursos();
 void paquete_kernel_envio_recurso_signal(const char* recurso);
 void paquete_kernel_envio_recurso_wait(const char* recurso);
 int ejecutar_signal(Proceso *procesoActual, const char* recurso);
+void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato);
 
 
 #endif

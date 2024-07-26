@@ -274,7 +274,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
             
             instruccion.tipo_instruccion = COPY_STRING;
-            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operandoNumero = atoi(cadena_instruccion[1]);
             
         }
 
@@ -746,9 +746,17 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             break;
         }
         case SIGNAL:
+        {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
+        }
+        case COPY_STRING:
+        {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
+            ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
+            break;
+        }
         case IO_GEN_SLEEP:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
