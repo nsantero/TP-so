@@ -164,7 +164,7 @@ int enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int s
 
 void* enviar_paquete_mov_in_memoria( int pid, int marco, int desplazamiento,int size){
 
-    t_paquete *paquete_memoria = crear_paquete(MOV_OUT);
+    t_paquete *paquete_memoria = crear_paquete(MOV_IN);
 
     agregar_entero_a_paquete32(paquete_memoria, pid);
     agregar_entero_a_paquete32(paquete_memoria, marco);
@@ -176,27 +176,13 @@ void* enviar_paquete_mov_in_memoria( int pid, int marco, int desplazamiento,int 
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
-
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
     void *stream = paquete->buffer->stream;
-    void* buffer = NULL;
-    //int size = paquete->buffer->size - 4;
-    switch(paquete->codigo_operacion){
-        case OK:
-        {
-            buffer = malloc(size);
-            memcpy(buffer,stream+4, size);
-        }
-        default:
-        {   
-            //log_error(loggerCpu, "Error");
-            break;
-        }
-    }
+    void* buffer=malloc(size);
+    memcpy(buffer,stream+4,size);
     free(paquete->buffer->stream);
     free(paquete->buffer);
     free(paquete);

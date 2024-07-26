@@ -584,7 +584,7 @@ void* manejarClienteKernel(void *arg)
                 break;
             }
 
-            case MOV_IN:
+            /*case MOV_IN:
             {   
                 int pid_mov_in = 0;
                 int marco_mov_in = 0;
@@ -627,7 +627,7 @@ void* manejarClienteKernel(void *arg)
                 free(paqueteDevolver);
                
                 break;
-            }
+            }*/
 
             case RESIZE:
             {   
@@ -699,6 +699,7 @@ void* manejarClienteKernel(void *arg)
                 enviar_paquete_cpu_mov_in(OK,direccion,size,socketCliente); 
                 break;
             }
+            case  MOV_IN:
             case  IO_MEM_FS_WRITE:
             case  IO_MEM_STDOUT_WRITE :
             {
