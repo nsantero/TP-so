@@ -20,6 +20,10 @@ void ejecutar_set(CPU_Registers *registros, const char* registro, uint32_t valor
         registros->EDX = valor;
     } else if (strcmp(registro, "PC") == 0) {
         registros->PC = valor;
+    }else if (strcmp(registro, "SI") == 0) {
+        registros->SI = valor;
+    }else if (strcmp(registro, "DI") == 0) {
+        registros->DI = valor;
     } else {
         printf("Registro no reconocido: %s\n", registro);
     }
@@ -209,58 +213,121 @@ int recibir_resultado_recursos(){
     }       
     return respuesta;
 }
-/*void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
+void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){
+    
+
+    int pid=procesoEjecutando->PID;
+    uint32_t dirLogOriginal=leerValorDelRegistro("SI",procesoEjecutando->cpuRegisters);
+    uint32_t dirLogDestino=leerValorDelRegistro("DI",procesoEjecutando->cpuRegisters);
+    direccion_fisica *direccion_fisica;          
+    void* bufferStrcpy=NULL;
+    bufferStrcpy=malloc(size_dato);
+    int cantidadDePaginas = 0;    
+    uint32_t bytesDisponiblesEnPag;
     int nro_pagina =0;
     int tam =0;
-    void* buffer;
     void* datos_leidos=NULL;
 
-    void* datos_a_escribir = &procesoEjecutando->cpuRegisters.SI;
+    //-----------------------RECIBE EL STRING A COPIAR-----------------------------------//
+    direccion_fisica = traduccion_mmu(dirLogOriginal,pid);
+    cantidadDePaginas = calculo_cantiad_paginas(dirLogOriginal,pid,direccion_fisica->desplazamiento,size_dato);
+    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
 
-    direccion_fisica* dirFis = traduccion_mmu(procesoEjecutando->cpuRegisters.DI, procesoEjecutando->PID);
+    if(size_dato<=bytesDisponiblesEnPag){
+        tam=size_dato;
+    }else{
+        tam=bytesDisponiblesEnPag;
+    }
+    datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
+    //datos_leidos = recibir_confirmacion_memoria_mov_in();
+    memcpy(bufferStrcpy, datos_leidos,tam);
+    free(datos_leidos);
+    direccion_fisica->desplazamiento = 0;
+    for(int i=1; i<cantidadDePaginas;i++){
 
-    int cantidadDePaginas = calculo_cantiad_paginas(procesoEjecutando->cpuRegisters.DI,procesoEjecutando->PID,dirFis->desplazamiento,sizeDato);
+        nro_pagina = floor(dirLogOriginal / tam_pagina)+i; 
+        direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
+        
+        if (i<(cantidadDePaginas-1)){
 
-    uint32_t bytesDisponiblesEnPag;
+            datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
+            //datos_leidos = recibir_confirmacion_memoria_mov_in();
+            memcpy(bufferStrcpy +tam , datos_leidos, tam_pagina);
+            tam+=tam_pagina;
             
+            free(datos_leidos);
+
+        }else{
+            
+            datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
+            //datos_leidos = recibir_confirmacion_memoria_mov_in();
+            memcpy(bufferStrcpy+tam, datos_leidos, size_dato-tam);
+            free(datos_leidos);
+
+        }
+        
+    }
+
+
+    //----------------------MANDA EL STRING A MEMORIA--------------------------------//
+
+    
+    void* buffer=NULL;
+    int operacion;
+
+    
+    direccion_fisica = traduccion_mmu(dirLogDestino,pid);
+    cantidadDePaginas = calculo_cantiad_paginas(dirLogDestino,pid,direccion_fisica->desplazamiento,size_dato);
+
     for(int i=0; i<cantidadDePaginas;i++){
-
-        nro_pagina = floor(procesoEjecutando->cpuRegisters.DI / tam_pagina)+i; 
+        nro_pagina = floor(dirLogDestino / tam_pagina)+i;                 
+        direccion_fisica->desplazamiento = 0;
+        direccion_fisica->PID = pid;
+        direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
         
-        dirFis->desplazamiento = 0;
-        dirFis->PID = procesoEjecutando;
-
-        dirFis->numero_frame = buscar_frame(nro_pagina,procesoEjecutando->PID);
-        
-
         if (i==0) {
-            dirFis->desplazamiento = procesoEjecutando->cpuRegisters.DI - (nro_pagina * tam_pagina);
-            bytesDisponiblesEnPag = tam_pagina-dirFis->desplazamiento;
-            if(sizeDato<=bytesDisponiblesEnPag){
-                tam=sizeDato;
+            direccion_fisica->desplazamiento = dirLogDestino - (nro_pagina * tam_pagina);
+            bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+            if(size_dato<=bytesDisponiblesEnPag){
+                tam=size_dato;
             }else{
                 tam=bytesDisponiblesEnPag;
             }
+
             buffer=malloc(tam);
-            memcpy(buffer,datos_a_escribir,tam);
-            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam,buffer);
-            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            memcpy(buffer,bufferStrcpy,tam);
+            operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+
+            if (operacion == -1){}
+            //memcpy(loQueDevuelve, buffer,tam);
             free(buffer);
+
         }else if (i<(cantidadDePaginas-1)){
+
             buffer=malloc(tam_pagina);
-            memcpy(buffer,datos_a_escribir+tam,tam_pagina);
-            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam_pagina,buffer);
-            tam+=tam_pagina;
-            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            memcpy(buffer,bufferStrcpy+tam,tam_pagina);
+            operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+            tam+=tam_pagina;                   
+            if (operacion == -1){}
+            //memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
             free(buffer);
+
         }else{
-            buffer=malloc(sizeDato-tam);
-            memcpy(buffer,datos_a_escribir+tam,sizeDato-tam);
-            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,sizeDato-tam,buffer);
-            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            buffer=malloc(size_dato-tam);
+            memcpy(buffer,bufferStrcpy+tam,size_dato-tam);
+            operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
+            //datos_leidos = recibir_confirmacion_memoria_mov_out();
+
+            if (operacion == -1){}
+            //memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
             free(buffer);
         }
+        
     }
+
+
+   
+ 
 }
-*/
+
 

@@ -574,7 +574,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //MOV_IN (Registro Datos, Registro Dirección): 
             //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
             
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            direccion_fisica *direccion_fisica;
             void* loQueDevuelve=NULL;
             uint8_t registro_datos_8;
             int size_dato = 0;
@@ -638,13 +638,13 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             }
             uint32_t valorAPasarASet=0;
             if(size_dato==1){
-                registro_datos_8=*(uint8_t*)loQueDevuelve;
+                //registro_datos_8=*(uint8_t*)loQueDevuelve;
                 valorAPasarASet=registro_datos_8;
                 printf("datos: %d\n",registro_datos_8);
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
 
             }else{
-                registro_datos_32=*(uint32_t*)loQueDevuelve;
+                //registro_datos_32=*(uint32_t*)loQueDevuelve;
                 printf("datos: %d\n",registro_datos_32);
                 valorAPasarASet=registro_datos_32;
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
@@ -803,7 +803,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         case COPY_STRING:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
-            //ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
+            ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
             break;
         }
         case IO_GEN_SLEEP:

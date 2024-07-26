@@ -1,31 +1,31 @@
-==90387== Memcheck, a memory error detector
-==90387== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==90387== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==90387== Command: ./bin/entradasalida TECLADO
-==90387== Parent PID: 31307
-==90387== 
-==90387== 
-==90387== HEAP SUMMARY:
-==90387==     in use at exit: 204,458 bytes in 226 blocks
-==90387==   total heap usage: 114,880 allocs, 114,654 frees, 1,472,629 bytes allocated
-==90387== 
-==90387== 272 bytes in 1 blocks are possibly lost in loss record 27 of 67
-==90387==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==90387==    by 0x40147D9: calloc (rtld-malloc.h:44)
-==90387==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
-==90387==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
-==90387==    by 0x495F7B4: allocate_stack (allocatestack.c:430)
-==90387==    by 0x495F7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
-==90387==    by 0x10B00D: main (entradasalida.c:91)
-==90387== 
-==90387== LEAK SUMMARY:
-==90387==    definitely lost: 0 bytes in 0 blocks
-==90387==    indirectly lost: 0 bytes in 0 blocks
-==90387==      possibly lost: 272 bytes in 1 blocks
-==90387==    still reachable: 204,186 bytes in 225 blocks
-==90387==         suppressed: 0 bytes in 0 blocks
-==90387== Reachable blocks (those to which a pointer was found) are not shown.
-==90387== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==90387== 
-==90387== For lists of detected and suppressed errors, rerun with: -s
-==90387== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==44336== Memcheck, a memory error detector
+==44336== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==44336== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==44336== Command: ./bin/entradasalida TECLADO
+==44336== Parent PID: 43924
+==44336== 
+==44336== 
+==44336== HEAP SUMMARY:
+==44336==     in use at exit: 204,458 bytes in 225 blocks
+==44336==   total heap usage: 779 allocs, 554 frees, 250,260 bytes allocated
+==44336== 
+==44336== 272 bytes in 1 blocks are possibly lost in loss record 26 of 66
+==44336==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==44336==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==44336==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==44336==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==44336==    by 0x495E7B4: allocate_stack (allocatestack.c:430)
+==44336==    by 0x495E7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==44336==    by 0x10B00D: main (entradasalida.c:91)
+==44336== 
+==44336== LEAK SUMMARY:
+==44336==    definitely lost: 0 bytes in 0 blocks
+==44336==    indirectly lost: 0 bytes in 0 blocks
+==44336==      possibly lost: 272 bytes in 1 blocks
+==44336==    still reachable: 204,186 bytes in 224 blocks
+==44336==         suppressed: 0 bytes in 0 blocks
+==44336== Reachable blocks (those to which a pointer was found) are not shown.
+==44336== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==44336== 
+==44336== For lists of detected and suppressed errors, rerun with: -s
+==44336== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
