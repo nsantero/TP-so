@@ -7,5 +7,6 @@ extern pthread_mutex_t mutexSocketCpu;
 
 extern pthread_mutex_t accesoAMemoria;
 extern pthread_mutex_t listaProcesosActivos;
+extern pthread_mutex_t actualizarLoggerMemoria;
 
 #endif
