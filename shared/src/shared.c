@@ -288,3 +288,12 @@ int enviar_paquete_interfaces(t_paquete* paquete, int socket_cliente){
     free(a_enviar);
 	return error;
 }
+/*size_t t_list_size_in_bytes(t_list* lista, size_t (*size_of_element)(void*)) {
+    size_t total_size = sizeof(t_list); // Tamaño de la estructura de la lista
+    for (int i = 0; i < list_size(lista); i++) {
+        void* elemento = list_get(lista, i);
+        total_size += size_of_element(elemento); // Tamaño de cada elemento
+        total_size += sizeof(struct list_element); // Tamaño del nodo de la lista
+    }
+    return total_size;
+}*/

@@ -375,6 +375,8 @@ void* conexionesDispatch()
 				Peticion_Interfaz_STDIN interfazsSTDIN;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 
 				memcpy(&pathLength, stream, sizeof(uint32_t));
@@ -383,12 +385,19 @@ void* conexionesDispatch()
 				memcpy(interfazsSTDIN.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&interfazsSTDIN.direccion, stream, sizeof(uint32_t));
+				memcpy(&interfazsSTDIN.direccion_fisica.bytes, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&interfazsSTDIN.direccion_fisica.numero_frame, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				//segundoRegistro
 				memcpy(&interfazsSTDIN.tamanio, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
-				
+				memcpy(&interfazsSTDIN.tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 
 				interfazsSTDIN.PID=procesoKernel->PID;
 
@@ -400,10 +409,19 @@ void* conexionesDispatch()
 				
 				if(socketClienteInterfaz){
 					t_paquete* paqueteIOSTDIN=crear_paquete(IO_STDIN_READ);
-					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamanio);
 					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.PID);
-					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);					
+					agregar_a_paquete(paqueteIOSTDIN,interfazsSTDIN.nombre_interfaz,pathLength);
+					agregar_entero_a_paquete32(paqueteIOSTDIN,interfazsSTDIN.tamPag);
+					agregar_entero_a_paquete32(paqueteIOSTDIN, cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteIOSTDIN,frameAux);
+					}				
 					enviar_paquete(paqueteIOSTDIN,socketClienteInterfaz);
 					eliminar_paquete(paqueteIOSTDIN);
 					bloquearProceso(procesoKernel);
@@ -437,6 +455,8 @@ void* conexionesDispatch()
 				Peticion_Interfaz_STDOUT peticionSTDOUT;
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -444,10 +464,18 @@ void* conexionesDispatch()
 				memcpy(peticionSTDOUT.nombre_interfaz, stream, pathLength);
 				stream+=pathLength;
 				//primer registro
-				memcpy(&peticionSTDOUT.direccion, stream, sizeof(uint32_t));
+				memcpy(&peticionSTDOUT.direccion_fisica.bytes, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.direccion_fisica.numero_frame, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				//segundoRegistro
 				memcpy(&peticionSTDOUT.tamanio, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionSTDOUT.tamPag, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				
 
@@ -460,11 +488,20 @@ void* conexionesDispatch()
 				}
 				if(socketClienteInterfaz){
 					t_paquete* paqueteSTDOUT=crear_paquete(IO_STDOUT_WRITE);
-					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamanio);
 					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.PID);
-					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);					
-					enviar_paquete(paqueteSTDOUT,socketClienteInterfaz);
+					agregar_a_paquete(paqueteSTDOUT,peticionSTDOUT.nombre_interfaz,pathLength);
+					agregar_entero_a_paquete32(paqueteSTDOUT,peticionSTDOUT.tamPag);
+					agregar_entero_a_paquete32(paqueteSTDOUT, cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteSTDOUT,frameAux);
+					}
+					enviar_paquete(paqueteSTDOUT, socketClienteInterfaz);
 					eliminar_paquete(paqueteSTDOUT);
 					bloquearProceso(procesoKernel);
 					pthread_mutex_lock(&mutexLogger);
@@ -684,6 +721,8 @@ void* conexionesDispatch()
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
 				int archivoLen;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -696,11 +735,17 @@ void* conexionesDispatch()
 				peticionFS.nombreArchivo=malloc(archivoLen);
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 				stream+=archivoLen;
-				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				memcpy(&peticionFS.Direccion_fisica.bytes,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.desplazamiento,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.numero_frame,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_WRITE;
@@ -714,11 +759,19 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
 					agregar_entero_a_paquete32(paqueteFS, archivoLen);
     				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
-					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
-					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);	
+					agregar_entero_a_paquete32(paqueteFS,cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteFS,frameAux);
+					}				
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
@@ -755,6 +808,9 @@ void* conexionesDispatch()
 				int pathLength;
 				int archivoLen;
 				
+				uint32_t cantPags;
+				uint32_t frameAux;
+				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				peticionFS.nombre_interfaz = malloc(pathLength);
@@ -766,12 +822,17 @@ void* conexionesDispatch()
 				peticionFS.nombreArchivo=malloc(archivoLen);
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 				stream+=archivoLen;
-				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				memcpy(&peticionFS.Direccion_fisica.bytes,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.desplazamiento,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.numero_frame,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
-
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_READ;
 				//MUTEX
@@ -784,11 +845,19 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
 					agregar_entero_a_paquete32(paqueteFS, archivoLen);
     				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
-					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
 					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					agregar_entero_a_paquete32(paqueteFS,cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteFS,frameAux);
+					}	
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);

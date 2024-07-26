@@ -274,7 +274,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
             
             instruccion.tipo_instruccion = COPY_STRING;
-            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operandoNumero = atoi(cadena_instruccion[1]);
             
         }
 
@@ -321,7 +321,6 @@ uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros){
 	}else {/*TODO ERROR*/}
     return 0;
 }
-
 
 uint8_t leerValorDelRegistro_8(char *dl,CPU_Registers registros){
 	if (strcmp(dl,"AX")==0){
@@ -533,33 +532,42 @@ int buscar_frame(int pagina, int pid){
     //  PRIMERO: buscar en tlb
     //  SEGUNDO: preguntar a memoria
 
-    switch (buscar_en_tlb(pid,pagina)){
-    case HIT:
-    {
-        int marco_encontrado;
-        marco_encontrado = obtener_frame_en_tlb(pid,pagina);
-        return marco_encontrado;
+    if(configuracionCpu.CANTIDAD_ENTRADAS_TLB!=0){
+        switch (buscar_en_tlb(pid,pagina)){
+        case HIT:
+        {
+            int marco_encontrado;
+            marco_encontrado = obtener_frame_en_tlb(pid,pagina);
+            return marco_encontrado;
+        }
+        case MISS:
+        {
+            paquete_memoria_marco(pid,pagina);
+
+            int marco_memoria;
+            marco_memoria = recibir_marco_memoria();
+            agregar_marco_tlb(pid,marco_memoria,pagina);
+            return marco_memoria;
+        }
+        default:
+        
+            break;
+        }
     }
-    case MISS:
-    {
+    else{
         paquete_memoria_marco(pid,pagina);
 
         int marco_memoria;
         marco_memoria = recibir_marco_memoria();
-        agregar_marco_tlb(pid,marco_memoria,pagina);
         return marco_memoria;
     }
-    default:
     
-        break;
-    }
-
 }
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
-    //DL
     switch(instruccion_memoria.tipo_instruccion){
+
         case MOV_IN:
         {   
         
@@ -567,128 +575,237 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
             
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            
-            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-            uint32_t registro_datos = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
-
-            direccion_fisica = traduccion_mmu(direccion_logica,pid);
-            
-
-            enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento);
-
-            uint32_t valor_leido;
-            valor_leido = recibir_leer_memoria_mov_in();
-
-            // guardar en registros
-            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valor_leido);
-            break;
-        }
-
-        case MOV_OUT:
-        {
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-
-            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
-
-            //void* registro_datos = &(leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters));
             void* datos_a_escribir;
-
+            void* loQueDevuelve;
             uint8_t registro_datos_8;
-            uint32_t registro_datos_32;
-
-            int size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            int size_dato = 0;
             u_int32_t uintDevuelve;
-            void* loQueDevuelve=&uintDevuelve;
+            op_code operacion;
+            uint32_t registro_datos_32;
+            int cantidadDePaginas = 0;
+            int nro_pagina = 0 ;
+            int tam = 0;
+            void* datos_leidos = NULL;
+            uint32_t bytesDisponiblesEnPag;
+            void* buffer;
+
+
+            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+
+            size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            
+            loQueDevuelve = &uintDevuelve;
+
             if (size_dato == 1){
                 
-                
                 registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                datos_a_escribir = registro_datos_8;
+                datos_a_escribir = &registro_datos_8;
 
             }
+
             if (size_dato == 4){
-                
                 
                 registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
                 datos_a_escribir = &registro_datos_32;
+
             }
 
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
 
-
-            op_code operacion;
-
-            int cantidadDePaginas = 0;
-            int nro_pagina;
-
-            //nro_pagina = floor(direccion_logica / tam_pagina); 
-            //direccion_fisica->desplazamiento = direccion_logica - nro_pagina * tam_pagina;
-    
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
-            int tam=0;
-            void* datos_leidos=NULL;
-            void* buffer;
             
+        
 
-            uint32_t bytesDisponiblesEnPag;
-                    
             for(int i=0; i<cantidadDePaginas;i++){
 
                 nro_pagina = floor(direccion_logica / tam_pagina)+i; 
                 
                 direccion_fisica->desplazamiento = 0;
+
                 direccion_fisica->PID = pid;
 
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
                 
 
                 if (i==0) {
+
                     direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
+
                     bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+
                     if(size_dato<=bytesDisponiblesEnPag){
+
                         tam=size_dato;
+
                     }else{
+
                         tam=bytesDisponiblesEnPag;
                     }
-                    buffer=malloc(tam);
-                    memcpy(buffer,datos_a_escribir,tam);
-                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
 
-                    datos_leidos = recibir_confirmacion_memoria_mov_out();
-                    memcpy(loQueDevuelve, buffer,tam);
-                    free(buffer);
+
+                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
+
+                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+
+                    memcpy(loQueDevuelve, datos_leidos,tam);
+
+                    
+
                 }else if (i<(cantidadDePaginas-1)){
-                    buffer=malloc(tam_pagina);
-                    memcpy(buffer,datos_a_escribir+tam,tam_pagina);
-                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+
+                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
+
                     tam+=tam_pagina;
                     
-                    datos_leidos = recibir_confirmacion_memoria_mov_out();
-                    memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
-                    free(buffer);
+                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+
+                    memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , datos_leidos, tam_pagina);
+
                 }else{
-                    buffer=malloc(size_dato-tam);
-                    memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
-                    enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
-                    datos_leidos = recibir_confirmacion_memoria_mov_out();
-                    memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
-                    free(buffer);
+                    
+                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
+
+                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+
+                    memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), datos_leidos, size_dato-tam);
+
                 }
                 
-
-                
-                
-                
-                //if(operacion == OK){
-
-                //printf("Instrucción resize realizada!! \n");
-
-                //}
             }
             printf("datos: %d\n",uintDevuelve);
             
-            
+            // guardar en registros
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, (uint32_t)uintDevuelve);
             break;
+        }
+
+        case MOV_OUT:
+        {   
+            //MOV_OUT (Registro Dirección, Registro Datos): 
+            //Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
+
+            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            void* datos_a_escribir;
+            void* loQueDevuelve;
+            uint8_t registro_datos_8;
+            int size_dato = 0;
+            u_int32_t uintDevuelve;
+            int operacion;
+            uint32_t registro_datos_32;
+            int cantidadDePaginas = 0;
+            int nro_pagina = 0 ;
+            int tam = 0;
+            void* datos_leidos = NULL;
+            uint32_t bytesDisponiblesEnPag;
+            void* buffer;
+
+            //void* registro_datos = &(leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters));
+
+            uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
+
+            size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+            
+            loQueDevuelve = &uintDevuelve;
+
+            if (size_dato == 1){
+                
+                registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                datos_a_escribir = &registro_datos_8;
+
+            }
+
+            if (size_dato == 4){
+                
+                registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
+                datos_a_escribir = &registro_datos_32;
+
+            }
+
+            direccion_fisica = traduccion_mmu(direccion_logica,pid);
+
+            cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
+            
+        
+
+            for(int i=0; i<cantidadDePaginas;i++){
+
+                nro_pagina = floor(direccion_logica / tam_pagina)+i; 
+                
+                direccion_fisica->desplazamiento = 0;
+
+                direccion_fisica->PID = pid;
+
+                direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
+                
+
+                if (i==0) {
+
+                    direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
+
+                    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+
+                    if(size_dato<=bytesDisponiblesEnPag){
+
+                        tam=size_dato;
+
+                    }else{
+
+                        tam=bytesDisponiblesEnPag;
+                    }
+
+                    buffer=malloc(tam);
+
+                    memcpy(buffer,datos_a_escribir,tam);
+
+
+                    operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+
+                    if (operacion == -1){}
+                    //memcpy(loQueDevuelve, buffer,tam);
+                    free(buffer);
+
+                }else if (i<(cantidadDePaginas-1)){
+
+                    buffer=malloc(tam_pagina);
+
+                    memcpy(buffer,datos_a_escribir+tam,tam_pagina);
+
+                    operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+
+                    tam+=tam_pagina;
+                    
+                    if (operacion == -1){}
+
+                    //memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
+                    free(buffer);
+
+                }else{
+                    buffer=malloc(size_dato-tam);
+
+                    memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
+
+
+                    operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
+
+                    //datos_leidos = recibir_confirmacion_memoria_mov_out();
+
+                    if (operacion == -1){}
+
+                    //memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
+
+                    free(buffer);
+                }
+                
+            }
+
+            //printf("datos: %d\n",uintDevuelve);
+
+            if (operacion == 1)
+            {
+                break;
+            }
+
+            
         }
         default:
         {   
@@ -726,7 +843,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         {
             int valor = atoi(instruccion_a_ejecutar.operando2);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <JNZ> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
-            ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
             break;
         }
         case WAIT:
@@ -737,9 +854,17 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             break;
         }
         case SIGNAL:
+        {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
+        }
+        case COPY_STRING:
+        {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
+            ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
+            break;
+        }
         case IO_GEN_SLEEP:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
@@ -833,6 +958,8 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
     return bloqueado;     
 }
 
+
+/*
 uint32_t recibir_leer_memoria_mov_in(){
 
     uint32_t valor_leido;
@@ -860,8 +987,35 @@ uint32_t recibir_leer_memoria_mov_in(){
         }
     }       
 }
+*/
 
-void* recibir_confirmacion_memoria_mov_out(){
+op_code recibir_confirmacion_memoria_mov_out(){
+
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+    paquete->buffer = malloc(sizeof(t_buffer));
+
+    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
+    void *stream = paquete->buffer->stream;
+
+    switch(paquete->codigo_operacion){
+            case OK:
+            {
+                return OK;
+            }
+            default:
+            {   
+                break;
+            }
+    }
+    return PROCESO_EXIT;   
+
+}
+
+void* recibir_confirmacion_memoria_mov_in(){
 
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
@@ -896,6 +1050,8 @@ void* recibir_confirmacion_memoria_mov_out(){
     return PROCESO_EXIT;   
 
 }
+
+
 
 op_code recibir_confirmacion_memoria_resize(){
 
