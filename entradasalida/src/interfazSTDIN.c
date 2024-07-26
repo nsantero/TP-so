@@ -53,11 +53,13 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
 }
 
 char* leer_texto_ingresado(uint32_t tamanio,int PID) {
-    char *texto = malloc(tamanio+1);
+    char* texto=NULL;
+    texto = malloc(tamanio+1);
     printf("Ingrese el texto deseado para el proceso de PID=%d. Tamaño maximo %d: \n",PID,tamanio);
+    fflush(stdout);
     fgets(texto, tamanio+1, stdin);
     texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
-    printf(texto);
+    
     return texto;
 }
 
@@ -74,7 +76,8 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	texto_leido = leer_texto_ingresado(peticion->tamanio,peticion->PID);
     //peticion->tamanio=strlen(texto_leido)+1;
 	void* buffer=NULL;
-    for(int i=0; i<(list_size(peticion->frames)+1);i++){
+    int i=0;
+    while(!list_is_empty(peticion->frames)){
         
 
         if (i==0) {
@@ -84,6 +87,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
             enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes,buffer);
             
             free(buffer);
+            i++;
         }else if (i<(list_size(peticion->frames))){
             buffer=malloc(peticion->tamPag);
             memcpy(buffer,texto_leido+bytes,peticion->tamPag);
@@ -105,7 +109,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
         }
 
     }
-    printf("se envio paquete a memoria");
+    
 	
 	
     
@@ -114,7 +118,7 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
     free(texto_leido);
 
     log_info(loggerIO,"PID: %d - Operacion: IO_STDIN_READ",peticion->PID);
-    printf("se envio q termino a kernel");
+    
     terminoEjecucionInterfaz(interfaz_STDIN.nombre,peticion->PID);
     
 }

@@ -1,31 +1,48 @@
-==42252== Memcheck, a memory error detector
-==42252== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==42252== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==42252== Command: ./bin/entradasalida MONITOR
-==42252== Parent PID: 38406
-==42252== 
-==42252== 
-==42252== HEAP SUMMARY:
-==42252==     in use at exit: 320 bytes in 4 blocks
-==42252==   total heap usage: 96,499 allocs, 96,495 frees, 1,051,959 bytes allocated
-==42252== 
-==42252== 272 bytes in 1 blocks are possibly lost in loss record 4 of 4
-==42252==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==42252==    by 0x40147D9: calloc (rtld-malloc.h:44)
-==42252==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
-==42252==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
-==42252==    by 0x490B7B4: allocate_stack (allocatestack.c:430)
-==42252==    by 0x490B7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
-==42252==    by 0x10B0A9: main (entradasalida.c:99)
-==42252== 
-==42252== LEAK SUMMARY:
-==42252==    definitely lost: 0 bytes in 0 blocks
-==42252==    indirectly lost: 0 bytes in 0 blocks
-==42252==      possibly lost: 272 bytes in 1 blocks
-==42252==    still reachable: 48 bytes in 3 blocks
-==42252==         suppressed: 0 bytes in 0 blocks
-==42252== Reachable blocks (those to which a pointer was found) are not shown.
-==42252== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==42252== 
-==42252== For lists of detected and suppressed errors, rerun with: -s
-==42252== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==33072== Memcheck, a memory error detector
+==33072== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==33072== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==33072== Command: ./bin/entradasalida MONITOR
+==33072== Parent PID: 30779
+==33072== 
+==33072== Thread 2:
+==33072== Conditional jump or move depends on uninitialised value(s)
+==33072==    at 0x484ED28: strlen (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==33072==    by 0x48EBD30: __vfprintf_internal (vfprintf-internal.c:1517)
+==33072==    by 0x48D579E: printf (printf.c:33)
+==33072==    by 0x10FC75: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:101)
+==33072==    by 0x10F8E0: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
+==33072==    by 0x4909AC2: start_thread (pthread_create.c:442)
+==33072==    by 0x499AA03: clone (clone.S:100)
+==33072==  Uninitialised value was created by a heap allocation
+==33072==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==33072==    by 0x10FA72: EJECUTAR_INTERFAZ_STDOUT (interfazSTDOUT.c:61)
+==33072==    by 0x10F8E0: manejo_interfaz_STDOUT (interfazSTDOUT.c:23)
+==33072==    by 0x4909AC2: start_thread (pthread_create.c:442)
+==33072==    by 0x499AA03: clone (clone.S:100)
+==33072== 
+==33072== 
+==33072== HEAP SUMMARY:
+==33072==     in use at exit: 324 bytes in 5 blocks
+==33072==   total heap usage: 302 allocs, 297 frees, 25,965 bytes allocated
+==33072== 
+==33072== Thread 1:
+==33072== 272 bytes in 1 blocks are possibly lost in loss record 5 of 5
+==33072==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==33072==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==33072==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==33072==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==33072==    by 0x490A7B4: allocate_stack (allocatestack.c:430)
+==33072==    by 0x490A7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==33072==    by 0x10B0E9: main (entradasalida.c:99)
+==33072== 
+==33072== LEAK SUMMARY:
+==33072==    definitely lost: 0 bytes in 0 blocks
+==33072==    indirectly lost: 0 bytes in 0 blocks
+==33072==      possibly lost: 272 bytes in 1 blocks
+==33072==    still reachable: 52 bytes in 4 blocks
+==33072==         suppressed: 0 bytes in 0 blocks
+==33072== Reachable blocks (those to which a pointer was found) are not shown.
+==33072== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==33072== 
+==33072== For lists of detected and suppressed errors, rerun with: -s
+==33072== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
