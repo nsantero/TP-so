@@ -20,6 +20,8 @@ int main(int argc, char *argv[]) {
     armarConfig();
     inicializarListas();
     inicializar_sem_planificadores();
+    printf("inicio de listas y demas");
+    fflush(stdout);
 
     //CONEXIONES HACER EN ARCHIVO APARTE PARA DESPEJAR MAIN
 
