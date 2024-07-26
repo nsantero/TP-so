@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
 	inicializarLoggerDeInterfaz(argv[1]);
 	
 	
-	char* ip_kernel;
-    char* puerto_kernel;
-    char* ip_memoria;
-    char* puerto_memoria;
+	char* ip_kernel=0;
+    char* puerto_kernel=0;
+    char* ip_memoria=0;
+    char* puerto_memoria=0;
 	
 	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
 	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);

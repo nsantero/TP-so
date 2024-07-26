@@ -57,13 +57,15 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     
 
 	uint32_t* marco=NULL;
-	
-    char* leidoEnMemoria=malloc(peticion->tamanio+1);
+	char* leidoEnMemoria=NULL;
+    leidoEnMemoria=malloc(peticion->tamanio+1);
+    *leidoEnMemoria='2';
     uint32_t bytes=peticion->direccion_fisica.bytes;
 	
     
 	void* buffer=NULL;
-    for(int i=0; i<(list_size(peticion->frames)+1);i++){
+    int i=0;
+    while(!list_is_empty(peticion->frames)){
         
 
         if (i==0) {
@@ -72,6 +74,7 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
             memcpy(leidoEnMemoria,buffer,bytes);
 
             free(buffer);
+            i++;
         }else if (i<list_size(peticion->frames)){
             
             marco=list_remove(peticion->frames,0);
@@ -98,7 +101,7 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
     
     leidoEnMemoria[peticion->tamanio] = '\0';
     printf("El contenido encontrado en memoria es: %s\n", leidoEnMemoria);
-    
+    fflush(stdout);
     
     free(leidoEnMemoria);
     
