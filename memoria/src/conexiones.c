@@ -114,112 +114,119 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             
             log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
-            if (cantidadFrameLibre() == 0 || cantidad_paginas>cantidadFrameLibre()){
+            int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+
+            if(tam_actual != 0 && tam_actual>tam_a_cambiar){
+
+                //Remover paginas
+                
+                
+
+                log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                // cant pag actuales 4
+                // cant pag a cambiar 3
+                // dif 1
+
+                // for i= 3; i== 2;i--
+                int size = list_size(proceso->tabla_de_paginas)-1; //3
+                int hasta = list_size(proceso->tabla_de_paginas)-dif_cantidad; //1
+
+                for (int i = size; i >= hasta; i--) {
+
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
+
+                    log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
+                
+                    liberarFrame(reg_tp_proceso->numero_de_frame); 
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                        
+                    list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+                    
+                }
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
+                log_info(loggerMemoria, "Se reducio el proceso.");
+            
+                cantidadFrameLibre();
+                return OK;
+
+            }
+            if(tam_actual==tam_a_cambiar){
+                return OK;
+            }
+
+            
+            if (dif_cantidad>cantidadFrameLibre()){
 
                 return OUT_OF_MEMORY;
 
             }
 
-            else{
-
-                //Caso Ampliacion de un proceso
-                if(proceso->tam_proceso == 0){
-
-                    log_info(loggerMemoria, "Se amplia el proceso.");
-
-                    for (int i = 0; i < cantidad_paginas; i++) {
-
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
-                        
-                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                        reg_tp_proceso->numero_de_pagina = i;
-                        log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
-                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                        reg_tp_proceso->modificado = false;
-
-                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
-
-                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-
-                    }
-
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                    log_info(loggerMemoria, "Se amplio el proceso.");
-
-                    return OK;
-
-                }
             
-                if(tam_actual != 0 && tam_actual<tam_a_cambiar){
 
-                    //Agregar paginas
-                    int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+            //Caso Ampliacion de un proceso
+            if(proceso->tam_proceso == 0){
 
-                    log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                log_info(loggerMemoria, "Se amplia el proceso.");
 
-                    for (int i = 0; i < dif_cantidad; i++) {
+                for (int i = 0; i < cantidad_paginas; i++) {
 
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
-                        
-                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                        reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
-                        log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
-                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                        reg_tp_proceso->modificado = false;
-                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    
+                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                    reg_tp_proceso->numero_de_pagina = i;
+                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                    reg_tp_proceso->modificado = false;
 
-                        
-                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-                        
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
 
-                    }
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                    log_info(loggerMemoria, "Se amplio el proceso.");
-                    cantidadFrameLibre();
-                    return OK;
-                
+                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+
                 }
 
-                if(tam_actual != 0 && tam_actual>tam_a_cambiar){
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "Se amplio el proceso.");
 
-                    //Remover paginas
-                    
-                    int dif_cantidad = proceso->cantidad_paginas_asiganadas-cantidad_paginas;
-
-                    log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
-                    // cant pag actuales 4
-                    // cant pag a cambiar 3
-                    // dif 1
-
-                    // for i= 3; i== 2;i--
-                    int size = list_size(proceso->tabla_de_paginas)-1; //3
-                    int hasta = list_size(proceso->tabla_de_paginas)-dif_cantidad; //1
-
-                    for (int i = size; i >= hasta; i--) {
-
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
-
-                        log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
-                    
-                        liberarFrame(reg_tp_proceso->numero_de_frame); 
-                        log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
-                         
-                        list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
-                        
-                    }
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                    log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
-                    log_info(loggerMemoria, "Se reducio el proceso.");
-                
-                    cantidadFrameLibre();
-                    return OK;
-
-                }
+                return OK;
 
             }
+            
+            if(tam_actual != 0 && tam_actual<tam_a_cambiar){
+
+                //Agregar paginas
+                
+
+                log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+
+                for (int i = 0; i < dif_cantidad; i++) {
+
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    
+                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                    reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
+                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                    reg_tp_proceso->modificado = false;
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+
+                    
+                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+                    
+
+                }
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "Se amplio el proceso.");
+                cantidadFrameLibre();
+                return OK;
+            
+            }
+
+
+            
 
         }
     }
