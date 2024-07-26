@@ -103,12 +103,6 @@ int main(int argc, char* argv[]) {
     //Hilo de escuchar interrupcion
     pthread_detach(hiloEscuchaKernelSocketInterrupt);
     pthread_join(hiloKernel, NULL);
-
-    while(1){
-
-    }
-
-    return 0;
 }
 
 

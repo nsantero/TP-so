@@ -301,6 +301,7 @@ void* conexionesDispatch()
 					log_error(loggerKernel,"los procesos que se quieren actualizar son distintos el de CPU:%d, Kernel:%d",procesoCPU->PID, procesoKernel->PID);
 
 				}
+				free(procesoCPU);
 				procesoKernel->estado = EXIT;
 				list_add(lista_EXIT, procesoKernel); 
 				//proceso = cambiarAExitDesdeRunning(lista_RUNNING);

@@ -128,12 +128,10 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
         if (proceso->pid == pid_a_cambiar) {
             
-            //int cantidad_paginas = ceil(tam_a_cambiar/memoria.pagina_tam);
+            int cantidad_paginas = ceil((double)tam_a_cambiar/memoria.pagina_tam);
 
-            double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
+            //double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
 
-            int cantidad_paginas = round(calculo_paginas);
-            
             log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
 
             int tam_actual = proceso->tam_proceso;

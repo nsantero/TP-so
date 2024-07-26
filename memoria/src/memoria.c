@@ -96,12 +96,8 @@ int main(int argc, char *argv[])
     //pthread_create(&hiloEntradaSalida, NULL, atenderPeticionesEntradaSalida, NULL);
 
     //pthread_detach(hiloCpu);
-    pthread_detach(hiloKernel);
+    pthread_join(hiloKernel, NULL);
     //pthread_detach(hiloEntradaSalida);
-
-
-    while(1){
-    }
     
     close(server_fd);
 
