@@ -53,14 +53,24 @@ Interfaz generarNuevaInterfazSTDIN(char* nombre,t_config* configuracion){
 }
 
 char* leer_texto_ingresado(uint32_t tamanio,int PID) {
-    char* texto=NULL;
-    texto = malloc(tamanio+1);
+    char* textoLeido=NULL;
+    char* textoAdevolver=NULL;
     printf("Ingrese el texto deseado para el proceso de PID=%d. Tamaño maximo %d: \n",PID,tamanio);
     fflush(stdout);
-    fgets(texto, tamanio+1, stdin);
-    texto[strcspn(texto, "\n")] = '\0';//Para eliminar el \n
+    textoLeido=readline("> ");
     
-    return texto;
+    if (strlen(textoLeido)>=tamanio){
+        textoAdevolver=textoLeido;
+    }else{
+        textoAdevolver=malloc(tamanio+1);
+        textoAdevolver[tamanio]='\0';
+        memcpy(textoAdevolver,textoLeido,tamanio);
+        free(textoLeido);
+    }
+        
+    
+    
+    return textoAdevolver;
 }
 
 
@@ -76,19 +86,17 @@ void EJECUTAR_INTERFAZ_STDIN(Peticion_Interfaz_STDIN* peticion){
 	texto_leido = leer_texto_ingresado(peticion->tamanio,peticion->PID);
     //peticion->tamanio=strlen(texto_leido)+1;
 	void* buffer=NULL;
-    int i=0;
+    
+    buffer=malloc(bytes);
+    memcpy(buffer,texto_leido,peticion->direccion_fisica.bytes);
+    enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes,buffer);
+    
+    free(buffer);
+
     while(!list_is_empty(peticion->frames)){
         
 
-        if (i==0) {
-            
-            buffer=malloc(bytes);
-            memcpy(buffer,texto_leido,peticion->direccion_fisica.bytes);
-            enviarFragmentoAMemoria(IO_MEM_STDIN_READ,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes,buffer);
-            
-            free(buffer);
-            i++;
-        }else if (i<(list_size(peticion->frames))){
+        if(list_size(peticion->frames)>1){
             buffer=malloc(peticion->tamPag);
             memcpy(buffer,texto_leido+bytes,peticion->tamPag);
             marco=list_remove(peticion->frames,0);

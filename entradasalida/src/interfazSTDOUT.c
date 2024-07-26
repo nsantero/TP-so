@@ -64,18 +64,14 @@ void EJECUTAR_INTERFAZ_STDOUT(Peticion_Interfaz_STDOUT* peticion){
 	
     
 	void* buffer=NULL;
-    int i=0;
+    buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes);
+    memcpy(leidoEnMemoria,buffer,bytes);
+
+    free(buffer);
     while(!list_is_empty(peticion->frames)){
         
 
-        if (i==0) {
-            
-            buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,peticion->direccion_fisica.numero_frame,peticion->direccion_fisica.desplazamiento,bytes);
-            memcpy(leidoEnMemoria,buffer,bytes);
-
-            free(buffer);
-            i++;
-        }else if (i<list_size(peticion->frames)){
+        if (list_size(peticion->frames)>1){
             
             marco=list_remove(peticion->frames,0);
             buffer=solicitarFragmentoAMemoria(IO_MEM_STDOUT_WRITE,peticion->PID,*marco,0,peticion->tamPag);
