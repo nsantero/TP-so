@@ -180,7 +180,7 @@ void procesarLinea(char* linea,  const char* scriptBasePath) {
     }
 }
 char* construirPathCompleto(char* argumento) {
-    char prefijo[] = "/home/utnso/Documents/c-comenta-pruebas";
+    char prefijo[] = "/home/utnso/c-comenta-pruebas";
     size_t size = strlen(prefijo) + strlen(argumento) + 1;
     char* nuevo_path = (char*)malloc(size);
 
