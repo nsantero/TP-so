@@ -1,4 +1,5 @@
 #include <instrucciones.h>
+#include <math.h>
 
 void ejecutar_set(CPU_Registers *registros, const char* registro, uint32_t valor) {
     if (strcmp(registro, "AX") == 0) {
@@ -207,6 +208,59 @@ int recibir_resultado_recursos(){
       
     }       
     return respuesta;
+}
+void ejecutarCopyString(Proceso *procesoEjecutando, int sizeDato){
+    int nro_pagina =0;
+    int tam =0;
+    void* buffer;
+    void* datos_leidos=NULL;
+
+    void* datos_a_escribir = &procesoEjecutando->cpuRegisters.SI;
+
+    direccion_fisica* dirFis = traduccion_mmu(procesoEjecutando->cpuRegisters.DI, procesoEjecutando->PID);
+
+    int cantidadDePaginas = calculo_cantiad_paginas(procesoEjecutando->cpuRegisters.DI,procesoEjecutando->PID,dirFis->desplazamiento,sizeDato);
+
+    uint32_t bytesDisponiblesEnPag;
+            
+    for(int i=0; i<cantidadDePaginas;i++){
+
+        nro_pagina = floor(procesoEjecutando->cpuRegisters.DI / tam_pagina)+i; 
+        
+        dirFis->desplazamiento = 0;
+        dirFis->PID = procesoEjecutando;
+
+        dirFis->numero_frame = buscar_frame(nro_pagina,procesoEjecutando->PID);
+        
+
+        if (i==0) {
+            dirFis->desplazamiento = procesoEjecutando->cpuRegisters.DI - (nro_pagina * tam_pagina);
+            bytesDisponiblesEnPag = tam_pagina-dirFis->desplazamiento;
+            if(sizeDato<=bytesDisponiblesEnPag){
+                tam=sizeDato;
+            }else{
+                tam=bytesDisponiblesEnPag;
+            }
+            buffer=malloc(tam);
+            memcpy(buffer,datos_a_escribir,tam);
+            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam,buffer);
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            free(buffer);
+        }else if (i<(cantidadDePaginas-1)){
+            buffer=malloc(tam_pagina);
+            memcpy(buffer,datos_a_escribir+tam,tam_pagina);
+            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,tam_pagina,buffer);
+            tam+=tam_pagina;
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            free(buffer);
+        }else{
+            buffer=malloc(sizeDato-tam);
+            memcpy(buffer,datos_a_escribir+tam,sizeDato-tam);
+            enviar_paquete_mov_out_memoria(dirFis->PID,dirFis->numero_frame,dirFis->desplazamiento,sizeDato-tam,buffer);
+            datos_leidos = recibir_confirmacion_memoria_mov_out();
+            free(buffer);
+        }
+    }
 }
 
 

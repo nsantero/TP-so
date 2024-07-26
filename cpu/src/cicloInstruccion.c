@@ -274,7 +274,7 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         if (strcmp(cadena_instruccion[0], "COPY_STRING") == 0) {
             
             instruccion.tipo_instruccion = COPY_STRING;
-            instruccion.operando1 = cadena_instruccion[1];
+            instruccion.operandoNumero = atoi(cadena_instruccion[1]);
             
         }
 
@@ -757,11 +757,11 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                     memcpy(buffer,datos_a_escribir,tam);
 
+
                     operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
 
                     if (operacion == -1){}
                     //memcpy(loQueDevuelve, buffer,tam);
-
                     free(buffer);
 
                 }else if (i<(cantidadDePaginas-1)){
@@ -777,13 +777,13 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     if (operacion == -1){}
 
                     //memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
-
                     free(buffer);
 
                 }else{
                     buffer=malloc(size_dato-tam);
 
                     memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
+
 
                     operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
 
@@ -854,9 +854,17 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             break;
         }
         case SIGNAL:
+        {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
+        }
+        case COPY_STRING:
+        {
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
+            ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
+            break;
+        }
         case IO_GEN_SLEEP:
         {
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);

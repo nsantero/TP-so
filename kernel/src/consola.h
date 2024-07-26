@@ -26,12 +26,12 @@ void liberarPCB(PCB* pcb);
 void liberarTodasLasListas();
 void terminarKernel();
 
-void detener_cola_new(void* arg);
-void detener_cola_ready(void* arg);
-void detener_cola_exec(void* arg);
-void detener_cola_blocked(void* arg);
-void detener_cola_blocked_recursos(void* arg);
-void detener_cola_blocked_prioridad(void* arg);
+void* detenerListanew();
+void* detenerListaready();
+void* detenerListaexec();
+void* detenerListablocked();
+void* detenerListaBlockedrecursos();
+void* detenerListaReadyprioridad();
 
 
 

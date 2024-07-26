@@ -25,6 +25,7 @@ void* manejo_interfaz_DialFS(){
         pthread_mutex_unlock(&mutex_cola_DialFS);
 
         EJECUTAR_INTERFAZ_DialFS(peticion_DialFS);
+        list_destroy(peticion_DialFS->frames);
         free(peticion_DialFS->nombreArchivo);
         free(peticion_DialFS->nombre_interfaz);
         free(peticion_DialFS);
@@ -306,7 +307,7 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
 void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     
     char* nombreArchivo=peticion->nombreArchivo;
-    uint32_t direcion=peticion->direcion;
+    //uint32_t direcion=peticion->direcion;
     uint32_t tamanio=peticion->tamanio;
     uint32_t punteroArchivo=peticion->punteroArchivo;
 
@@ -321,7 +322,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     //solicitar info a memoria
     t_paquete* paquete_direccion = crear_paquete(IO_MEM_FS_WRITE);
     agregar_entero_a_paquete32(paquete_direccion,tamanio);
-    agregar_entero_a_paquete32(paquete_direccion,direcion);
+    //agregar_entero_a_paquete32(paquete_direccion,direcion);
     enviar_paquete(paquete_direccion, memoria_fd);//Envio a memoria la direccion logica ingresada
     free(paquete_direccion->buffer->stream);
     free(paquete_direccion->buffer);
@@ -376,7 +377,7 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
 void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     
     char *nombreArchivo = peticion->nombreArchivo;
-    uint32_t direcion = peticion->direcion;
+    //uint32_t direcion = peticion->direcion;
     uint32_t tamanio = peticion->tamanio;
     uint32_t punteroArchivo = peticion->punteroArchivo;
 
@@ -406,8 +407,8 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     //enviar solicitud a memoria
     t_paquete *paquete = crear_paquete(IO_MEM_FS_READ);
     agregar_entero_a_paquete32(paquete,tamanio);
-    agregar_entero_a_paquete32(paquete,direcion);
-    agregar_a_paquete(paquete, buffer, tamanio);
+    //agregar_entero_a_paquete32(paquete,direcion);
+    //agregar_a_paquete(paquete, buffer, tamanio);
     enviar_paquete(paquete, memoria_fd);
     eliminar_paquete(paquete);
 

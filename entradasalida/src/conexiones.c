@@ -5,8 +5,8 @@
 #include <interfazSTDOUT.h>
 
 
-int kernel_fd;
-int memoria_fd;
+int kernel_fd=0;
+int memoria_fd=0;
 
 void enviarNuevaInterfazAKernel(t_config* configNueva,char* nombre){
 
@@ -132,6 +132,7 @@ void recibirPeticionDeIO_STDIN(){
                     memcpy(frameAux, stream, sizeof(uint32_t));
                     stream+=sizeof(uint32_t);
                     list_add(peticion->frames, frameAux);
+                    //free(frameAux);
 				}		
 
 
@@ -176,6 +177,7 @@ void recibirPeticionDeIO_STDOUT(){
             case IO_STDOUT_WRITE:
             {
                 Peticion_Interfaz_STDOUT *peticion=malloc(sizeof(Peticion_Interfaz_STDOUT));
+                
                 peticion->frames=list_create();
                 int bytes;
                 int cantPags;
@@ -244,6 +246,7 @@ void recibirPeticionDeIO_DialFS(){
 
         Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
         int bytes;
+        int cantPags;
 
         switch (paquete->codigo_operacion)  
         {
@@ -304,7 +307,11 @@ void recibirPeticionDeIO_DialFS(){
                 peticion->nombreArchivo = malloc(bytes);
                 memcpy(peticion->nombreArchivo, stream, bytes);
                 stream+=bytes;
-                memcpy(&peticion->direcion, stream, sizeof(uint32_t));
+                memcpy(&peticion->Direccion_fisica.bytes, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->Direccion_fisica.desplazamiento, stream, sizeof(uint32_t));
+                stream += sizeof(uint32_t);
+                memcpy(&peticion->Direccion_fisica.numero_frame, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
                 memcpy(&peticion->tamanio, stream, sizeof(uint32_t));
                 stream += sizeof(uint32_t);
@@ -316,8 +323,15 @@ void recibirPeticionDeIO_DialFS(){
                 stream += sizeof(int);
                 peticion->nombre_interfaz = malloc(bytes);
                 memcpy(peticion->nombre_interfaz, stream, bytes);
+                memcpy(&cantPags, stream, sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
 
-            
+                for(int i =1; i<cantPags; i++){
+                    uint32_t *frameAux=malloc(sizeof(uint32_t));
+                    memcpy(frameAux, stream, sizeof(uint32_t));
+                    stream+=sizeof(uint32_t);
+                    list_add(peticion->frames, frameAux);
+				}	
 
                 pthread_mutex_lock(&mutex_cola_DialFS);
                 list_add(cola_procesos_DialFS,peticion);
@@ -359,6 +373,7 @@ void terminoEjecucionInterfaz(char* nombre,int PID){
     eliminar_paquete(paquete);
 }
 int enviarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size, void* datos){
+    int devolver=0;
     t_paquete *paquete_memoria = crear_paquete(operacion);
 
     agregar_entero_a_paquete32(paquete_memoria, pid);
@@ -367,8 +382,10 @@ int enviarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazam
     agregar_a_paquete(paquete_memoria,datos, size);
     
     enviar_paquete(paquete_memoria, memoria_fd);
-    eliminar_paquete(paquete_memoria);
-
+    free(paquete_memoria->buffer->stream);
+    free(paquete_memoria->buffer);
+    free(paquete_memoria);
+    
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
@@ -377,10 +394,15 @@ int enviarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazam
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
     free(paquete->buffer->stream);
     free(paquete->buffer);
-    if(paquete->codigo_operacion==OK){return 1;}
-    else{return -1;}
+    if(paquete->codigo_operacion==OK){
+        devolver=1;
+    }
+    else{
+        devolver=-1;
+    }
+    
     free(paquete);
-
+    return devolver;
 
 }
 void* solicitarFragmentoAMemoria(op_code operacion, int pid, int marco, int desplazamiento,int size){
@@ -412,4 +434,9 @@ void* solicitarFragmentoAMemoria(op_code operacion, int pid, int marco, int desp
 }
 
 
-    
+
+/*
+Peticion_Interfaz_STDIN* inicializarPeticionSTDIN(){
+    Peticion_Interfaz_STDIN* peticion;
+    peticion=malloc
+}*/

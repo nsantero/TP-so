@@ -9,6 +9,8 @@
 #include <shared.h>
 #include <entradasalida.h>
 #include <loggersIO.h>
+#include <string.h>
+#include <readline/readline.h>
 
 extern Interfaz interfaz_STDIN;
 extern t_list * cola_procesos_STDIN;

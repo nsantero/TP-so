@@ -721,6 +721,8 @@ void* conexionesDispatch()
 				Tipos_Interfaz tipoDeInterfazEncontrada;
 				int pathLength;
 				int archivoLen;
+				uint32_t cantPags;
+				uint32_t frameAux;
 				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
@@ -733,11 +735,17 @@ void* conexionesDispatch()
 				peticionFS.nombreArchivo=malloc(archivoLen);
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 				stream+=archivoLen;
-				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				memcpy(&peticionFS.Direccion_fisica.bytes,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.desplazamiento,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.numero_frame,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_WRITE;
@@ -751,11 +759,19 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
 					agregar_entero_a_paquete32(paqueteFS, archivoLen);
     				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
-					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
-					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);	
+					agregar_entero_a_paquete32(paqueteFS,cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteFS,frameAux);
+					}				
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);
@@ -792,6 +808,9 @@ void* conexionesDispatch()
 				int pathLength;
 				int archivoLen;
 				
+				uint32_t cantPags;
+				uint32_t frameAux;
+				
 				memcpy(&pathLength, stream, sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				peticionFS.nombre_interfaz = malloc(pathLength);
@@ -803,12 +822,17 @@ void* conexionesDispatch()
 				peticionFS.nombreArchivo=malloc(archivoLen);
 				memcpy(peticionFS.nombreArchivo,stream,archivoLen);
 				stream+=archivoLen;
-				memcpy(&peticionFS.direcion,stream,sizeof(uint32_t));
+				memcpy(&peticionFS.Direccion_fisica.bytes,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.desplazamiento,stream,sizeof(uint32_t));
+				stream+=sizeof(uint32_t);
+				memcpy(&peticionFS.Direccion_fisica.numero_frame,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.tamanio,stream,sizeof(uint32_t));
 				stream+=sizeof(uint32_t);
 				memcpy(&peticionFS.punteroArchivo,stream,sizeof(uint32_t));
-
+				stream+=sizeof(uint32_t);
+				memcpy(&cantPags, stream, sizeof(uint32_t));
 				peticionFS.PID=procesoKernel->PID;
 				peticionFS.operacion=DFS_READ;
 				//MUTEX
@@ -821,11 +845,19 @@ void* conexionesDispatch()
 					agregar_a_paquete(paqueteFS,&peticionFS.operacion,sizeof(OperacionesDeDialFS));
 					agregar_entero_a_paquete32(paqueteFS, archivoLen);
     				agregar_string_a_paquete(paqueteFS, peticionFS.nombreArchivo);
-					agregar_entero_a_paquete32(paqueteFS, peticionFS.direcion);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.bytes);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.desplazamiento);
+					agregar_entero_a_paquete32(paqueteFS, peticionFS.Direccion_fisica.numero_frame);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
 					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					agregar_entero_a_paquete32(paqueteFS,cantPags);
+					for(int i =1; i<cantPags; i++){
+						memcpy(&frameAux, stream, sizeof(uint32_t));
+						stream+=sizeof(uint32_t);
+						agregar_entero_a_paquete32(paqueteFS,frameAux);
+					}	
 					enviar_paquete(paqueteFS,socketClienteInterfaz);
 					eliminar_paquete(paqueteFS);
 					bloquearProceso(procesoKernel);

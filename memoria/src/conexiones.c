@@ -121,7 +121,6 @@ void enviar_paquete_cpu_mov_out(op_code resultado, int socketCliente){
 op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
     Proceso *proceso = NULL;
-    proceso = malloc(sizeof(Proceso));
 
     for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
@@ -133,141 +132,126 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
             double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
 
-            int cantidad_paginas = ceil(calculo_paginas);
+            int cantidad_paginas = round(calculo_paginas);
             
-            //log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
+            log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
 
             int tam_actual = proceso->tam_proceso;
             
-            //log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
+            log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
-            if (cantidadFrameLibre() == 0 || cantidad_paginas>cantidadFrameLibre()){
+            int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+
+            if(tam_actual != 0 && tam_actual>tam_a_cambiar){
+
+                //Remover paginas
+               
+                log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                // cant pag actuales 4
+                // cant pag a cambiar 3
+                // dif 1
+
+                // for i= 3; i== 2;i--
+                int size = list_size(proceso->tabla_de_paginas)-1; //3
+                int hasta = list_size(proceso->tabla_de_paginas)-dif_cantidad; //1
+
+                for (int i = size; i >= hasta; i--) {
+
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
+
+                    log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
+                
+                    liberarFrame(reg_tp_proceso->numero_de_frame); 
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                        
+                    list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
+                    
+                }
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
+                log_info(loggerMemoria, "Se reducio el proceso.");
+            
+                cantidadFrameLibre();
+                return OK;
+
+            }
+            if(tam_actual==tam_a_cambiar){
+                return OK;
+            }
+
+            
+            if (dif_cantidad>cantidadFrameLibre()){
 
                 return OUT_OF_MEMORY;
 
             }
-// resize = no se hace nada
-// 
 
-            else{
+            //Caso Ampliacion de un proceso
+            if(proceso->tam_proceso == 0){
 
-                //Caso Ampliacion de un proceso
-                if(proceso->tam_proceso == 0){
+                log_info(loggerMemoria, "Se amplia el proceso.");
 
-                    //log_info(loggerMemoria, "Se amplia el proceso.");
+                for (int i = 0; i < cantidad_paginas; i++) {
 
-                    for (int i = 0; i < cantidad_paginas; i++) {
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    
+                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                    reg_tp_proceso->numero_de_pagina = i;
+                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                    reg_tp_proceso->modificado = false;
 
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = NULL;
-                        reg_tp_proceso=malloc(sizeof(Registro_tabla_paginas_proceso));
-                        
-                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                        reg_tp_proceso->numero_de_pagina = i;
-                        //log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
-                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                        reg_tp_proceso->modificado = false;
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
 
-                        //log_info(loggerMemoria, "Modificado: %d",reg_tp_proceso->modificado);
-
-                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-                        
-
-                    }
-
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-
-                    pthread_mutex_lock(&actualizarLoggerMemoria);
-                    log_info(loggerMemoria,"PID: %d - Tamaño: %d", pid_a_cambiar,cantidad_paginas);
-                    pthread_mutex_unlock(&actualizarLoggerMemoria);
-
-                    //log_info(loggerMemoria, "Se amplio el proceso.");
-
-                    return OK;
+                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
 
                 }
-            
-                if(tam_actual != 0 && tam_actual<tam_a_cambiar){
 
-                    //Agregar paginas
-                    int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "Se amplio el proceso.");
 
-                    //log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
-
-                    for (int i = 0; i < dif_cantidad; i++) {
-
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
-                        
-                        reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
-                        reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
-                        //log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
-                        reg_tp_proceso->numero_de_frame = asignarFrameLibre();
-                        reg_tp_proceso->modificado = false;
-                        //log_info(loggerMemoria, "Modificado: %d",reg_tp_proceso->modificado);
-
-                        
-                        list_add(proceso->tabla_de_paginas, reg_tp_proceso);
-                        
-
-                    }
-                    
-                    pthread_mutex_lock(&actualizarLoggerMemoria);
-                    log_info(loggerMemoria,"PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d", pid_a_cambiar,tam_actual,tam_a_cambiar);
-                    pthread_mutex_unlock(&actualizarLoggerMemoria);
-
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                    cantidadFrameLibre();
-                    return OK;
-                
-                }
-
-                if(tam_actual != 0 && tam_actual>tam_a_cambiar){
-
-                    //Remover paginas
-                    
-                    int dif_cantidad = proceso->cantidad_paginas_asiganadas-cantidad_paginas;
-
-                    //log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
-                    // cant pag actuales 4
-                    // cant pag a cambiar 3
-                    // dif 1
-
-                    // for i= 3; i== 2;i--
-                    int size = list_size(proceso->tabla_de_paginas)-1; //3
-                    int hasta = list_size(proceso->tabla_de_paginas)-dif_cantidad; //1
-
-                    for (int i = size; i >= hasta; i--) {
-
-                        Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
-
-                        //log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
-                    
-                        liberarFrame(reg_tp_proceso->numero_de_frame); 
-                        //log_info(loggerMemoria, "Modificado: %d",reg_tp_proceso->modificado);
-                         
-                        list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
-                        
-                    }
-
-                    pthread_mutex_lock(&actualizarLoggerMemoria);
-                    log_info(loggerMemoria,"PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d", pid_a_cambiar,tam_actual,tam_a_cambiar);
-                    pthread_mutex_unlock(&actualizarLoggerMemoria);
-
-                    proceso->tam_proceso = tam_a_cambiar;
-                    proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                
-                    cantidadFrameLibre();
-                    return OK;
-
-                }
+                return OK;
 
             }
+            
+            if(tam_actual != 0 && tam_actual<tam_a_cambiar){
+
+                //Agregar paginas
+                
+
+                log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+
+                for (int i = 0; i < dif_cantidad; i++) {
+
+                    Registro_tabla_paginas_proceso *reg_tp_proceso = malloc(sizeof(Registro_tabla_paginas_proceso));
+                    
+                    reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
+                    reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
+                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    reg_tp_proceso->numero_de_frame = asignarFrameLibre();
+                    reg_tp_proceso->modificado = false;
+                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+
+                    
+                    list_add(proceso->tabla_de_paginas, reg_tp_proceso);
+                    
+
+                }
+                proceso->tam_proceso = tam_a_cambiar;
+                proceso->cantidad_paginas_asiganadas = cantidad_paginas;
+                log_info(loggerMemoria, "Se amplio el proceso.");
+                cantidadFrameLibre();
+                return OK;
+            
+            }
+
+
+            
 
         }
     }
-
-    return -1;
 
 }
 
@@ -678,24 +662,7 @@ void* manejarClienteKernel(void *arg)
             }
 
             //-----------------------------conexion EntradaSalida------------------------------------
-             
             case IO_MEM_FS_READ:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                void* buffer;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                buffer=malloc(tamanio);
-                memcpy(buffer,stream,tamanio);
-                
-                //Guardar buffer
-
-                free(buffer);
-                break;
-            }
             case  IO_MEM_STDIN_READ :
             {
                 int pid_mov_out; // es necesario????????
@@ -727,6 +694,7 @@ void* manejarClienteKernel(void *arg)
                 enviar_paquete_cpu_mov_in(OK,direccion,size,socketCliente); 
                 break;
             }
+            case  IO_MEM_FS_WRITE:
             case  IO_MEM_STDOUT_WRITE :
             {
                 //REBIBE TAMAÑO Y DIRECCION, DEBE LEER LA DIRECCION Y MANDAR EL CONTINIDO 
@@ -770,28 +738,7 @@ void* manejarClienteKernel(void *arg)
                 break;
                 
             }
-            case  IO_MEM_FS_WRITE:
-            {
-                uint32_t tamanio;
-                uint32_t direc;
-                memcpy(&tamanio,stream,sizeof(uint32_t));
-                stream+=sizeof(uint32_t);
-                memcpy(&direc,stream,sizeof(uint32_t));
-                
-                //Lee la direccion
-                char* hardcodeo="Esta prueba esta hardcodeada";
-                void* bufferEncontrado=hardcodeo;
-
-                t_paquete* paqueteDevolverAIO=crear_paquete(IO_MEM_FS_WRITE);
-                agregar_a_paquete(paqueteDevolverAIO,bufferEncontrado,tamanio);
-                enviar_paquete(paqueteDevolverAIO,socketCliente);
-                free(paqueteDevolverAIO->buffer);
-                free(paqueteDevolverAIO);
-                
-
-                break;
-
-            }
+            
             default:
             {   
                 break;
