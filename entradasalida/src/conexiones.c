@@ -245,6 +245,7 @@ void recibirPeticionDeIO_DialFS(){
         void *stream = paquete->buffer->stream;
 
         Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+        peticion->frames=list_create();
         int bytes;
         int cantPags;
 
