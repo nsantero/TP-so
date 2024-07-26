@@ -192,45 +192,51 @@ char* construirPathCompleto(char* argumento) {
 }
 
 void detener_planificacion() {
-    pthread_t detener_new, detener_ready, detener_exec, detener_blocked, detener_blocked_recursos, detener_blocked_prioridad;
-    pthread_create(&detener_new,NULL,(void*) detener_cola_new,NULL);
-    pthread_create(&detener_ready,NULL,(void*) detener_cola_ready,NULL);
-    pthread_create(&detener_exec,NULL,(void*) detener_cola_exec,NULL);
-    pthread_create(&detener_blocked,NULL,(void*) detener_cola_blocked,NULL);
-    pthread_create(&detener_blocked_recursos,NULL,(void*) detener_cola_blocked_recursos,NULL);
-    pthread_create(&detener_blocked_prioridad,NULL,(void*) detener_cola_blocked_prioridad,NULL);
+    pthread_t detener_new, detener_ready, detener_exec, detener_blocked, detener_blocked_recursos, detener_ready_prioridad;
+    pthread_create(&detener_new,NULL,detenerListanew,NULL);
+    pthread_create(&detener_ready,NULL,detenerListaready,NULL);
+    pthread_create(&detener_exec,NULL,detenerListaexec,NULL);
+    pthread_create(&detener_blocked,NULL,detenerListablocked,NULL);
+    pthread_create(&detener_blocked_recursos,NULL,detenerListaBlockedrecursos,NULL);
+    pthread_create(&detener_ready_prioridad,NULL,detenerListaReadyprioridad,NULL);
     pthread_detach(detener_new);
     pthread_detach(detener_ready);
     pthread_detach(detener_exec);
     pthread_detach(detener_blocked);
     pthread_detach(detener_blocked_recursos);
-    pthread_detach(detener_blocked_prioridad);
+    pthread_detach(detener_ready_prioridad);
 }
-void detener_cola_new(void* arg)
+void* detenerListanew()
 {
     sem_wait(&semPlaniNew);
+    return NULL;
 }
-void detener_cola_ready(void* arg)
+void* detenerListaready()
 {
     sem_wait(&semPlaniReady);
+    return NULL;
 }
-void detener_cola_exec(void* arg)
+void* detenerListaexec()
 {
     sem_wait(&semPlaniRunning);
+    return NULL;
 }
-void detener_cola_blocked(void* arg)
+void* detenerListablocked()
 {
     sem_wait(&semPlaniBlocked);
+    return NULL;
 }
 
-void detener_cola_blocked_recursos(void* arg)
+void* detenerListaBlockedrecursos()
 {
     sem_wait(&semPlaniBlockedRecursos);
+    return NULL;
 }
 
-void detener_cola_blocked_prioridad(void* arg)
+void* detenerListaReadyprioridad()
 {
     sem_wait(&semPlaniReadyClock);
+    return NULL;
 }
 
 void iniciar_planificacion() {
