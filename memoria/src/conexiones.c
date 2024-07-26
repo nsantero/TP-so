@@ -591,7 +591,7 @@ void* manejarClienteKernel(void *arg)
                 int pid_mov_in = 0;
                 int marco_mov_in = 0;
                 int desplazamiento_mov_in = 0;
-                void* datos_leidos = 0;
+                void* datos_leidos = NULL;
                 int size = 0;
                 //Proceso *proceso = NULL;
                 //proceso = malloc(sizeof(Proceso));

@@ -575,8 +575,8 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
             
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
-            void* datos_a_escribir;
-            void* loQueDevuelve;
+            void* datos_a_escribir=NULL;
+            void* loQueDevuelve=NULL;
             uint8_t registro_datos_8;
             int size_dato = 0;
             uint32_t uintDevuelve;
@@ -587,75 +587,58 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             int tam = 0;
             void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
-            void* buffer;
+            void* buffer=NULL;
 
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
 
             size_dato = valorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             
-            loQueDevuelve = &uintDevuelve;
-
-            if (size_dato == 1){
-                
-                //registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                datos_a_escribir = &registro_datos_8;
-
+            //loQueDevuelve = malloc(size_dato);
+            if(size_dato==1){
+                loQueDevuelve=&registro_datos_8;
+            }else 
+            {
+                loQueDevuelve=&registro_datos_32;
             }
-
-            if (size_dato == 4){
+            
+            
                 
-                //registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
-                datos_a_escribir = &registro_datos_32;
+            
 
-            }
+            
 
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
 
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
             
-        
+            
 
-            for(int i=0; i<cantidadDePaginas;i++){
+            
+
+            bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+
+            if(size_dato<=bytesDisponiblesEnPag){
+                tam=size_dato;
+            }else{
+                tam=bytesDisponiblesEnPag;
+            }
+            datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
+            //datos_leidos = recibir_confirmacion_memoria_mov_in();
+            memcpy(loQueDevuelve, datos_leidos,tam);
+            free(datos_leidos);
+            direccion_fisica->desplazamiento = 0;
+            for(int i=1; i<cantidadDePaginas;i++){
 
                 nro_pagina = floor(direccion_logica / tam_pagina)+i; 
-                
-                direccion_fisica->desplazamiento = 0;
-
-                direccion_fisica->PID = pid;
 
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
                 
 
-                if (i==0) {
+                if (i<(cantidadDePaginas-1)){
 
-                    direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
-
-                    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
-
-                    if(size_dato<=bytesDisponiblesEnPag){
-
-                        tam=size_dato;
-
-                    }else{
-
-                        tam=bytesDisponiblesEnPag;
-                    }
-
-
-                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
-
-                    datos_leidos = recibir_confirmacion_memoria_mov_in();
-
-                    memcpy(loQueDevuelve, datos_leidos,tam);
-                    free(datos_leidos);
-
-                    
-
-                }else if (i<(cantidadDePaginas-1)){
-
-                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
-                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+                    datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
+                    //datos_leidos = recibir_confirmacion_memoria_mov_in();
                     memcpy(loQueDevuelve +tam , datos_leidos, tam_pagina);
                     tam+=tam_pagina;
                     
@@ -663,9 +646,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                 }else{
                     
-                    enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
+                    datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
 
-                    datos_leidos = recibir_confirmacion_memoria_mov_in();
+                    //datos_leidos = recibir_confirmacion_memoria_mov_in();
 
                     memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
                     free(datos_leidos);
@@ -673,10 +656,19 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
-            printf("datos: %d\n",uintDevuelve);
+            if(size_dato==1){
+                registro_datos_8=*(uint8_t*)loQueDevuelve;
+                printf("datos: %d\n",registro_datos_8);
+            }else{
+                registro_datos_32=*(uint32_t*)loQueDevuelve;
+                printf("datos: %d\n",registro_datos_32);
+            }
+            
+            free(loQueDevuelve);
+            
             
             // guardar en registros
-            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, (uint32_t)uintDevuelve);
+            ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, (uint32_t)loQueDevuelve);
             break;
         }
 
