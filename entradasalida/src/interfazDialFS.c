@@ -249,6 +249,7 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
     off_t bloqueInicial;
     int tamanioEnbytesActual;
     char* path=obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
+    free(path);
     off_t cantBloquesNecesarios=(tamanio/interfaz_DialFS.blockSize);
     off_t cantbloquesActuales=(tamanioEnbytesActual/interfaz_DialFS.blockSize);
      //caso hay q achicar el archivo, se liberan los bloques
@@ -305,7 +306,7 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
         }
 
     }
-    free(path);
+    
     terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
 
 }
@@ -525,24 +526,14 @@ off_t buscarBloqueLibreDesdeElFinal(){
 char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes){
     char* path= generarPathAArchivoFS(nombreArchivo);
     t_config* archivo=config_create(path);
-    if(offset!=NULL){obtenerInfoDeArchivoOffset(nombreArchivo,offset);}
-    if(tamanioEnBytes!=NULL){obtenerInfoDeArchivoTamanio(nombreArchivo,tamanioEnBytes);}
+    if(offset!=NULL){
+        *offset = config_get_long_value(archivo,"BLOQUE_INICIAL");
+    }
+    if(tamanioEnBytes!=NULL){
+        *tamanioEnBytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
+    }
     config_destroy(archivo);
     return path;
-}
-void obtenerInfoDeArchivoOffset(char* nombreArchivo,off_t* offset){
-    char* path= generarPathAArchivoFS(nombreArchivo);
-    t_config* archivo=config_create(path);
-    *offset = config_get_long_value(archivo,"BLOQUE_INICIAL");
-    config_destroy(archivo);
-    free(path);
-}
-void obtenerInfoDeArchivoTamanio(char* nombreArchivo,int* tamanioEnBytes){
-    char* path= generarPathAArchivoFS(nombreArchivo);
-    t_config* archivo=config_create(path);
-    *tamanioEnBytes = config_get_int_value(archivo,"TAMANIO_ARCHIVO");
-    config_destroy(archivo);
-    free(path);
 }
 void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){
     char* path= generarPathAArchivoFS(nombreArchivo);
@@ -658,7 +649,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
             if(i>offsetAux){
                 moverArchivo(nombreAMover,offsetAux);                                       //mover la cantidad de bloques q tenga ese archivo(funcion mover archivo estaria bn)           
             }
-            obtenerInfoDeArchivoTamanio(nombreAMover,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
+            obtenerInfoDeArchivo(nombreAMover,NULL,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
             cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
             if(tamanioEnbytesActual==0){cantBloqAux++;}
             i+=cantBloqAux-1;             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
@@ -723,7 +714,7 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
     {
         if(strcmp(entry->d_name,".")&&strcmp(entry->d_name,"..")&&strcmp(entry->d_name,"bloques.dat")&&strcmp(entry->d_name,"bitmap.dat")){
             nombre=entry->d_name;
-            obtenerInfoDeArchivoOffset(nombre,&offsetAux);
+            obtenerInfoDeArchivo(nombre,&offsetAux,NULL);
             if (offsetAux==offsetBloqueInicial){
                 closedir(dir);
                 return nombre;
@@ -731,7 +722,6 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
         }
     }
     closedir(dir);
-    free(nombre);
     return NULL;
 }
 void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
