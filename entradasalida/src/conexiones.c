@@ -253,7 +253,7 @@ void recibirPeticionDeIO_DialFS(){
         {
             case IO_FS_CREATE:
             case IO_FS_DELETE:
-                
+                {
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -274,7 +274,9 @@ void recibirPeticionDeIO_DialFS(){
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
+                }
             case IO_FS_TRUNCATE:
+            {
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -297,8 +299,10 @@ void recibirPeticionDeIO_DialFS(){
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
+            }
             case IO_FS_READ:
             case IO_FS_WRITE:
+            {
             //TODO separar los casos +- esta
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
@@ -343,6 +347,7 @@ void recibirPeticionDeIO_DialFS(){
                 sem_post(&sem_hay_en_DialFS);
 
                 break;
+            }
             default:
                 //log_info(loggerIO,"Llega peticion incompatible");
                 break;
