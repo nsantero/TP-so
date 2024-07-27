@@ -26,6 +26,7 @@ void* manejo_interfaz_DialFS(){
         pthread_mutex_unlock(&mutex_cola_DialFS);
 
         EJECUTAR_INTERFAZ_DialFS(peticion_DialFS);
+        list_destroy_and_destroy_elements(peticion_DialFS->frames, free);
         list_destroy(peticion_DialFS->frames);
         free(peticion_DialFS->nombreArchivo);
         free(peticion_DialFS->nombre_interfaz);
