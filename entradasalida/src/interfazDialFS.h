@@ -70,8 +70,8 @@ int existenBloquesDisponibles(int bloquesNecesarios);
 off_t buscarBloqueLibre();
 off_t buscarBloqueLibreDesdeElFinal();
 char* obtenerInfoDeArchivo(char* nombreArchivo,off_t* offset,int* tamanioEnBytes);
-void obtenerInfoDeArchivoOffset(char* nombreArchivo,off_t* offset);
-void obtenerInfoDeArchivoTamanio(char* nombreArchivo,int* tamanioEnBytes);
+void obtenerInfoDeArchivoOffset(t_config* archivo,off_t* offset);
+void obtenerInfoDeArchivoTamanio(t_config* archivo,int* tamanioEnBytes);
 void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes);
 
 void liberarBloque(off_t offset);
