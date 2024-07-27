@@ -4,6 +4,8 @@
 
 char* path_bitmap;
 char* path_bloques;// estas se usan solo en un hilo asi q no necesitan semaforos
+void* addrBloques;
+void* bitmapAddr;
 
 Interfaz interfaz_DialFS;
 t_list * cola_procesos_DialFS=NULL;
@@ -93,8 +95,20 @@ Interfaz generarNuevaInterfazDialFS(char* nombre,t_config* configuracion){
     closedir(dir);
     if(bloquesCheckeo){inicializar_bloques_dat(aDevolver);}
     else{path_bloques =string_from_format("%s%s",aDevolver.pathBaseDialfs,"bloques.dat");}
+    int fdBl=open(path_bloques,O_RDWR);
+    struct stat sbBl;
+    fstat(fdBl,&sbBl);
+    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+    
     if(bitCheckeo){inicializar_bitmap_dat(aDevolver);}
     else{path_bitmap=string_from_format("%s%s",aDevolver.pathBaseDialfs,"bitmap.dat");}
+    int fd=open(path_bitmap,O_RDWR);
+    struct stat sb;
+    fstat(fd,&sb);
+    char *addr;
+    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+
+    bitmapAddr=bitarray_create(addr,sb.st_size);
 
     return aDevolver;
 
@@ -351,16 +365,11 @@ void escribirEnArchivo(Peticion_Interfaz_DialFS* peticion){
     
 
     //abro el FS
-    int fdBl=open(path_bloques,O_RDWR);
-    struct stat sbBl;
-    fstat(fdBl,&sbBl);
-    char *addrBloques;
-    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+    
     //ejecuto tarea
     memcpy((addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize)),buffer,tamanio);
     //cierro todo
-    munmap(addrBloques,sbBl.st_size);
-    close(fdBl);
+    
 
     log_info(loggerIO,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d",peticion->PID,nombreArchivo,tamanio,punteroArchivo);
     terminoEjecucionInterfaz(interfaz_DialFS.nombre,peticion->PID);
@@ -387,17 +396,12 @@ void leerDelArchivo(Peticion_Interfaz_DialFS* peticion){
     }
 
     //abro el FS
-    int fdBl=open(path_bloques,O_RDWR);
-    struct stat sbBl;
-    fstat(fdBl,&sbBl);
-    char *addrBloques;
-    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+    
     //ejecuto tarea
     void* buffer=malloc(tamanio);
     memcpy(buffer,addrBloques+punteroArchivo+(bloqueInicialArchivo*interfaz_DialFS.blockSize),tamanio);//HECHO, esto esta mal, lee del inicio del FS no del inicio del archivo, revisar
     //cierro todo
-    munmap(addrBloques,sbBl.st_size);
-    close(fdBl);
+    
     //enviar solicitud a memoria
     
     enviarBufferAMemoria(peticion,buffer);
@@ -416,42 +420,25 @@ int hayLugarDespuesDelArchivo(int cantBloques,off_t ultimoBloqueDelArchivo){
     }
 
 
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    
 
     
 
     for (int i=1;i<=cantBloques;i++){
         if (bitarray_test_bit(bitmapAddr,ultimoBloqueDelArchivo+i)){
-            bitarray_destroy(bitmapAddr);
-            munmap(addr,sb.st_size);
-            close(fd);
             return 0;
             }
     }
 
 
-    bitarray_destroy(bitmapAddr);
-    munmap(addr,sb.st_size);
-    close(fd);
+    
 
     return 1;
 
 }
 int existenBloquesDisponibles(int bloquesNecesarios){
 
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+   
 
     off_t offset=0;
     int contador=0;
@@ -460,17 +447,13 @@ int existenBloquesDisponibles(int bloquesNecesarios){
         if (!bitarray_test_bit(bitmapAddr,offset)){
             contador++;
             if(contador>=bloquesNecesarios){
-                bitarray_destroy(bitmapAddr);
-                munmap(addr,sb.st_size);
-                close(fd);
+                
                 return 1;
             }
         }
     }
 
-    bitarray_destroy(bitmapAddr);
-    munmap(addr,sb.st_size);
-    close(fd);
+   
 
     return 0;
 
@@ -484,13 +467,7 @@ int existenBloquesDisponibles(int bloquesNecesarios){
 */
 //tener cuidad con el tamaño del bitmap //HECHO
 off_t buscarBloqueLibre(){
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    
     int encontrado=0;
     off_t offset=0;
 
@@ -498,11 +475,7 @@ off_t buscarBloqueLibre(){
         if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
+    
 
     if(encontrado){
         return offset;
@@ -511,13 +484,7 @@ off_t buscarBloqueLibre(){
     }
 }
 off_t buscarBloqueLibreDesdeElFinal(){
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+   
     int encontrado=0;
     off_t offset=interfaz_DialFS.blockCount-1;
 
@@ -525,11 +492,7 @@ off_t buscarBloqueLibreDesdeElFinal(){
         if (!bitarray_test_bit(bitmapAddr,offset)){encontrado=1;break;}
     }
 
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
+    
 
 
     if(encontrado){
@@ -575,44 +538,24 @@ void cambiarInfoDeArchivo(char* nombreArchivo,off_t offset,int tamanioEnBytes){
 }
 
 void liberarBloque(off_t offset){
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+   
 
    
     bitarray_clean_bit(bitmapAddr,offset);
     
     
 
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
+    
 }
 void ocuparBloque(off_t offset){
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+   
 
    
     bitarray_set_bit(bitmapAddr,offset);
     
     
 
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
+    
 }
 void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
     
@@ -620,19 +563,14 @@ void moverBloque(off_t offsetBloqueOriginal,off_t offsetBloqueDestino){
 
     //abro el FS
 
-    int fdBl=open(path_bloques,O_RDWR);
-    struct stat sbBl;
-    fstat(fdBl,&sbBl);
-    char *addrBloques;
-    addrBloques=mmap(NULL,sbBl.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fdBl,0);
+   
 
     //ejecuto tarea
    
     memcpy(addrBloques+(offsetBloqueDestino*interfaz_DialFS.blockSize),addrBloques+(offsetBloqueOriginal*interfaz_DialFS.blockSize),interfaz_DialFS.blockSize);
 
     //cierro todo
-    munmap(addrBloques,sbBl.st_size);
-    close(fdBl);
+  
 
 }
 
@@ -643,13 +581,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
     int tamanioEnBytesDelArchivo;
     off_t bloqueInicial;
 //abro el bitmap
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    
 //abro el FS
     uint32_t cantBloqAux=ceil((double)((tamanioEnbytesActual/tamBloq)));
     if(tamanioEnbytesActual==0){cantBloqAux++;}
@@ -716,11 +648,6 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 //cierro todo
   
 
-    bitarray_destroy(bitmapAddr);
-
-
-    munmap(addr,sb.st_size);
-    close(fd);
 //espera pedida en el enunciado
     usleep(interfaz_DialFS.retrasoCompactacion*1000);
 }
@@ -747,13 +674,7 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
     return NULL;
 }
 void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
-    int fd=open(path_bitmap,O_RDWR);
-    struct stat sb;
-    fstat(fd,&sb);
-    char *addr;
-    addr=mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-
-    t_bitarray *bitmapAddr=bitarray_create(addr,sb.st_size);
+    
     
     
     
@@ -791,9 +712,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     cambiarInfoDeArchivo(nombreArchivo,nuevoBloqueInicialOFinal,-1);
 
 
-    bitarray_destroy(bitmapAddr);
-    munmap(addr,sb.st_size);
-    close(fd);
+   
 
 
 }

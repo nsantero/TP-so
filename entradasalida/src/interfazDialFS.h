@@ -28,8 +28,6 @@ extern t_list * cola_procesos_DialFS;
 extern pthread_mutex_t mutex_cola_DialFS;;
 extern sem_t sem_hay_en_DialFS;
 
-
-
 typedef struct 
 {
     char* nodo_path;
