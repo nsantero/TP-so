@@ -60,6 +60,7 @@ typedef struct {
 PCB* crearPCB(char* path);
 void eliminarProceso(PCB* proceso);
 void actualizarProceso(PCB* procesoCPU, PCB* procesoKernel);
+void loggear_pids_ready();
 
 // Funciones para planificar
 

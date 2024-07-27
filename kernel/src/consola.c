@@ -180,7 +180,7 @@ void procesarLinea(char* linea,  const char* scriptBasePath) {
     }
 }
 char* construirPathCompleto(char* argumento) {
-    char prefijo[] = "/home/utnso/Documents/c-comenta-pruebas";
+    char prefijo[] = "../../c-comenta-pruebas";
     size_t size = strlen(prefijo) + strlen(argumento) + 1;
     char* nuevo_path = (char*)malloc(size);
 
@@ -197,12 +197,14 @@ char* construirPathCompleto(char* argumento) {
 
 void detener_planificacion() {
     pthread_t detener_new, detener_ready, detener_exec, detener_blocked, detener_blocked_recursos, detener_ready_prioridad;
+    pthread_mutex_lock(&mutexHiloPlani);
     pthread_create(&detener_new,NULL,detenerListanew,NULL);
     pthread_create(&detener_ready,NULL,detenerListaready,NULL);
     pthread_create(&detener_exec,NULL,detenerListaexec,NULL);
     pthread_create(&detener_blocked,NULL,detenerListablocked,NULL);
     pthread_create(&detener_blocked_recursos,NULL,detenerListaBlockedrecursos,NULL);
     pthread_create(&detener_ready_prioridad,NULL,detenerListaReadyprioridad,NULL);
+    pthread_mutex_unlock(&mutexHiloPlani);
     pthread_detach(detener_new);
     pthread_detach(detener_ready);
     pthread_detach(detener_exec);

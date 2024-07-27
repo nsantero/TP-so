@@ -1,7 +1,0 @@
-#!/bin/bash
-FILE=cpu
-make
-cd src/
-if test -f "./$FILE"; then
-    ./$FILE
-fi

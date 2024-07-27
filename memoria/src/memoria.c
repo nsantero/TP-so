@@ -6,6 +6,7 @@
 
 Memoria memoria;
 t_list *lista_ProcesosActivos=NULL;
+int seguirCorriendo = 1;
 
 void crearListas(){
 
@@ -49,7 +50,7 @@ int calculoDeFrames(int memoria_tam, int pagina_tam){
 }
 
 void inicializarMemoria(){
-    
+
     memoria.tam = configuracionMemoria.TAM_MEMORIA;
     memoria.pagina_tam = configuracionMemoria.TAM_PAGINA;
     memoria.cantidad_frames = calculoDeFrames(memoria.tam, memoria.pagina_tam);
@@ -60,6 +61,7 @@ void inicializarMemoria(){
 }
 
 void handleSiginitMemoria(){
+    seguirCorriendo = 0;
     close(server_fd);
     exit(0);
 }
@@ -89,7 +91,6 @@ int main(int argc, char *argv[])
 
     /*pthread_t hiloCpu;
     pthread_create(&hiloCpu, NULL, atenderPeticionesCpu, NULL);*/
-
     pthread_t hiloKernel;
     pthread_create(&hiloKernel, NULL, atenderPeticionesKernel, NULL);
 
