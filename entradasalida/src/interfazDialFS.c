@@ -106,29 +106,47 @@ void EJECUTAR_INTERFAZ_DialFS(Peticion_Interfaz_DialFS* peticion){
 
     switch (peticion->operacion)
     {
-    case DFS_CREATE:
-        log_info(loggerIO,"PID: %d - Operacion: DFS_CREATE",peticion->PID);
-        crearNuevoFile(peticion);
-        break;
-    case DFS_DELETE:
-        log_info(loggerIO,"PID: %d - Operacion: DFS_DELETE",peticion->PID);
-        borrarFile(peticion);
-        break;
-    case DFS_TRUNCATE:
-        log_info(loggerIO,"PID: %d - Operacion: DFS_TRUNCATE",peticion->PID);
-        truncarArchivo(peticion);
-        break;
-    case DFS_WRITE:
-        log_info(loggerIO,"PID: %d - Operacion: DFS_WRITE",peticion->PID);
-        escribirEnArchivo(peticion);
-        break;
-    case DFS_READ:
-        log_info(loggerIO,"PID: %d - Operacion: DFS_READ",peticion->PID);
-        leerDelArchivo(peticion);
-        break;
-        
-    default:
-        break;
+        case DFS_CREATE:
+        {
+            log_info(loggerIO,"PID: %d - Operacion: DFS_CREATE",peticion->PID);
+            crearNuevoFile(peticion);
+            break;
+        }
+            
+        case DFS_DELETE:
+        {
+            log_info(loggerIO,"PID: %d - Operacion: DFS_DELETE",peticion->PID);
+            borrarFile(peticion);
+            break;
+        }
+            
+        case DFS_TRUNCATE:
+        {
+            log_info(loggerIO,"PID: %d - Operacion: DFS_TRUNCATE",peticion->PID);
+            truncarArchivo(peticion);
+            break;
+        }
+            
+        case DFS_WRITE:
+        {
+            log_info(loggerIO,"PID: %d - Operacion: DFS_WRITE",peticion->PID);
+            escribirEnArchivo(peticion);
+            break;
+        }
+            
+        case DFS_READ:
+        {
+            log_info(loggerIO,"PID: %d - Operacion: DFS_READ",peticion->PID);
+            leerDelArchivo(peticion);
+            break;
+        }
+            
+            
+        default:
+        {
+            break;
+        }
+            
     }
 
     //avisar a kernel, por ahi deberia hacerlo
