@@ -19,6 +19,8 @@ extern pthread_mutex_t mutexListaExit;
 
 extern pthread_mutex_t mutexLogger;
 extern pthread_mutex_t mutexHiloQuantum;
+extern pthread_mutex_t mutexHiloPlani;
+extern pthread_mutex_t mutexListaInterfaces;
 
 extern sem_t semListaNew;
 extern sem_t semListaReady;

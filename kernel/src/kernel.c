@@ -253,3 +253,16 @@ void paquete_memoria_finalizar_proceso(int PID_paquete){
     eliminar_paquete(paquete_memoria);
 
 }
+void loggear_pids_ready() {
+
+    for (int i = 0; i < list_size(lista_READY); i++) {
+        PCB* proceso = list_get(lista_READY, i);
+        log_info(loggerKernel, "Procesos en estado READY PID: %d", proceso->PID);
+    }
+
+    
+    for (int i = 0; i < list_size(lista_READYPRI); i++) {
+        PCB* proceso = list_get(lista_READYPRI, i);
+        log_info(loggerKernel, "Procesos en estado READYPRI PID: %d", proceso->PID);
+    }
+}   
