@@ -13,7 +13,7 @@ t_instruccion instruccionActual;
 extern int interrumpir;
 op_code codigo_op_hilo_interrupt_cpu;
 
-
+pthread_mutex_t actualizarLoggerCpu = PTHREAD_MUTEX_INITIALIZER;
 
 t_paquete * paqueteProceso(op_code codigoDeOperacion){
     t_paquete *paquete_Kernel = crear_paquete(codigoDeOperacion);

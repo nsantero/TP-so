@@ -8,10 +8,10 @@ int server_fd = 0;
 //-----------------------------conexion cpu y memoria------------------------------------
 
 void liberarFrame(int frame){
-
+    
+    pthread_mutex_lock(&accesoBitArray);
     bitarray_clean_bit(memoria.bitmap_frames, frame);
-
-    //log_info(loggerMemoria, "Se liberó el frame:%d", frame);
+    pthread_mutex_unlock(&accesoBitArray);
 
 }
 
@@ -27,6 +27,8 @@ void destroy_process_entry(void *element) {
     Proceso *proceso = (Proceso *)element;
 
     free(proceso->path);
+    list_destroy_and_destroy_elements(proceso->tabla_de_paginas, destroy_page_entry);
+    limpiarInstrucciones(proceso);
     free(proceso); 
 
 }
@@ -34,6 +36,7 @@ void destroy_process_entry(void *element) {
 int cantidadFrameLibre(){
 
     int cant_frames_libres = 0;
+    pthread_mutex_lock(&accesoBitArray);
     int cant_frames_bitarray = bitarray_get_max_bit(memoria.bitmap_frames);
     int diferencia = cant_frames_bitarray-memoria.cantidad_frames;
 
@@ -46,6 +49,7 @@ int cantidadFrameLibre(){
         }
 
     }
+    pthread_mutex_unlock(&accesoBitArray);
 
     //log_info(loggerMemoria, "Cantidad de frames libres:%d",cant_frames_libres-diferencia);
     return cant_frames_libres-diferencia;
@@ -54,15 +58,19 @@ int cantidadFrameLibre(){
 int asignarFrameLibre(){
 
     int valor = 0;
+    
 
     for (int i = 0; i < memoria.cantidad_frames; i++) {
-    
+
+        pthread_mutex_lock(&accesoBitArray);
         valor = bitarray_test_bit(memoria.bitmap_frames, i);
+        pthread_mutex_unlock(&accesoBitArray);
 
         if(!valor){
 
+            pthread_mutex_lock(&accesoBitArray);
             bitarray_set_bit(memoria.bitmap_frames, i);
-
+            pthread_mutex_unlock(&accesoBitArray);
             //log_info(loggerMemoria, "Se asigno el frame:%d",i);
             //log_info(loggerMemoria, "El frame esta en :%d",bitarray_test_bit(memoria.bitmap_frames, i));
             
@@ -130,13 +138,8 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             
             int cantidad_paginas = ceil((double)tam_a_cambiar/memoria.pagina_tam);
 
-            //double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
-
-            log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
-
             int tam_actual = proceso->tam_proceso;
             
-            log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
             int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
 
@@ -144,7 +147,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
                 //Remover paginas
                
-                log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                //log_info(loggerMemoria, "Se reduce el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
                 // cant pag actuales 4
                 // cant pag a cambiar 3
                 // dif 1
@@ -156,19 +159,21 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                 for (int i = size; i >= hasta; i--) {
 
                     Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
-
-                    log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
                 
                     liberarFrame(reg_tp_proceso->numero_de_frame); 
-                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
                         
                     list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
                     
                 }
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Reduccion Tabla De Paginas - Tamaño Actual: %d - Tamaño a ampliar: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
-                log_info(loggerMemoria, "Se reducio el proceso.");
+                //log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
+                //log_info(loggerMemoria, "Se reducio el proceso.");
             
                 cantidadFrameLibre();
                 return OK;
@@ -181,6 +186,9 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             
             if (dif_cantidad>cantidadFrameLibre()){
 
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Resize - %d - OUT OF MEMORY",pid_a_cambiar,tam_a_cambiar);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
                 return OUT_OF_MEMORY;
 
             }
@@ -188,7 +196,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             //Caso Ampliacion de un proceso
             if(proceso->tam_proceso == 0){
 
-                log_info(loggerMemoria, "Se amplia el proceso.");
+              
 
                 for (int i = 0; i < cantidad_paginas; i++) {
 
@@ -196,11 +204,11 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     
                     reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
                     reg_tp_proceso->numero_de_pagina = i;
-                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    //log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
                     reg_tp_proceso->numero_de_frame = asignarFrameLibre();
                     reg_tp_proceso->modificado = false;
 
-                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                    //log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
 
                     list_add(proceso->tabla_de_paginas, reg_tp_proceso);
 
@@ -208,7 +216,11 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                log_info(loggerMemoria, "Se amplio el proceso.");
+                //log_info(loggerMemoria, "Se amplio el proceso.");
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Creacion de Tabla de Paginas - Tamaño %d",pid_a_cambiar,cantidad_paginas);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 return OK;
 
@@ -219,7 +231,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                 //Agregar paginas
                 
 
-                log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
+                //log_info(loggerMemoria, "Se amplia el proceso con la siguiente cantidad de paginas: %d",dif_cantidad);
 
                 for (int i = 0; i < dif_cantidad; i++) {
 
@@ -227,19 +239,24 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     
                     reg_tp_proceso->pid_tabla_de_paginas = pid_a_cambiar;
                     reg_tp_proceso->numero_de_pagina = proceso->cantidad_paginas_asiganadas+i;
-                    log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
+                    //log_info(loggerMemoria, "Se agrego la pagina: %d",reg_tp_proceso->numero_de_pagina);
                     reg_tp_proceso->numero_de_frame = asignarFrameLibre();
                     reg_tp_proceso->modificado = false;
-                    log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
+                    //log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
 
                     
                     list_add(proceso->tabla_de_paginas, reg_tp_proceso);
                     
 
                 }
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Ampliacion Tabla De Paginas - Tamaño Actual: %d - Tamaño a ampliar: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                log_info(loggerMemoria, "Se amplio el proceso.");
+                //log_info(loggerMemoria, "Se amplio el proceso.");
                 cantidadFrameLibre();
                 return OK;
             
@@ -250,6 +267,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
         }
     }
+    return -1;
 
 }
 
@@ -257,16 +275,18 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
 
     Proceso *proceso = NULL;
     Instruccion *instruccionBuscada = NULL;
+    int i =0;
+    int j =0;
 
-    for (int i = 0; i < list_size(lista_ProcesosActivos); i++) {
+    for (i = 0; i < list_size(lista_ProcesosActivos); i++) {
 
         proceso = list_get(lista_ProcesosActivos,i);
 
         if (proceso->pid == pid_a_buscar) {
 
-            for (int i = 0; i < list_size(proceso->instrucciones); i++) {
-
-               instruccionBuscada = list_get(proceso->instrucciones, i);
+            for (j = 0; i < list_size(proceso->instrucciones); j++) {
+                
+               instruccionBuscada = list_get(proceso->instrucciones, j);
 
                 if (instruccionBuscada->numeroInstruccion == pc_a_buscar) {
 
@@ -276,6 +296,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
             }
         }
     }
+
     return NULL;
 }
 
@@ -298,11 +319,13 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
 
+    pthread_mutex_lock(&instruccionMutex);
     char* instruccion = buscar_instruccion(PID_paquete,PC_paquete);
     
     agregar_entero_a_paquete32(paquete_cpu, (strlen(instruccion)+1));
     agregar_string_a_paquete(paquete_cpu, instruccion);
-    
+
+    pthread_mutex_unlock(&instruccionMutex);
     enviar_paquete(paquete_cpu, socket_cliente);
 
     //log_info(loggerMemoria, "Se envio a CPU la instruccion: %s",instruccion);
@@ -332,7 +355,9 @@ void destruirInstruccion(void *elemento) {
 }
 
 void limpiarInstrucciones(Proceso *proceso) {
+    pthread_mutex_lock(&instruccionMutex);
     list_destroy_and_destroy_elements(proceso->instrucciones, destruirInstruccion);
+    pthread_mutex_unlock(&instruccionMutex);
 }
 
 void remover_proceso(int pid_remover){
@@ -361,12 +386,14 @@ void remover_proceso(int pid_remover){
 
                 }
 
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Destruccion Tabla De Paginas - Tamaño %d",pid_remover,proceso->cantidad_paginas_asiganadas);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
             }
 
-            limpiarInstrucciones(proceso);
-
             list_remove_and_destroy_element(lista_ProcesosActivos, i,destroy_process_entry);
-            cantidadFrameLibre();
+            //cantidadFrameLibre();
             
             break;
 
@@ -485,19 +512,22 @@ void* manejarClienteKernel(void *arg)
                 stream += sizeof(int);
                 proceso->path = malloc(pathLenght);
                 memcpy(proceso->path, stream, pathLenght);
-                
-                //log_info(loggerMemoria, "Se creo el proceso con el PID:%d", proceso->pid);
-                //log_info(loggerMemoria, "Se creo el proceso con el path:%s", proceso->path);
 
+                
                 cargarInstrucciones(proceso, proceso->path);
-                //log_info(loggerMemoria, "Se cargaron las instrucciones");
+
                 proceso->tam_proceso = 0;
                 proceso->cantidad_paginas_asiganadas = 0;
+                
                 proceso->tabla_de_paginas = list_create();
 
                 pthread_mutex_lock(&listaProcesosActivos);
                 list_add(lista_ProcesosActivos,proceso);
                 pthread_mutex_unlock(&listaProcesosActivos);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"Se creo el PID: %d",proceso->pid);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 break;
             }
@@ -508,7 +538,9 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&pid_remover, stream, sizeof(int));
 
                 pthread_mutex_lock(&listaProcesosActivos);
+                
                 remover_proceso(pid_remover);
+               
                 pthread_mutex_unlock(&listaProcesosActivos);
                 //log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
 
@@ -532,7 +564,12 @@ void* manejarClienteKernel(void *arg)
                 //log_info(loggerMemoria, "Se solicita la intruccion del PID:%d", pid_solicitado);
                 //log_info(loggerMemoria, "Se solicita el PC:%d", pc_solicitado);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+
+                pthread_mutex_lock(&listaProcesosActivos);
                 paquete_cpu_envio_instruccion(pid_solicitado,pc_solicitado,socketCliente);
+                
+                pthread_mutex_unlock(&listaProcesosActivos);      
+
                 break;
             }
 
@@ -575,6 +612,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño %d",pid_mov_out,dirFisica,size);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
+                
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
 
                 enviar_paquete_cpu_mov_out_prueba(OK,direccion,size,socketCliente);
@@ -641,8 +679,17 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
                 //log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
                 //log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
+
+                pthread_mutex_lock(&listaProcesosActivos);
                 resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                pthread_mutex_unlock(&listaProcesosActivos);
+
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Resize - Tamaño: %d",pid_a_cambiar,nuevo_tamaño);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
                 break;
             }
@@ -655,11 +702,13 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&pid_solicitado, stream, sizeof(int));
                 stream += sizeof(int);
                 memcpy(&pagina_solicitada, stream, sizeof(int));
-        
-                marco_encontrado= obtener_marco(pid_solicitado,pagina_solicitada);
 
+                pthread_mutex_lock(&listaProcesosActivos);
+                marco_encontrado= obtener_marco(pid_solicitado,pagina_solicitada);
+                pthread_mutex_unlock(&listaProcesosActivos);
+                
                 pthread_mutex_lock(&actualizarLoggerMemoria);
-                log_info(loggerMemoria,"PID: %d - Pagina: %d - Marco %d",pagina_solicitada,pagina_solicitada,marco_encontrado);
+                log_info(loggerMemoria,"PID: %d - Pagina: %d - Marco %d",pid_solicitado,pagina_solicitada,marco_encontrado);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 enviar_paquete_cpu_marco(marco_encontrado,socketCliente);
@@ -758,7 +807,7 @@ void* manejarClienteKernel(void *arg)
 }
 
 void cargarInstrucciones(Proceso *proceso, const char *path) {
-
+    
     int valorInstruccion = 0;
     FILE *file = fopen(path, "r");
 
@@ -768,9 +817,9 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
         //ME ESTABA TIRANDO SEGMENTATION FAULT POR Q ESTABA MAL EL PATH Y NUNCA ME ENTERE
         return;
     }
-    
+    pthread_mutex_lock(&instruccionMutex);
     proceso->instrucciones = list_create();
-
+    pthread_mutex_unlock(&instruccionMutex);
     char line[256];
     
     while (fgets(line, sizeof(line), file)) {
@@ -782,7 +831,9 @@ void cargarInstrucciones(Proceso *proceso, const char *path) {
         instruccion->numeroInstruccion = valorInstruccion;
         //printf("INSTRUCCION NRO:%d\n", instruccion->numeroInstruccion);
         //printf("INSTRUCCION:%s\n", instruccion->instruccion);
+        pthread_mutex_lock(&instruccionMutex);
         list_add(proceso->instrucciones, instruccion);
+        pthread_mutex_unlock(&instruccionMutex);
         valorInstruccion ++;
     }
     

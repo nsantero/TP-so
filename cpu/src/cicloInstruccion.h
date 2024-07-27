@@ -12,6 +12,8 @@ extern char* instruccionRecibida;
 
 char* fetch(Proceso *proceso);
 
+extern int instante_modificacion_tlb;
+
 op_code recibir_confirmacion_memoria_resize();
 
 int valorDelRegistro(char *dl,CPU_Registers registros);

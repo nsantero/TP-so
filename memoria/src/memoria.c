@@ -58,6 +58,8 @@ void inicializarMemoria(){
     pthread_mutex_lock(&actualizarLoggerMemoria);
     log_info(loggerMemoria, "Memoria inicializada con las configuraciones");
     pthread_mutex_unlock(&actualizarLoggerMemoria);
+
+   
 }
 
 void handleSiginitMemoria(){
@@ -76,9 +78,6 @@ int main(int argc, char *argv[])
 	armarConfigMemoria();
     
     crearListas();
-
-    Memoria *memoria=NULL;
-    memoria = malloc(sizeof(Memoria));
 
     inicializarMemoria();
     esquemaPaginacion();
@@ -100,7 +99,14 @@ int main(int argc, char *argv[])
     //pthread_detach(hiloCpu);
     pthread_join(hiloKernel, NULL);
     //pthread_detach(hiloEntradaSalida);
+
     
+    
+    pthread_mutex_destroy(&listaProcesosActivos);
+    pthread_mutex_destroy(&accesoAMemoria);
+    pthread_mutex_destroy(&accesoBitArray);
+    pthread_mutex_destroy(&actualizarLoggerMemoria);
+
     close(server_fd);
 
     return 0;
