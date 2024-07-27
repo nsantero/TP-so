@@ -132,6 +132,7 @@ void* conexionesDispatch()
 				sem_post(&semPlaniRunning);
 				
 				pthread_mutex_lock(&mutexListaReady);
+				pthread_mutex_lock(&mutexListaReadyPri);
 				pthread_mutex_lock(&mutexListaRunning);
 				sem_wait(&semPlaniReadyClock);
 				sem_post(&semPlaniReadyClock);
@@ -146,14 +147,19 @@ void* conexionesDispatch()
 					actualizarProceso(procesoCPU, procesoKernel);
 					procesoKernel->estado = READY;
 					list_add(lista_READY, procesoKernel);
+					
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <READY>", procesoKernel->PID);
+					loggear_pids_ready();
 					pthread_mutex_unlock(&mutexLogger);
+
 				}
 				free(procesoCPU);
-				
-				pthread_mutex_unlock(&mutexListaRunning);
 				pthread_mutex_unlock(&mutexListaReady);
+				pthread_mutex_unlock(&mutexListaReadyPri);
+				pthread_mutex_unlock(&mutexListaRunning);
+				
+				
 				sem_post(&semListaReady);
 				sem_post(&semListaRunning);
 				break;
@@ -212,8 +218,8 @@ void* conexionesDispatch()
 					recursoEncontrado->instancias--;
 					enviar_resultado_recursos(WAIT_BLOCK, cpu_dispatch_fd);
 					pthread_mutex_lock(&mutexLogger);
-					log_info(loggerKernel, "PID: <%d> - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
-					log_info(loggerKernel,"PID: <%d> - Bloqueado por: <%s>", procesoKernel->PID, recursoEncontrado->nombre);
+					log_info(loggerKernel, "PID: %d - Estado Anterior: <RUNNING> - Estado Actual: <BLOCKED>", procesoKernel->PID);
+					log_info(loggerKernel,"PID: %d - Bloqueado por: <%s>", procesoKernel->PID, recursoEncontrado->nombre);
 					pthread_mutex_unlock(&mutexLogger);
 					bloquearProcesoRecurso(procesoCPU,procesoKernel, recursoEncontrado->nombre);
 					
@@ -274,12 +280,19 @@ void* conexionesDispatch()
 							pthread_mutex_unlock(&mutexListaBlockedRecursos);
 							pthread_mutex_unlock(&mutexListaReady);
 							sem_post(&semListaReady);
+							pthread_mutex_lock(&mutexListaReady);
+							pthread_mutex_lock(&mutexListaReadyPri);
 							pthread_mutex_lock(&mutexLogger);
 							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s", procesoKernel->PID, recursoEncontrado->nombre);
+							log_info(loggerKernel, "PID: %d - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", procesoKernel->PID);
+							loggear_pids_ready();
 							pthread_mutex_unlock(&mutexLogger);
+							pthread_mutex_unlock(&mutexListaReady);
+							pthread_mutex_unlock(&mutexListaReadyPri);
+							
+							
 						}
 
-						
 					}
 					enviar_resultado_recursos(SIGNAL_SUCCESS, cpu_dispatch_fd);
 				}
@@ -768,7 +781,8 @@ void* conexionesDispatch()
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
-					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);	
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamPag);	
 					agregar_entero_a_paquete32(paqueteFS,cantPags);
 					for(int i =1; i<cantPags; i++){
 						memcpy(&frameAux, stream, sizeof(uint32_t));
@@ -857,7 +871,8 @@ void* conexionesDispatch()
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamanio);
 					agregar_entero_a_paquete32(paqueteFS, peticionFS.punteroArchivo);
 					agregar_entero_a_paquete32(paqueteFS,peticionFS.PID);
-					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);					
+					agregar_a_paquete(paqueteFS,peticionFS.nombre_interfaz,pathLength);	
+					agregar_entero_a_paquete32(paqueteFS,peticionFS.tamPag);				
 					agregar_entero_a_paquete32(paqueteFS,cantPags);
 					for(int i =1; i<cantPags; i++){
 						memcpy(&frameAux, stream, sizeof(uint32_t));
@@ -941,6 +956,7 @@ void bloquearProcesoRecurso(PCB* procesoCPU, PCB* procesoKernel, char* recurso){
 
 int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
 	//mutex lista
+	pthread_mutex_lock(&mutexListaInterfaces);
 	Interfaces_conectadas_kernel *interfazBuffer;
 	if(list_size(interfacesConectadas) != 0){
 		for (int i = 0; i < list_size(interfacesConectadas); i++)
@@ -948,6 +964,7 @@ int existeInterfaz(char *nombre,Tipos_Interfaz* tipo){
 			interfazBuffer=list_get(interfacesConectadas, i);
 			if(!strcmp(interfazBuffer->nombre, nombre)){
 				*tipo= interfazBuffer->tipo;
+				pthread_mutex_unlock(&mutexListaInterfaces);
 				return interfazBuffer->socketCliente;
 			}
 		}
@@ -1005,7 +1022,9 @@ void* manejarClienteIO(void *arg)
 				stream += sizeof(int);
 				memcpy(&interfazBuffer->tipo, stream , sizeof(Tipos_Interfaz));
 				interfazBuffer->socketCliente = socketCliente;
+				pthread_mutex_lock(&mutexListaInterfaces);
 				list_add(interfacesConectadas, interfazBuffer);
+				pthread_mutex_unlock(&mutexListaInterfaces);
 				//TODO agregar q si se vuelve a conectar una interfaz
 				pthread_mutex_lock(&mutexLogger);
 				log_info(loggerKernel, "Se conecto y guardo la interfaz con nombre:%s",interfazBuffer->nombre);
@@ -1058,9 +1077,17 @@ void* manejarClienteIO(void *arg)
 					pthread_mutex_unlock(&mutexListaReady);
 					sem_post(&semListaReady);
 				}
+				pthread_mutex_lock(&mutexListaReady);
+				pthread_mutex_lock(&mutexListaReadyPri);
 				pthread_mutex_lock(&mutexLogger);
 				log_info(loggerKernel,"PID: %d - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", proceso->PID);
+				loggear_pids_ready();
 				pthread_mutex_unlock(&mutexLogger);
+				pthread_mutex_unlock(&mutexListaReady);
+				pthread_mutex_unlock(&mutexListaReadyPri);
+				
+				
+				
 				break;
 			}
 			case ERROR_EN_INTERFAZ:

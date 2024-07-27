@@ -463,7 +463,7 @@ int obtener_marco(int pid,int pagina){
 //-----------------------------conexion kernel y memoria------------------------------------
 void* atenderPeticionesKernel() {
 
-    while (1) {
+    while (seguirCorriendo) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
         int* pclient = malloc(sizeof(int));

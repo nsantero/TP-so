@@ -74,9 +74,9 @@ void* planificadorReady(){
                 comportamientoVRR();
             }
         }
-        pthread_mutex_unlock(&mutexListaRunning);
-        pthread_mutex_unlock(&mutexListaReadyPri);
         pthread_mutex_unlock(&mutexListaReady);
+        pthread_mutex_unlock(&mutexListaReadyPri);
+        pthread_mutex_unlock(&mutexListaRunning);
         sem_post(&semPlaniReady);
     }
     return NULL;
@@ -97,7 +97,9 @@ void comportamientoRR(){
 
     pcbRunnign=list_get(lista_RUNNING, 0);
 
+    pthread_mutex_lock(&mutexHiloQuantum);
     pthread_create(&hiloQuantum,NULL, manejadorDeQuantum, &pcbRunnign->quantum);
+    pthread_mutex_unlock(&mutexHiloQuantum);
     paquete_CPU_ejecutar_proceso(pcbRunnign);
     pthread_join(hiloQuantum, NULL);
     paquete_CPU_interrumpir_proceso_fin_quantum(pcbRunnign->PID);
@@ -126,10 +128,12 @@ void cambiarAReady(t_list* cola){
     PCB *proceso = list_remove(cola, 0);
     proceso->estado = READY;
     list_add(lista_READY, proceso);
+    pthread_mutex_lock(&mutexListaReadyPri);
     pthread_mutex_lock(&mutexLogger);
     log_info(loggerKernel,"PID: %d - Estado Anterior: <NEW> - Estado Actual: <READY>", proceso->PID);
+    loggear_pids_ready();
     pthread_mutex_unlock(&mutexLogger);
-
+    pthread_mutex_unlock(&mutexListaReadyPri);
     return;
 }
 PCB* cambiarARunning(t_list* lista){

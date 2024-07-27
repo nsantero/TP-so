@@ -3,6 +3,7 @@
 
 t_log *loggerIO;
 char* path;
+pthread_mutex_t mutex_logger = PTHREAD_MUTEX_INITIALIZER;
 
 void inicializarLogger(){
     path=string_from_format("%s%s",pathADirectorio,"loggerDeIO.log");

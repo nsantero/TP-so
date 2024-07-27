@@ -1,6 +1,7 @@
 #include <entradasalida.h>
 
 t_config *configCargaInterfaz;
+Tipos_Interfaz tipo;
 
 uint32_t recibir_direccion_fisica(){
 
@@ -19,17 +20,22 @@ int main(int argc, char* argv[]) {
 	signal(SIGINT,handleSiginitIO);
 
     inicializarLogger();
+	pthread_mutex_lock(&mutex_logger);
 	log_info(loggerIO, "Se inicio el main de enrada y salida");
-
+	pthread_mutex_unlock(&mutex_logger);
     if(argc==1){
 		printf("Se inicio IO sin especificar ninguna interfaz");
+		pthread_mutex_lock(&mutex_logger);
 		log_info(loggerIO, "Se inicio IO sin especificar ninguna interfaz");
+		pthread_mutex_unlock(&mutex_logger);
 		cerrarLogger();
 		return 0;
 	}
 	if(argc>2){
 		printf("Se introdujo mas de una interfaz, se conectara solo la primera");
+		pthread_mutex_lock(&mutex_logger);
 		log_info(loggerIO, "Se introdujo mas de una interfaz, se conectara solo la primera");
+		pthread_mutex_unlock(&mutex_logger);
 	}
 	
 	
@@ -38,15 +44,18 @@ int main(int argc, char* argv[]) {
 	configCargaInterfaz=config_create(pathConfig);
 	free(pathConfig);
 	if(configCargaInterfaz==NULL){
+		pthread_mutex_lock(&mutex_logger);
 		log_info(loggerIO,"No se encuentra el archivo de congiguracion, se finaliza el programa");
+		pthread_mutex_unlock(&mutex_logger);
 		cerrarLogger();
 		return 0;
 	}
 
+	pthread_mutex_lock(&mutex_logger);
 	log_info(loggerIO,"Se continuan los logs en %s.log",argv[1]);
 	cerrarLogger();
 	inicializarLoggerDeInterfaz(argv[1]);
-	
+	pthread_mutex_unlock(&mutex_logger);	
 	
 	char* ip_kernel=0;
     char* puerto_kernel=0;
@@ -54,22 +63,27 @@ int main(int argc, char* argv[]) {
     char* puerto_memoria=0;
 	
 	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
-	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
+	tipo=obtenerTipoConString(tipoChar);
 
 	//Conecto entradasalida con kernel y memoria
 	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
 	puerto_kernel=config_get_string_value(configCargaInterfaz,"PUERTO_KERNEL");
 	kernel_fd = crear_conexion(loggerIO,"KERNEL",ip_kernel,puerto_kernel);
+	pthread_mutex_lock(&mutex_logger);
 	log_info(loggerIO, "Me conecte a kernel");
+	pthread_mutex_unlock(&mutex_logger);
 	if(tipo!=T_GENERICA){
 		ip_memoria=config_get_string_value(configCargaInterfaz,"IP_MEMORIA");
 		puerto_memoria=config_get_string_value(configCargaInterfaz,"PUERTO_MEMORIA");
 		memoria_fd = crear_conexion(loggerIO,"MEMORIA",ip_memoria,puerto_memoria);
+		pthread_mutex_lock(&mutex_logger);
 		log_info(loggerIO, "Me conecte a memoria");
+		pthread_mutex_unlock(&mutex_logger);
 	}
 	enviarNuevaInterfazAKernel(configCargaInterfaz,argv[1]);
+	pthread_mutex_lock(&mutex_logger);
 	log_info(loggerIO, "Se conecto la interfaz con kernel");
-
+	pthread_mutex_unlock(&mutex_logger);
 	
 
 
@@ -117,20 +131,9 @@ int main(int argc, char* argv[]) {
 void handleSiginitIO(){
 
 
-    //cerrar hilo?
-    //free de todo lo q tenga q hacer free TODO
-    //posiblemente con un switch del tipo de interfaz q este manejando
-
-
-
-
-/*s
-	list_destroy_and_destroy_elements(cola_procesos_ig,Peticion_Interfaz_Generica);
-	list_destroy_and_destroy_elements(cola_procesos_STDIN,);
-	list_destroy_and_destroy_elements(cola_procesos_STDOUT,);
-	list_destroy_and_destroy_elements(cola_procesos_DialFS,);*/
-	
-	close(memoria_fd);
+	if(tipo!=T_GENERICA){
+		close(memoria_fd);
+	}
 	close(kernel_fd);
     config_destroy(configCargaInterfaz);
     log_info(loggerIO,"Se desconecta la interfaz.");
