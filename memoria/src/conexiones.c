@@ -25,7 +25,7 @@ void destroy_page_entry(void *element) {
 void destroy_process_entry(void *element) {
 
     Proceso *proceso = (Proceso *)element;
-
+    list_destroy( proceso->tabla_de_paginas);
     free(proceso->path);
     list_destroy_and_destroy_elements(proceso->tabla_de_paginas, destroy_page_entry);
     limpiarInstrucciones(proceso);
