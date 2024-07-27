@@ -130,18 +130,6 @@ int main(int argc, char* argv[]) {
 void handleSiginitIO(){
 
 
-    //cerrar hilo?
-    //free de todo lo q tenga q hacer free TODO
-    //posiblemente con un switch del tipo de interfaz q este manejando
-
-
-
-
-/*s
-	list_destroy_and_destroy_elements(cola_procesos_ig,Peticion_Interfaz_Generica);
-	list_destroy_and_destroy_elements(cola_procesos_STDIN,);
-	list_destroy_and_destroy_elements(cola_procesos_STDOUT,);
-	list_destroy_and_destroy_elements(cola_procesos_DialFS,);*/
 	
 	close(memoria_fd);
 	close(kernel_fd);

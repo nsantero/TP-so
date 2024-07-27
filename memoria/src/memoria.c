@@ -61,6 +61,7 @@ void inicializarMemoria(){
 
 void handleSiginitMemoria(){
     close(server_fd);
+    exit(0);
 }
 
 

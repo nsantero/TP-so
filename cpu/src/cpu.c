@@ -65,6 +65,7 @@ void handleSiginitCPU(){
     close(fd_cpu_dispatch);
     close(fd_cpu_interrupt);
     close(memoria_fd);
+    exit(0);
 }
 
 int main(int argc, char* argv[]) {
