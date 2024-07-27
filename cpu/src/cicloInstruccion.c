@@ -4,21 +4,25 @@
 
 extern int memoria_fd; 
 char *instruccionRecibida;
+int instante_modificacion_tlb=0;
 extern int program_counter; 
 //t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
 int interrumpir = 0;
 
 void* ciclo_de_instruccion() {
-    char *instruccion_a_decodificar;
+    char *instruccion_a_decodificar =NULL;
     int valor= 1;
     t_instruccion instruccion;
 
     while (valor) {
 
         instruccion_a_decodificar = fetch(procesoEjecutando);
-        log_info(loggerCpu,"PID: <%d> - FETCH - Program Counter: <%d>\n",procesoEjecutando->PID, procesoEjecutando->cpuRegisters.PC);
 
+        pthread_mutex_lock(&actualizarLoggerCpu);
+        log_info(loggerCpu,"PID: <%d> - FETCH - Program Counter: <%d>\n",procesoEjecutando->PID, procesoEjecutando->cpuRegisters.PC);
+        pthread_mutex_unlock(&actualizarLoggerCpu);
+        
         //char **cadena_instruccion = malloc(sizeof(char**));
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
         
@@ -26,21 +30,17 @@ void* ciclo_de_instruccion() {
 
             valor =0;
             mandarPaqueteaKernel(PROCESO_EXIT);
-            int tamanio_array = 0;
-            while ((cadena_instruccion)[tamanio_array] != NULL) {
-                free(cadena_instruccion[tamanio_array]);
-                tamanio_array++;
-            }
-            free(cadena_instruccion);
-            free(instruccion_a_decodificar);
+            string_array_destroy(cadena_instruccion);
+            
 
             return NULL;
             
         }
 
         instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
-
+        
         int bloqueado = execute2(instruccion,procesoEjecutando->PID);
+
 
         if(bloqueado == 1){
             bloqueado = 0;
@@ -48,39 +48,20 @@ void* ciclo_de_instruccion() {
         }
         if(interrumpir == 2){
             mandarPaqueteaKernel(INTERRUMPIR_PROCESO);
-
-            int tamanio_array = 0;
-            while ((cadena_instruccion)[tamanio_array] != NULL) {
-                free(cadena_instruccion[tamanio_array]);
-                tamanio_array++;
-            }
-            free(cadena_instruccion);
-            free(instruccion_a_decodificar);
-
+            string_array_destroy(cadena_instruccion);
+            
             return NULL;
         }
         //mutex interrumpir
         if(interrumpir == 1){
             mandarPaqueteaKernel(PROCESO_INTERRUMPIDO_CLOCK);
 
-            int tamanio_array = 0;
-            while ((cadena_instruccion)[tamanio_array] != NULL) {
-                free(cadena_instruccion[tamanio_array]);
-                tamanio_array++;
-            }
-            free(cadena_instruccion);
-            free(instruccion_a_decodificar);
+            string_array_destroy(cadena_instruccion);
 
             return NULL;
         }
 
-        int tamanio_array = 0;
-        while ((cadena_instruccion)[tamanio_array] != NULL) {
-            free(cadena_instruccion[tamanio_array]);
-            tamanio_array++;
-        }
-        free(cadena_instruccion);
-        free(instruccion_a_decodificar);
+        string_array_destroy(cadena_instruccion);
 
     }
 
@@ -99,7 +80,7 @@ char* fetch(Proceso *procesoEjecutando) {
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
- 
+    char *instruccionRecibida=NULL;
 
     switch(paquete->codigo_operacion){
             case ENVIO_INSTRUCCION:
@@ -108,14 +89,13 @@ char* fetch(Proceso *procesoEjecutando) {
                 int instruccionLength;
 
                 uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC +1;
-                char *instruccionRecibida;
             
                 memcpy(&instruccionLength, stream, sizeof(int));
                 stream += sizeof(int);
                 instruccionRecibida = malloc(instruccionLength);
                 memcpy(instruccionRecibida, stream, instruccionLength);
                 procesoEjecutando->cpuRegisters.PC= incrementalPC;
-                return instruccionRecibida;
+                
             }
             default:
             {   
@@ -123,14 +103,17 @@ char* fetch(Proceso *procesoEjecutando) {
                 break;
             }
     }     
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
 
-    return NULL;
+    return instruccionRecibida;
 
 }
 
 t_instruccion decode(char *instruccionDecodificar, int pid) {
 
-    t_instruccion instruccion;
+    t_instruccion instruccion ;
 
     char **cadena_instruccion = string_split(instruccionDecodificar , " ");
 
@@ -293,6 +276,8 @@ t_instruccion decode(char *instruccionDecodificar, int pid) {
         }
     }
 
+    string_array_destroy(cadena_instruccion);
+
     return instruccion;
     
 }
@@ -364,7 +349,7 @@ direccion_fisica *traduccion_mmu(uint32_t dl, int pid){
 
     direccion_fisica *direccion = malloc(sizeof(direccion_fisica));
 
-    int nro_pagina;
+    int nro_pagina = 0;
 
     nro_pagina = floor(dl / tam_pagina); 
     direccion->PID = pid;
@@ -390,6 +375,8 @@ int obtener_frame_en_tlb(int pid, int pagina){
 
         if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
 
+            reg_TLB->ultima_modificacion=instante_modificacion_tlb;
+
             return reg_TLB->marco;
         }
     }
@@ -399,6 +386,7 @@ int obtener_frame_en_tlb(int pid, int pagina){
 void algoritmoLRU(int pid,int marco_memoria,int pagina){
 
     int size = list_size(lista_TLB);
+    
 
     if(size < configuracionCpu.CANTIDAD_ENTRADAS_TLB){
         
@@ -407,48 +395,44 @@ void algoritmoLRU(int pid,int marco_memoria,int pagina){
         reg_TLB->pid = pid;
         reg_TLB->pagina = pagina;
         reg_TLB->marco = marco_memoria;
-        reg_TLB->ultima_modificacion ++;
+        reg_TLB->ultima_modificacion =instante_modificacion_tlb;
 
         list_add(lista_TLB, reg_TLB);
     }
 
     else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB) 
-
     {   
-        int mod=NULL;
-        int pid_reemplazar=NULL;
+        Registro_TLB *reg_TLB;
+        Registro_TLB *reg_TLB_c;
+        reg_TLB  = list_get(lista_TLB,0);
 
         // obtener el registro menos
-        for (int i = 0; i <size; i++){
+        for (int i = 1; i <size; i++){
+            
+            reg_TLB_c  = list_get(lista_TLB,i);
 
-            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
-
-            if(i== 0 || reg_TLB->ultima_modificacion < mod)
+            if(reg_TLB->ultima_modificacion > reg_TLB_c->ultima_modificacion )
             {
-                mod = reg_TLB->ultima_modificacion;
-                pid = reg_TLB->pid;
+                reg_TLB=reg_TLB_c;
+                
             }
 
         }
         
-        // reemplazo de registro en tlb si el modificado es el mas alto x el nuevo
-        for (int i = 0; i <size; i++){
-
-            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
-            
-            if(reg_TLB->pid== pid)
-            {
-                reg_TLB->pid = pid;
-                reg_TLB->pagina = pagina;
-                reg_TLB->marco = marco_memoria;
-                reg_TLB->ultima_modificacion = 1;
-            }
-
-        }
-
+        reg_TLB->pid = pid;
+        reg_TLB->pagina = pagina;
+        reg_TLB->marco = marco_memoria;
+        reg_TLB->ultima_modificacion =instante_modificacion_tlb;
+        
     }
 
     //ordenerar la lista_TLB segun el ingreso para remover desde la
+
+}
+void destroy_page_tlb(void *element) {
+
+    Registro_TLB *reg_TLB = (Registro_TLB *)element;
+    free(reg_TLB); 
 
 }
 
@@ -466,12 +450,20 @@ void algoritmoFIFO(int pid,int marco_memoria,int pagina){
         reg_TLB->ultima_modificacion = 0;
 
         list_add(lista_TLB, reg_TLB);
+
     }else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB){
-        Registro_TLB *reg_TLB  = list_get(lista_TLB,0);
+
+        list_remove_and_destroy_element(lista_TLB,0,destroy_page_tlb);
+
+        Registro_TLB *reg_TLB  = malloc(sizeof(Registro_TLB));
         reg_TLB->pid = pid;
         reg_TLB->pagina = pagina;
         reg_TLB->marco = marco_memoria;
         reg_TLB->ultima_modificacion = 0;
+
+        list_add(lista_TLB,reg_TLB);
+
+
     }
 
     
@@ -504,6 +496,8 @@ op_code buscar_en_tlb(int pid, int pagina){
 
         if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
 
+            reg_TLB->ultima_modificacion = instante_modificacion_tlb;
+
             log_info(loggerCpu,"PID: <%d> - TLB HIT - Pagina: <%d>", procesoEjecutando->PID, pagina);
             return HIT;
         }
@@ -531,6 +525,9 @@ int buscar_frame(int pagina, int pid){
 
     //  PRIMERO: buscar en tlb
     //  SEGUNDO: preguntar a memoria
+    
+    instante_modificacion_tlb ++;
+    
 
     if(configuracionCpu.CANTIDAD_ENTRADAS_TLB!=0){
         switch (buscar_en_tlb(pid,pagina)){
@@ -538,6 +535,9 @@ int buscar_frame(int pagina, int pid){
         {
             int marco_encontrado;
             marco_encontrado = obtener_frame_en_tlb(pid,pagina);
+            pthread_mutex_lock(&actualizarLoggerCpu);
+            log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_encontrado);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             return marco_encontrado;
         }
         case MISS:
@@ -547,6 +547,9 @@ int buscar_frame(int pagina, int pid){
             int marco_memoria;
             marco_memoria = recibir_marco_memoria();
             agregar_marco_tlb(pid,marco_memoria,pagina);
+            pthread_mutex_lock(&actualizarLoggerCpu);
+            log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_memoria);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             return marco_memoria;
         }
         default:
@@ -559,9 +562,14 @@ int buscar_frame(int pagina, int pid){
 
         int marco_memoria;
         marco_memoria = recibir_marco_memoria();
+        pthread_mutex_lock(&actualizarLoggerCpu);
+        log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_memoria);
+        pthread_mutex_unlock(&actualizarLoggerCpu);
+
         return marco_memoria;
     }
     
+    return -1;
 }
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
@@ -628,6 +636,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                 }else{
                     
+                    
                     datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
                     //datos_leidos = recibir_confirmacion_memoria_mov_in();
                     memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
@@ -636,19 +645,31 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
+            uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             uint32_t valorAPasarASet=0;
             if(size_dato==1){
                 //registro_datos_8=*(uint8_t*)loQueDevuelve;
                 valorAPasarASet=registro_datos_8;
                 printf("datos: %d\n",registro_datos_8);
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
+                pthread_mutex_lock(&actualizarLoggerCpu);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,valorAPasarASet);
+                pthread_mutex_unlock(&actualizarLoggerCpu);
 
             }else{
                 //registro_datos_32=*(uint32_t*)loQueDevuelve;
                 printf("datos: %d\n",registro_datos_32);
                 valorAPasarASet=registro_datos_32;
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
+                pthread_mutex_lock(&actualizarLoggerCpu);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,valorAPasarASet);
+                pthread_mutex_unlock(&actualizarLoggerCpu);
             }
+
+            
+            
             
             //free(loQueDevuelve);
             
@@ -665,16 +686,16 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
             void* datos_a_escribir;
-            void* loQueDevuelve;
+            //void* loQueDevuelve;
             uint8_t registro_datos_8;
             int size_dato = 0;
-            u_int32_t uintDevuelve;
+            //u_int32_t uintDevuelve;
             int operacion;
             uint32_t registro_datos_32;
             int cantidadDePaginas = 0;
             int nro_pagina = 0 ;
             int tam = 0;
-            void* datos_leidos = NULL;
+            //void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
             void* buffer;
 
@@ -682,7 +703,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);            
-            loQueDevuelve = &uintDevuelve;
+            //loQueDevuelve = &uintDevuelve;
 
             if (size_dato == 1){                
                 registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
@@ -695,30 +716,30 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
 
-            for(int i=0; i<cantidadDePaginas;i++){
+
+            bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+
+            if(size_dato<=bytesDisponiblesEnPag){
+                tam=size_dato;
+            }else{
+                tam=bytesDisponiblesEnPag;
+            }
+
+            buffer=malloc(tam);
+            memcpy(buffer,datos_a_escribir,tam);
+            operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+
+            if (operacion == -1){}
+            //memcpy(loQueDevuelve, buffer,tam);
+            free(buffer);
+            direccion_fisica->desplazamiento = 0;
+
+            for(int i=1; i<cantidadDePaginas;i++){
+
                 nro_pagina = floor(direccion_logica / tam_pagina)+i;                 
-                direccion_fisica->desplazamiento = 0;
-                direccion_fisica->PID = pid;
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
                 
-                if (i==0) {
-                    direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
-                    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
-                    if(size_dato<=bytesDisponiblesEnPag){
-                        tam=size_dato;
-                    }else{
-                        tam=bytesDisponiblesEnPag;
-                    }
-
-                    buffer=malloc(tam);
-                    memcpy(buffer,datos_a_escribir,tam);
-                    operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
-
-                    if (operacion == -1){}
-                    //memcpy(loQueDevuelve, buffer,tam);
-                    free(buffer);
-
-                }else if (i<(cantidadDePaginas-1)){
+                if (i<(cantidadDePaginas-1)){
 
                     buffer=malloc(tam_pagina);
                     memcpy(buffer,datos_a_escribir+tam,tam_pagina);
@@ -741,6 +762,18 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 
             }
             //printf("datos: %d\n",uintDevuelve);
+            uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            if (size_dato == 1){                
+                pthread_mutex_lock(&actualizarLoggerCpu);
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
+                pthread_mutex_unlock(&actualizarLoggerCpu);
+            }
+            if (size_dato == 4){               
+                pthread_mutex_lock(&actualizarLoggerCpu);
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
+                pthread_mutex_unlock(&actualizarLoggerCpu);
+            }
+            
 
             if (operacion == 1)
             {
@@ -764,119 +797,157 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         case SET:
         {   
             int valor = atoi(instruccion_a_ejecutar.operando2);
+
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <SET> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, valor);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
             break;
         }
         case SUM:
-        {
+        {   
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <SUM> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             ejecutar_sum(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;        
         }
         case SUB:
-        {
+        {   
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <SUB> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             ejecutar_sub(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             break;
         }
         case JNZ:
         {
             int valor = atoi(instruccion_a_ejecutar.operando2);
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <JNZ> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             ejecutar_jnz(&procesoEjecutando->cpuRegisters, instruccion_a_ejecutar.operando1, valor);
             break;
         }
         case WAIT:
-        {
+        {   
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             bloqueado = ejecutar_wait(procesoEjecutando, instruccion_a_ejecutar.operando1);
 
             break;
         }
         case SIGNAL:
-        {
+        {   
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
         }
         case COPY_STRING:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <COPY_STRING> - <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operandoNumero);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             ejecutarCopyString(procesoEjecutando, instruccion_a_ejecutar.operandoNumero);
             break;
         }
         case IO_GEN_SLEEP:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> <%d>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelGenerica(IO_GEN_SLEEP, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operandoNumero);
             bloqueado = 1;
             break;
         }
         case IO_STDIN_READ:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_STDIN_READ> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelSTD(IO_STDIN_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_STDOUT_WRITE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_STDOUT_WRITE> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelSTD(IO_STDOUT_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,  instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_FS_CREATE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_CREATE> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelFScrdel(IO_FS_CREATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
         case IO_FS_DELETE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_DELETE> - <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelFScrdel(IO_FS_DELETE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2);
             bloqueado = 1;
             break;
         }
         case IO_FS_TRUNCATE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_TRUNCATE> - <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelFStrun(IO_FS_TRUNCATE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3);
             bloqueado = 1;
             break;
         }
         case IO_FS_WRITE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_WRITE> - <%s> <%s> <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelFSWR(IO_FS_WRITE, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
         case IO_FS_READ:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <IO_FS_READ> - <%s> <%s> <%s> <%s> <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2,instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             mandarPaqueteaKernelFSWR(IO_FS_READ, instruccion_a_ejecutar.operando1, instruccion_a_ejecutar.operando2, instruccion_a_ejecutar.operando3,instruccion_a_ejecutar.operando4, instruccion_a_ejecutar.operando5 );
             bloqueado = 1;
             break;
         }
         case MOV_IN:
         {   
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_IN> - <%s> <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1,instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
         case MOV_OUT:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <MOV_OUT> - <%s> <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1,instruccion_a_ejecutar.operando2);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
             utilizacion_memoria(instruccion_a_ejecutar,pid);
             break;
         }
         case RESIZE:
         {
+            pthread_mutex_lock(&actualizarLoggerCpu);
             log_info(loggerCpu, "PID: <%d> - Ejecutando: <RESIZE> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            pthread_mutex_unlock(&actualizarLoggerCpu);
+
             int tam_nuevo = atoi(instruccion_a_ejecutar.operando1);
 
             paquete_memoria_resize(pid,tam_nuevo);
@@ -885,7 +956,9 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
             if(operacion == OUT_OF_MEMORY){
                 mandarPaqueteaKernel(RESIZE_ERROR);
                 bloqueado = 1;
+                pthread_mutex_lock(&actualizarLoggerCpu);
                 log_info(loggerCpu, "PID: <%d> - Error Ejecutando: <RESIZE> - <%s>\n",procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+                pthread_mutex_unlock(&actualizarLoggerCpu);
             }
             break;
         }
@@ -940,7 +1013,7 @@ op_code recibir_confirmacion_memoria_mov_out(){
 
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
+    //void *stream = paquete->buffer->stream;
 
     switch(paquete->codigo_operacion){
             case OK:
@@ -953,6 +1026,10 @@ op_code recibir_confirmacion_memoria_mov_out(){
             }
     }
     return PROCESO_EXIT;   
+
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
 
 }
 
@@ -1000,6 +1077,7 @@ op_code recibir_confirmacion_memoria_resize(){
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
+
     switch(paquete->codigo_operacion){
             case OK:
             {
@@ -1021,13 +1099,16 @@ op_code recibir_confirmacion_memoria_resize(){
             }
 
     }
+    free(paquete->buffer);
+    free(paquete);
+
     return PROCESO_EXIT;   
 
 }
 
 int recibir_marco_memoria(){
 
-    int marco_recibido;
+    int marco_recibido = 0;
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
     
@@ -1049,6 +1130,12 @@ int recibir_marco_memoria(){
             log_error(loggerCpu, "Error");
             break;
         }
-    }       
+
+    }      
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
+ 
+    return -1;
 
 }

@@ -141,7 +141,7 @@ int enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int s
 
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
+    //void *stream = paquete->buffer->stream;
     free(paquete->buffer->stream);
     free(paquete->buffer);
     
