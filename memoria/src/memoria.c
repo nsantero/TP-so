@@ -77,9 +77,6 @@ int main(int argc, char *argv[])
     
     crearListas();
 
-    Memoria *memoria=NULL;
-    memoria = malloc(sizeof(Memoria));
-
     inicializarMemoria();
     esquemaPaginacion();
     

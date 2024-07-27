@@ -142,7 +142,7 @@ int enviar_paquete_mov_out_memoria( int pid, int marco, int desplazamiento,int s
 
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
+    //void *stream = paquete->buffer->stream;
     free(paquete->buffer->stream);
     free(paquete->buffer);
     
@@ -284,7 +284,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_mutex_lock(&mutexInterrupcion);
                 interrumpir = 0;
                 pthread_mutex_unlock(&mutexInterrupcion);
-                log_info(loggerCpu, "Se recibio el proceso:%d\n", procesoEjecutando->PID);
+                //log_info(loggerCpu, "Se recibio el proceso:%d\n", procesoEjecutando->PID);
                 pthread_t hiloCicloDeEjecucion;
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);

@@ -8,6 +8,7 @@ extern int program_counter;
 //t_instruccion instruccion;
 char memoria[MEM_SIZE][20];
 int interrumpir = 0;
+int instante_modificacion_tlb = 0;
 
 void* ciclo_de_instruccion() {
     char *instruccion_a_decodificar;
@@ -115,14 +116,20 @@ char* fetch(Proceso *procesoEjecutando) {
                 instruccionRecibida = malloc(instruccionLength);
                 memcpy(instruccionRecibida, stream, instruccionLength);
                 procesoEjecutando->cpuRegisters.PC= incrementalPC;
+                free(paquete->buffer->stream);
+                free(paquete->buffer);
+                free(paquete);
                 return instruccionRecibida;
             }
             default:
             {   
-                //log_error(loggerCpu, "Error");
+                //log_error(loggerCpu, "Error");s
                 break;
             }
-    }     
+    }
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);   
 
     return NULL;
 
@@ -390,6 +397,8 @@ int obtener_frame_en_tlb(int pid, int pagina){
 
         if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
 
+            reg_TLB->ultima_modificacion=instante_modificacion_tlb;
+
             return reg_TLB->marco;
         }
     }
@@ -399,6 +408,7 @@ int obtener_frame_en_tlb(int pid, int pagina){
 void algoritmoLRU(int pid,int marco_memoria,int pagina){
 
     int size = list_size(lista_TLB);
+    
 
     if(size < configuracionCpu.CANTIDAD_ENTRADAS_TLB){
         
@@ -407,48 +417,44 @@ void algoritmoLRU(int pid,int marco_memoria,int pagina){
         reg_TLB->pid = pid;
         reg_TLB->pagina = pagina;
         reg_TLB->marco = marco_memoria;
-        reg_TLB->ultima_modificacion ++;
+        reg_TLB->ultima_modificacion =instante_modificacion_tlb;
 
         list_add(lista_TLB, reg_TLB);
     }
 
     else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB) 
-
     {   
-        int mod=NULL;
-        int pid_reemplazar=NULL;
+        Registro_TLB *reg_TLB;
+        Registro_TLB *reg_TLB_c;
+        reg_TLB  = list_get(lista_TLB,0);
 
         // obtener el registro menos
-        for (int i = 0; i <size; i++){
+        for (int i = 1; i <size; i++){
+            
+            reg_TLB_c  = list_get(lista_TLB,i);
 
-            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
-
-            if(i== 0 || reg_TLB->ultima_modificacion < mod)
+            if(reg_TLB->ultima_modificacion > reg_TLB_c->ultima_modificacion )
             {
-                mod = reg_TLB->ultima_modificacion;
-                pid = reg_TLB->pid;
+                reg_TLB=reg_TLB_c;
+                
             }
 
         }
         
-        // reemplazo de registro en tlb si el modificado es el mas alto x el nuevo
-        for (int i = 0; i <size; i++){
-
-            Registro_TLB *reg_TLB  = list_get(lista_TLB,i);
-            
-            if(reg_TLB->pid== pid)
-            {
-                reg_TLB->pid = pid;
-                reg_TLB->pagina = pagina;
-                reg_TLB->marco = marco_memoria;
-                reg_TLB->ultima_modificacion = 1;
-            }
-
-        }
-
+        reg_TLB->pid = pid;
+        reg_TLB->pagina = pagina;
+        reg_TLB->marco = marco_memoria;
+        reg_TLB->ultima_modificacion =instante_modificacion_tlb;
+        
     }
 
     //ordenerar la lista_TLB segun el ingreso para remover desde la
+
+}
+void destroy_page_tlb(void *element) {
+
+    Registro_TLB *reg_TLB = (Registro_TLB *)element;
+    free(reg_TLB); 
 
 }
 
@@ -466,12 +472,20 @@ void algoritmoFIFO(int pid,int marco_memoria,int pagina){
         reg_TLB->ultima_modificacion = 0;
 
         list_add(lista_TLB, reg_TLB);
+
     }else if(size == configuracionCpu.CANTIDAD_ENTRADAS_TLB){
-        Registro_TLB *reg_TLB  = list_get(lista_TLB,0);
+
+        list_remove_and_destroy_element(lista_TLB,0,destroy_page_tlb);
+
+        Registro_TLB *reg_TLB  = malloc(sizeof(Registro_TLB));
         reg_TLB->pid = pid;
         reg_TLB->pagina = pagina;
         reg_TLB->marco = marco_memoria;
         reg_TLB->ultima_modificacion = 0;
+
+        list_add(lista_TLB,reg_TLB);
+
+
     }
 
     
@@ -504,6 +518,8 @@ op_code buscar_en_tlb(int pid, int pagina){
 
         if (reg_TLB->pid == pid && reg_TLB->pagina == pagina) {
 
+            reg_TLB->ultima_modificacion = instante_modificacion_tlb;
+
             log_info(loggerCpu,"PID: <%d> - TLB HIT - Pagina: <%d>", procesoEjecutando->PID, pagina);
             return HIT;
         }
@@ -531,6 +547,9 @@ int buscar_frame(int pagina, int pid){
 
     //  PRIMERO: buscar en tlb
     //  SEGUNDO: preguntar a memoria
+    
+    instante_modificacion_tlb ++;
+    
 
     if(configuracionCpu.CANTIDAD_ENTRADAS_TLB!=0){
         switch (buscar_en_tlb(pid,pagina)){
@@ -538,6 +557,7 @@ int buscar_frame(int pagina, int pid){
         {
             int marco_encontrado;
             marco_encontrado = obtener_frame_en_tlb(pid,pagina);
+            log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_encontrado);
             return marco_encontrado;
         }
         case MISS:
@@ -547,6 +567,7 @@ int buscar_frame(int pagina, int pid){
             int marco_memoria;
             marco_memoria = recibir_marco_memoria();
             agregar_marco_tlb(pid,marco_memoria,pagina);
+            log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_memoria);
             return marco_memoria;
         }
         default:
@@ -559,10 +580,14 @@ int buscar_frame(int pagina, int pid){
 
         int marco_memoria;
         marco_memoria = recibir_marco_memoria();
+        log_info(loggerCpu,"PID: <%d> - Obtener Marco - Pagina: <%d> - Marco: <%d>\n",procesoEjecutando->PID,pagina,marco_memoria);
+
         return marco_memoria;
     }
     
+    return -1;
 }
+
 
 void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
@@ -636,18 +661,22 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
+            int32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             uint32_t valorAPasarASet=0;
             if(size_dato==1){
                 //registro_datos_8=*(uint8_t*)loQueDevuelve;
+                
                 valorAPasarASet=registro_datos_8;
                 printf("datos: %d\n",registro_datos_8);
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
 
             }else{
                 //registro_datos_32=*(uint32_t*)loQueDevuelve;
                 printf("datos: %d\n",registro_datos_32);
                 valorAPasarASet=registro_datos_32;
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
             }
             
             //free(loQueDevuelve);
@@ -665,16 +694,16 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
             void* datos_a_escribir;
-            void* loQueDevuelve;
+            //void* loQueDevuelve;
             uint8_t registro_datos_8;
             int size_dato = 0;
-            u_int32_t uintDevuelve;
+            //u_int32_t uintDevuelve;
             int operacion;
             uint32_t registro_datos_32;
             int cantidadDePaginas = 0;
             int nro_pagina = 0 ;
             int tam = 0;
-            void* datos_leidos = NULL;
+            //void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
             void* buffer;
 
@@ -682,7 +711,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);            
-            loQueDevuelve = &uintDevuelve;
+            //loQueDevuelve = &uintDevuelve;
 
             if (size_dato == 1){                
                 registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
@@ -739,6 +768,17 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     free(buffer);
                 }
                 
+            }
+    
+            uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            if (size_dato == 1){
+
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
+
+            }
+            if (size_dato == 4){
+
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
             }
             //printf("datos: %d\n",uintDevuelve);
 
@@ -940,7 +980,7 @@ op_code recibir_confirmacion_memoria_mov_out(){
 
     paquete->buffer->stream = malloc(paquete->buffer->size);
     recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
-    void *stream = paquete->buffer->stream;
+    //void *stream = paquete->buffer->stream;
 
     switch(paquete->codigo_operacion){
             case OK:
@@ -1049,6 +1089,7 @@ int recibir_marco_memoria(){
             log_error(loggerCpu, "Error");
             break;
         }
-    }       
+    }   
+    return 0;    
 
 }

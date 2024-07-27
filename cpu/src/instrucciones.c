@@ -1,7 +1,7 @@
 #include <instrucciones.h>
 #include <math.h>
 
-void ejecutar_set(CPU_Registers *registros, const char* registro, uint32_t valor) {
+void ejecutar_set(CPU_Registers *registros,  char* registro, uint32_t valor) {
     if (strcmp(registro, "AX") == 0) {
         registros->AX = valor;
     } else if (strcmp(registro, "BX") == 0) {
@@ -29,7 +29,7 @@ void ejecutar_set(CPU_Registers *registros, const char* registro, uint32_t valor
     }
 }
 
-void ejecutar_sum(CPU_Registers *cpu, const char* destino, const char* origen) {
+void ejecutar_sum(CPU_Registers *cpu,  char* destino,  char* origen) {
     uint32_t *reg_destino_32 = NULL;
     uint8_t *reg_destino_8 = NULL;
     uint32_t *reg_origen_32 = NULL;
@@ -66,7 +66,7 @@ void ejecutar_sum(CPU_Registers *cpu, const char* destino, const char* origen) {
     }
 }
 
-void ejecutar_sub(CPU_Registers *cpu, const char* destino, const char* origen) {
+void ejecutar_sub(CPU_Registers *cpu,  char* destino,  char* origen) {
     uint32_t *reg_destino_32 = NULL;
     uint8_t *reg_destino_8 = NULL;
     uint32_t *reg_origen_32 = NULL;
@@ -103,7 +103,7 @@ void ejecutar_sub(CPU_Registers *cpu, const char* destino, const char* origen) {
     }
 }
 
-void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instruccion) {
+void ejecutar_jnz(CPU_Registers *cpu, char* registro, uint32_t nueva_instruccion) {
     uint32_t valor_registro = 0;
 
     // Asignar valor del registro correspondiente
@@ -131,7 +131,7 @@ void ejecutar_jnz(CPU_Registers *cpu, const char* registro, uint32_t nueva_instr
 
 
 
-void paquete_kernel_envio_recurso_wait(const char* recurso){
+void paquete_kernel_envio_recurso_wait(char* recurso){
 
     t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_WAIT);
     
@@ -143,7 +143,7 @@ void paquete_kernel_envio_recurso_wait(const char* recurso){
 
 }
 
-void paquete_kernel_envio_recurso_signal(const char* recurso){
+void paquete_kernel_envio_recurso_signal(char* recurso){
 
     t_paquete *paquete_kernel_recurso = crear_paquete(PROCESO_SIGNAL);
     
@@ -155,7 +155,7 @@ void paquete_kernel_envio_recurso_signal(const char* recurso){
 
 }
 
-int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
+int ejecutar_wait(Proceso *procesoActual, char* recurso) {
     
     int bloqueado = 0;
     paquete_kernel_envio_recurso_wait(recurso);
@@ -168,7 +168,7 @@ int ejecutar_wait(Proceso *procesoActual, const char* recurso) {
 }
 
 
-int ejecutar_signal(Proceso *procesoActual, const char* recurso) {
+int ejecutar_signal(Proceso *procesoActual, char* recurso) {
     int bloqueado = 0;
     paquete_kernel_envio_recurso_signal(recurso);
     int respuesta = recibir_resultado_recursos(WAIT_BLOCK);
