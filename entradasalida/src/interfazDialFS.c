@@ -27,7 +27,7 @@ void* manejo_interfaz_DialFS(){
 
         EJECUTAR_INTERFAZ_DialFS(peticion_DialFS);
         list_destroy_and_destroy_elements(peticion_DialFS->frames, free);
-        list_destroy(peticion_DialFS->frames);
+        //list_destroy(peticion_DialFS->frames);
         free(peticion_DialFS->nombreArchivo);
         free(peticion_DialFS->nombre_interfaz);
         free(peticion_DialFS);
@@ -650,11 +650,12 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
             if(i>offsetAux){
                 moverArchivo(nombreAMover,offsetAux);                                       //mover la cantidad de bloques q tenga ese archivo(funcion mover archivo estaria bn)           
             }
-            obtenerInfoDeArchivo(nombreAMover,NULL,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
+            char* aux001=obtenerInfoDeArchivo(nombreAMover,NULL,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
+            free(aux001);
             cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
             if(tamanioEnbytesActual==0){cantBloqAux++;}
             i+=cantBloqAux-1;             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
-           
+            free(nombreAMover);
         }
     }//esto aca lee y mueve todos los archivos incluido el q quiere agrandar q estan al principio
     
@@ -683,6 +684,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
             ultimoBloqueAControlar-=cantBloqAux;
             paraElForDeAca=bloqueFin;            
             hayArchivosParaMover=0;
+            free(nombreAMover);
         }
             
     }
@@ -715,7 +717,8 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
     {
         if(strcmp(entry->d_name,".")&&strcmp(entry->d_name,"..")&&strcmp(entry->d_name,"bloques.dat")&&strcmp(entry->d_name,"bitmap.dat")){
             nombre=entry->d_name;
-            obtenerInfoDeArchivo(nombre,&offsetAux,NULL);
+            char* aux000=obtenerInfoDeArchivo(nombre,&offsetAux,NULL);
+            free(aux000);
             if (offsetAux==offsetBloqueInicial){
                 closedir(dir);
                 return nombre;
