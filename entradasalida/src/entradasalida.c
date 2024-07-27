@@ -1,6 +1,7 @@
 #include <entradasalida.h>
 
 t_config *configCargaInterfaz;
+Tipos_Interfaz tipo;
 
 uint32_t recibir_direccion_fisica(){
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
     char* puerto_memoria=0;
 	
 	char* tipoChar=config_get_string_value(configCargaInterfaz,"TIPO_INTERFAZ");
-	Tipos_Interfaz tipo=obtenerTipoConString(tipoChar);
+	tipo=obtenerTipoConString(tipoChar);
 
 	//Conecto entradasalida con kernel y memoria
 	ip_kernel=config_get_string_value(configCargaInterfaz,"IP_KERNEL");
@@ -130,8 +131,9 @@ int main(int argc, char* argv[]) {
 void handleSiginitIO(){
 
 
-	
-	close(memoria_fd);
+	if(tipo!=T_GENERICA){
+		close(memoria_fd);
+	}
 	close(kernel_fd);
     config_destroy(configCargaInterfaz);
     log_info(loggerIO,"Se desconecta la interfaz.");
