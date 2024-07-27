@@ -79,7 +79,9 @@ typedef enum
     IO_MEM_FS_WRITE,
     IO_MEM_FS_READ,
     IO_MEM_STDIN_READ,
-    IO_MEM_STDOUT_WRITE
+    IO_MEM_STDOUT_WRITE,
+
+    MATAR,
 
 } op_code;
 

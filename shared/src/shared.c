@@ -157,7 +157,7 @@ int esperarClienteV2(t_log* logger, int socketServidor){
 
 	socketCliente = accept(socketServidor, NULL, NULL);
 
-	log_info(logger, "Se conecto un cliente");
+	//log_info(logger, "Se conecto un cliente");
 
 	return socketCliente;
 }

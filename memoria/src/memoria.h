@@ -48,6 +48,8 @@ extern Memoria memoria;
 
 extern t_bitarray* bitmap_frames;
 
+extern int seguirCorriendo;
+
 void crearListas();
 
 void esquemaPaginacion();
