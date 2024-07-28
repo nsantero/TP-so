@@ -737,6 +737,7 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
             nombre=entry->d_name;
             char* aux000=obtenerInfoDeArchivo(nombre,&offsetAux,NULL);
             free(aux000);
+            nombre = strdup(entry->d_name); //VER
             if (offsetAux==offsetBloqueInicial){
                 closedir(dir);
                 return nombre;

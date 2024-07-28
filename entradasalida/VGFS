@@ -1,0 +1,69 @@
+==4778== Memcheck, a memory error detector
+==4778== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==4778== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==4778== Command: ./bin/entradasalida FS
+==4778== Parent PID: 3752
+==4778== 
+==4778== 
+==4778== HEAP SUMMARY:
+==4778==     in use at exit: 4,404,349 bytes in 110,119 blocks
+==4778==   total heap usage: 278,980 allocs, 168,861 frees, 7,184,497 bytes allocated
+==4778== 
+==4778== 32 bytes in 2 blocks are possibly lost in loss record 7 of 14
+==4778==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x486D2AE: list_create (in /usr/lib/libcommons.so)
+==4778==    by 0x10BFE6: recibirPeticionDeIO_DialFS (conexiones.c:248)
+==4778==    by 0x10B2ED: main (entradasalida.c:122)
+==4778== 
+==4778== 72 bytes in 5 blocks are definitely lost in loss record 9 of 14
+==4778==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x497258E: strdup (strdup.c:42)
+==4778==    by 0x10EF52: buscarArchivoConBloqueInicial (interfazDialFS.c:740)
+==4778==    by 0x10EB1D: compactarBloquesFSParaQEntreElArchivo (interfazDialFS.c:666)
+==4778==    by 0x10D8B3: truncarArchivo (interfazDialFS.c:313)
+==4778==    by 0x10CEAB: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:126)
+==4778==    by 0x10C950: manejo_interfaz_DialFS (interfazDialFS.c:28)
+==4778==    by 0x495EAC2: start_thread (pthread_create.c:442)
+==4778==    by 0x49EFA03: clone (clone.S:100)
+==4778== 
+==4778== 128 bytes in 2 blocks are possibly lost in loss record 10 of 14
+==4778==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x10BFD8: recibirPeticionDeIO_DialFS (conexiones.c:247)
+==4778==    by 0x10B2ED: main (entradasalida.c:122)
+==4778== 
+==4778== 216 bytes in 16 blocks are definitely lost in loss record 11 of 14
+==4778==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x497258E: strdup (strdup.c:42)
+==4778==    by 0x10EF52: buscarArchivoConBloqueInicial (interfazDialFS.c:740)
+==4778==    by 0x10EC78: compactarBloquesFSParaQEntreElArchivo (interfazDialFS.c:689)
+==4778==    by 0x10D8B3: truncarArchivo (interfazDialFS.c:313)
+==4778==    by 0x10CEAB: EJECUTAR_INTERFAZ_DialFS (interfazDialFS.c:126)
+==4778==    by 0x10C950: manejo_interfaz_DialFS (interfazDialFS.c:28)
+==4778==    by 0x495EAC2: start_thread (pthread_create.c:442)
+==4778==    by 0x49EFA03: clone (clone.S:100)
+==4778== 
+==4778== 272 bytes in 1 blocks are possibly lost in loss record 12 of 14
+==4778==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==4778==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==4778==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==4778==    by 0x495F7B4: allocate_stack (allocatestack.c:430)
+==4778==    by 0x495F7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==4778==    by 0x10B2D7: main (entradasalida.c:120)
+==4778== 
+==4778== 4,403,440 (3,522,752 direct, 880,688 indirect) bytes in 55,043 blocks are definitely lost in loss record 14 of 14
+==4778==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4778==    by 0x10BFD8: recibirPeticionDeIO_DialFS (conexiones.c:247)
+==4778==    by 0x10B2ED: main (entradasalida.c:122)
+==4778== 
+==4778== LEAK SUMMARY:
+==4778==    definitely lost: 3,523,040 bytes in 55,064 blocks
+==4778==    indirectly lost: 880,688 bytes in 55,043 blocks
+==4778==      possibly lost: 432 bytes in 5 blocks
+==4778==    still reachable: 189 bytes in 7 blocks
+==4778==         suppressed: 0 bytes in 0 blocks
+==4778== Reachable blocks (those to which a pointer was found) are not shown.
+==4778== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4778== 
+==4778== For lists of detected and suppressed errors, rerun with: -s
+==4778== ERROR SUMMARY: 6 errors from 6 contexts (suppressed: 0 from 0)
