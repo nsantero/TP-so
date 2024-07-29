@@ -244,8 +244,7 @@ void recibirPeticionDeIO_DialFS(){
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
         void *stream = paquete->buffer->stream;
 
-        Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
-        peticion->frames=list_create();
+        
         int bytes;
         int cantPags;
 
@@ -253,7 +252,9 @@ void recibirPeticionDeIO_DialFS(){
         {
             case IO_FS_CREATE:
             case IO_FS_DELETE:
-                {
+            {
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -274,9 +275,11 @@ void recibirPeticionDeIO_DialFS(){
                 pthread_mutex_unlock(&mutex_cola_DialFS);
                 sem_post(&sem_hay_en_DialFS);
                 break;
-                }
+            }
             case IO_FS_TRUNCATE:
             {
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -304,6 +307,8 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_WRITE:
             {
             //TODO separar los casos +- esta
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
