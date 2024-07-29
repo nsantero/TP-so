@@ -28,10 +28,11 @@ void recibirPeticionDeIO_GEN(){
     
         
         t_paquete* paquete = NULL;
-		paquete = malloc(sizeof(t_paquete));
 		paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
-		paquete->buffer->stream = NULL;
+        paquete->codigo_operacion = 0;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
@@ -87,10 +88,11 @@ void recibirPeticionDeIO_STDIN(){
     
         
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
         paquete->codigo_operacion = 0;
-	    paquete->buffer->size = 0;
-	    paquete->buffer->stream = NULL;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -161,10 +163,11 @@ void recibirPeticionDeIO_STDOUT(){
     while(1){
     
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
         paquete->codigo_operacion = 0;
-	    paquete->buffer->size = 0;
-	    paquete->buffer->stream = NULL;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
@@ -236,7 +239,11 @@ void recibirPeticionDeIO_DialFS(){
     
         
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->codigo_operacion = 0;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
