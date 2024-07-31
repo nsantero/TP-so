@@ -1,0 +1,51 @@
+==5399== Memcheck, a memory error detector
+==5399== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==5399== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==5399== Command: ./bin/entradasalida SLP1
+==5399== Parent PID: 4334
+==5399== 
+==5399== Invalid write of size 4
+==5399==    at 0x10B7B7: recibirPeticionDeIO_GEN (conexiones.c:34)
+==5399==    by 0x10B05B: main (entradasalida.c:99)
+==5399==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+==5399== 
+==5399== 
+==5399== Process terminating with default action of signal 11 (SIGSEGV)
+==5399==  Access not within mapped region at address 0x0
+==5399==    at 0x10B7B7: recibirPeticionDeIO_GEN (conexiones.c:34)
+==5399==    by 0x10B05B: main (entradasalida.c:99)
+==5399==  If you believe this happened as a result of a stack
+==5399==  overflow in your program's main thread (unlikely but
+==5399==  possible), you can try to increase the size of the
+==5399==  main thread stack using the --main-stacksize= flag.
+==5399==  The main thread stack size used in this run was 8388608.
+==5399== 
+==5399== HEAP SUMMARY:
+==5399==     in use at exit: 6,808 bytes in 47 blocks
+==5399==   total heap usage: 236 allocs, 189 frees, 26,060 bytes allocated
+==5399== 
+==5399== 16 bytes in 1 blocks are definitely lost in loss record 6 of 20
+==5399==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5399==    by 0x10B78D: recibirPeticionDeIO_GEN (conexiones.c:31)
+==5399==    by 0x10B05B: main (entradasalida.c:99)
+==5399== 
+==5399== 272 bytes in 1 blocks are possibly lost in loss record 16 of 20
+==5399==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5399==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==5399==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==5399==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==5399==    by 0x495E7B4: allocate_stack (allocatestack.c:430)
+==5399==    by 0x495E7B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==5399==    by 0x10B045: main (entradasalida.c:97)
+==5399== 
+==5399== LEAK SUMMARY:
+==5399==    definitely lost: 16 bytes in 1 blocks
+==5399==    indirectly lost: 0 bytes in 0 blocks
+==5399==      possibly lost: 272 bytes in 1 blocks
+==5399==    still reachable: 6,520 bytes in 45 blocks
+==5399==         suppressed: 0 bytes in 0 blocks
+==5399== Reachable blocks (those to which a pointer was found) are not shown.
+==5399== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==5399== 
+==5399== For lists of detected and suppressed errors, rerun with: -s
+==5399== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 0 from 0)

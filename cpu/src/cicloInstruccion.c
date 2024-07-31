@@ -47,6 +47,7 @@ void* ciclo_de_instruccion() {
             bloqueado = 0;
             return NULL;
         }
+
         if(interrumpir == 2){
             mandarPaqueteaKernel(INTERRUMPIR_PROCESO);
 
@@ -89,50 +90,66 @@ void* ciclo_de_instruccion() {
 }
 
 char* fetch(Proceso *procesoEjecutando) {
-    // Obtener la instrucción de la memoria usando el PC
-    // Actualizar el PC para la siguiente instrucción
-
-    paquete_memoria_pedido_instruccion(procesoEjecutando->PID,procesoEjecutando->cpuRegisters.PC);
+    paquete_memoria_pedido_instruccion(procesoEjecutando->PID, procesoEjecutando->cpuRegisters.PC);
     t_paquete* paquete = malloc(sizeof(t_paquete));
-    paquete->buffer = malloc(sizeof(t_buffer));
-
-    recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
-    recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-    recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0);
- 
-
-    switch(paquete->codigo_operacion){
-            case ENVIO_INSTRUCCION:
-            {
-                void *stream = paquete->buffer->stream;
-                int instruccionLength;
-
-                uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC +1;
-                char *instruccionRecibida;
-            
-                memcpy(&instruccionLength, stream, sizeof(int));
-                stream += sizeof(int);
-                instruccionRecibida = malloc(instruccionLength);
-                memcpy(instruccionRecibida, stream, instruccionLength);
-                procesoEjecutando->cpuRegisters.PC= incrementalPC;
-                free(paquete->buffer->stream);
-                free(paquete->buffer);
-                free(paquete);
-                return instruccionRecibida;
-            }
-            default:
-            {   
-                //log_error(loggerCpu, "Error");s
-                break;
-            }
+    if (paquete == NULL) {
+        return NULL; // Manejar error de memoria
     }
+    paquete->buffer = malloc(sizeof(t_buffer));
+    if (paquete->buffer == NULL) {
+        free(paquete);
+        return NULL;
+    }
+
+    if (recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0) <= 0 ||
+        recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0) <= 0) {
+        free(paquete->buffer);
+        free(paquete);
+        return NULL;
+    }
+
+    paquete->buffer->stream = malloc(paquete->buffer->size);
+    if (paquete->buffer->stream == NULL) {
+        free(paquete->buffer);
+        free(paquete);
+        return NULL;
+    }
+
+    if (recv(memoria_fd, paquete->buffer->stream, paquete->buffer->size, 0) <= 0) {
+        free(paquete->buffer->stream);
+        free(paquete->buffer);
+        free(paquete);
+        return NULL;
+    }
+
+    char *instruccionRecibida = NULL;
+    switch(paquete->codigo_operacion) {
+        case ENVIO_INSTRUCCION: {
+            void *stream = paquete->buffer->stream;
+            int instruccionLength;
+
+            uint32_t incrementalPC = procesoEjecutando->cpuRegisters.PC + 1;
+            
+            memcpy(&instruccionLength, stream, sizeof(int));
+            stream += sizeof(int);
+            instruccionRecibida = malloc(instruccionLength);
+            if (instruccionRecibida != NULL) {
+                memcpy(instruccionRecibida, stream, instruccionLength);
+                procesoEjecutando->cpuRegisters.PC = incrementalPC;
+            }
+            break;
+        }
+        default: {
+            instruccionRecibida = NULL;
+            break;
+        }
+    }
+
     free(paquete->buffer->stream);
     free(paquete->buffer);
-    free(paquete);   
+    free(paquete);
 
-    return NULL;
-
+    return instruccionRecibida;
 }
 
 t_instruccion decode(char *instruccionDecodificar, int pid) {
@@ -381,7 +398,7 @@ direccion_fisica *traduccion_mmu(uint32_t dl, int pid){
 
     direccion->numero_frame = buscar_frame(nro_pagina,pid);
     direccion->desplazamiento = dl - nro_pagina * tam_pagina;
-     
+
     return direccion;
 }
 
@@ -599,7 +616,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //MOV_IN (Registro Datos, Registro Dirección): 
             //Lee el valor de memoria correspondiente a la Dirección Lógica que se encuentra en el Registro Dirección y lo almacena en el Registro Datos.
             
-            direccion_fisica *direccion_fisica;
+            direccion_fisica *direccion_fisica = NULL;
             void* loQueDevuelve=NULL;
             uint8_t registro_datos_8;
             int size_dato = 0;
@@ -624,6 +641,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             }
 
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
+            if(direccion_fisica == NULL){
+                return;
+            }
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
             bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
 
@@ -634,8 +654,10 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             }
             datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
             //datos_leidos = recibir_confirmacion_memoria_mov_in();
-            memcpy(loQueDevuelve, datos_leidos,tam);
-            free(datos_leidos);
+            if(datos_leidos!=NULL){
+                memcpy(loQueDevuelve, datos_leidos,tam);
+                free(datos_leidos);
+            }
             direccion_fisica->desplazamiento = 0;
             for(int i=1; i<cantidadDePaginas;i++){
 
@@ -646,20 +668,20 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
                     datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
                     //datos_leidos = recibir_confirmacion_memoria_mov_in();
-                    memcpy(loQueDevuelve +tam , datos_leidos, tam_pagina);
-                    tam+=tam_pagina;
-                    
-                    free(datos_leidos);
-
+                    if(datos_leidos!=NULL) {
+                        memcpy(loQueDevuelve +tam , datos_leidos, tam_pagina);
+                        tam+=tam_pagina;
+                        free(datos_leidos);
+                    }
                 }else{
                     
                     datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
                     //datos_leidos = recibir_confirmacion_memoria_mov_in();
-                    memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
-                    free(datos_leidos);
-
+                    if(datos_leidos!=NULL){
+                        memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
+                        free(datos_leidos);
+                    }
                 }
-                
             }
             int32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             uint32_t valorAPasarASet=0;
@@ -678,12 +700,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
                 log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
             }
-            
             //free(loQueDevuelve);
-            
-            
             // guardar en registros
-            
+            free(direccion_fisica);
             break;
         }
 
@@ -693,35 +712,39 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
 
             direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            if(direccion_fisica == NULL){
+                return;
+            }
             void* datos_a_escribir;
-            //void* loQueDevuelve;
             uint8_t registro_datos_8;
             int size_dato = 0;
-            //u_int32_t uintDevuelve;
             int operacion;
             uint32_t registro_datos_32;
             int cantidadDePaginas = 0;
             int nro_pagina = 0 ;
             int tam = 0;
-            //void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
             void* buffer;
 
-            //void* registro_datos = &(leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters));
-
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando1,procesoEjecutando->cpuRegisters);
             size_dato = valorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);            
-            //loQueDevuelve = &uintDevuelve;
 
             if (size_dato == 1){                
                 registro_datos_8 = leerValorDelRegistro_8(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
                 datos_a_escribir = &registro_datos_8;
-            }
-            if (size_dato == 4){               
+            } else if (size_dato == 4){               
                 registro_datos_32= leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
                 datos_a_escribir = &registro_datos_32;
+            } else {
+                free(direccion_fisica);
+                return;
             }
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
+
+            if(direccion_fisica == NULL){
+                return;
+            }
+            
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
 
             for(int i=0; i<cantidadDePaginas;i++){
@@ -761,24 +784,22 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     buffer=malloc(size_dato-tam);
                     memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
                     operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
-                    //datos_leidos = recibir_confirmacion_memoria_mov_out();
-
                     if (operacion == -1){}
-                    //memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
                     free(buffer);
                 }
-                
             }
     
             uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            
             if (size_dato == 1){
 
                 log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
-
+               
             }
             if (size_dato == 4){
 
                 log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
+                
             }
             //printf("datos: %d\n",uintDevuelve);
 
@@ -786,15 +807,15 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             {
                 break;
             }
-   
+            free(direccion_fisica);
+
         }
         default:
         {   
             log_error(loggerCpu, "Error");
             break;
         }
-
-    }
+    }   
 
 }
 
@@ -1033,41 +1054,46 @@ void* recibir_confirmacion_memoria_mov_in(){
 
 
 
-op_code recibir_confirmacion_memoria_resize(){
-
+op_code recibir_confirmacion_memoria_resize() {
     t_paquete* paquete = malloc(sizeof(t_paquete));
+    if (!paquete) {
+        // Manejar error de memoria
+        return PROCESO_EXIT;
+    }
     paquete->buffer = malloc(sizeof(t_buffer));
+    if (!paquete->buffer) {
+        // Manejar error de memoria
+        free(paquete);
+        return PROCESO_EXIT;
+    }
 
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
-    switch(paquete->codigo_operacion){
-            case OK:
-            {
-                printf("Instrucción resize realizada!! \n");
-                return OK;
-                break;
-            }
-            case OUT_OF_MEMORY:
-            {
-                //enviar a kernel 
-                printf("Instrucción resize: OUT OF MEMORYY ! \n");
-                return OUT_OF_MEMORY;
-                break;
-            }
-            default:
-            {   
-                log_error(loggerCpu, "Error");
-                break;
-            }
 
+    op_code resultado = PROCESO_EXIT;
+
+    switch(paquete->codigo_operacion) {
+        case OK:
+            printf("Instrucción resize realizada!! \n");
+            resultado = OK;
+            break;
+        case OUT_OF_MEMORY:
+            printf("Instrucción resize: OUT OF MEMORY! \n");
+            resultado = OUT_OF_MEMORY;
+            break;
+        default:
+            log_error(loggerCpu, "Error");
+            break;
     }
-    return PROCESO_EXIT;   
+    free(paquete->buffer);
+    free(paquete);
 
+    return resultado;
 }
 
 int recibir_marco_memoria(){
 
-    int marco_recibido;
+    int marco_recibido = 0;
     t_paquete* paquete = malloc(sizeof(t_paquete));
     paquete->buffer = malloc(sizeof(t_buffer));
     
@@ -1082,7 +1108,7 @@ int recibir_marco_memoria(){
         case ENVIO_MARCO:
         {
             memcpy(&marco_recibido, stream, sizeof(int));
-            return marco_recibido;
+            break;
         }
         default:
         {   
@@ -1090,6 +1116,10 @@ int recibir_marco_memoria(){
             break;
         }
     }   
-    return 0;    
+
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
+    return marco_recibido;
 
 }

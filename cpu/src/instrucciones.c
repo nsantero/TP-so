@@ -211,6 +211,8 @@ int recibir_resultado_recursos(){
         }
       
     }       
+    free(paquete->buffer);
+    free(paquete);
     return respuesta;
 }
 void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){

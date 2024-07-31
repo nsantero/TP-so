@@ -46,11 +46,12 @@ int pedir_tam_pagina_memoria(){
             case ENVIO_TAM_PAGINA:
             {
                 memcpy(&tam_pagina_recibido, stream, sizeof(int));
-                return tam_pagina_recibido;
+                break;
             }
             default:
             {   
-                log_error(loggerCpu, "Error");
+                tam_pagina_recibido = 0;
+                //log_error(loggerCpu, "Error");
                 break;
             }
     }      
@@ -58,7 +59,7 @@ int pedir_tam_pagina_memoria(){
     free(paquete->buffer->stream);
     free(paquete->buffer);
     free(paquete);
-    return 0;
+    return tam_pagina_recibido;
 }
 int socketCliente;
 void handleSiginitCPU(){
@@ -289,6 +290,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);
                 free(procesoEjecutando);
+                procesoEjecutando = NULL;
                 break;
             }
             
@@ -316,7 +318,7 @@ void* check_interrupts() {
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
 		void *stream = paquete->buffer->stream;
-        int pidInterrumpido;
+        int pidInterrumpido = 0;
         switch (paquete->codigo_operacion)
 		{
 			case PROCESO_INTERRUMPIDO_CLOCK:
@@ -324,7 +326,8 @@ void* check_interrupts() {
 				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 pthread_mutex_lock(&mutexProcesoEjecutando);
                 pthread_mutex_lock(&mutexInterrupcion);
-                if(procesoEjecutando->PID == pidInterrumpido){
+                if((procesoEjecutando != NULL) && procesoEjecutando->PID == pidInterrumpido){
+
                     interrumpir = 1;
                 }
                 pthread_mutex_unlock(&mutexProcesoEjecutando);

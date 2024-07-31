@@ -26,14 +26,11 @@ void recibirPeticionDeIO_GEN(){
     
     while(1){
     
-        
         t_paquete* paquete = NULL;
-		paquete->buffer = NULL;
+        paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
-        paquete->codigo_operacion = 0;
-        paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
-
 
         recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
