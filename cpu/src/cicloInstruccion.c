@@ -724,30 +724,30 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             direccion_fisica = traduccion_mmu(direccion_logica,pid);
             cantidadDePaginas = calculo_cantiad_paginas(direccion_logica,pid,direccion_fisica->desplazamiento,size_dato);
 
-            for(int i=0; i<cantidadDePaginas;i++){
+            bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
+
+            if(size_dato<=bytesDisponiblesEnPag){
+                tam=size_dato;
+            }else{
+                tam=bytesDisponiblesEnPag;
+            }
+
+            buffer=malloc(tam);
+            memcpy(buffer,datos_a_escribir,tam);
+            operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+
+            if (operacion == -1){}
+            //memcpy(loQueDevuelve, buffer,tam);
+            free(buffer);
+            direccion_fisica->desplazamiento = 0;
+
+
+            for(int i=1; i<cantidadDePaginas;i++){
+
                 nro_pagina = floor(direccion_logica / tam_pagina)+i;                 
-                direccion_fisica->desplazamiento = 0;
-                direccion_fisica->PID = pid;
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
                 
-                if (i==0) {
-                    direccion_fisica->desplazamiento = direccion_logica - (nro_pagina * tam_pagina);
-                    bytesDisponiblesEnPag = tam_pagina-direccion_fisica->desplazamiento;
-                    if(size_dato<=bytesDisponiblesEnPag){
-                        tam=size_dato;
-                    }else{
-                        tam=bytesDisponiblesEnPag;
-                    }
-
-                    buffer=malloc(tam);
-                    memcpy(buffer,datos_a_escribir,tam);
-                    operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
-
-                    if (operacion == -1){}
-                    //memcpy(loQueDevuelve, buffer,tam);
-                    free(buffer);
-
-                }else if (i<(cantidadDePaginas-1)){
+                if (i<(cantidadDePaginas-1)){
 
                     buffer=malloc(tam_pagina);
                     memcpy(buffer,datos_a_escribir+tam,tam_pagina);
@@ -769,7 +769,11 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
-    
+
+
+
+
+            
             uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             if (size_dato == 1){
 

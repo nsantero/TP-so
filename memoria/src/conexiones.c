@@ -15,22 +15,6 @@ void liberarFrame(int frame){
 
 }
 
-void destroy_page_entry(void *element) {
-
-    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
-    free(reg_tp_proceso); 
-
-}
-
-void destroy_process_entry(void *element) {
-
-    Proceso *proceso = (Proceso *)element;
-    list_destroy(proceso->tabla_de_paginas);
-    free(proceso->path);
-    free(proceso); 
-
-}
-
 int cantidadFrameLibre(){
 
     int cant_frames_libres = 0;
@@ -287,6 +271,7 @@ char* buscar_instruccion(int pid_a_buscar,int pc_a_buscar){
             }
         }
     }
+
     return NULL;
 }
 
@@ -309,8 +294,10 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
 
+    pthread_mutex_lock(&listaProcesosActivos);
     char* instruccion = buscar_instruccion(PID_paquete,PC_paquete);
-    
+    pthread_mutex_unlock(&listaProcesosActivos);
+
     agregar_entero_a_paquete32(paquete_cpu, (strlen(instruccion)+1));
     agregar_string_a_paquete(paquete_cpu, instruccion);
     
@@ -340,6 +327,22 @@ void destruirInstruccion(void *elemento) {
     Instruccion *instruccion = (Instruccion *)elemento;
     free(instruccion->instruccion);
     free(instruccion);
+}
+
+void destroy_page_entry(void *element) {
+
+    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
+    free(reg_tp_proceso); 
+
+}
+
+void destroy_process_entry(void *element) {
+
+    Proceso *proceso = (Proceso *)element;
+    list_destroy_and_destroy_elements(proceso->tabla_de_paginas, destroy_page_entry);
+    free(proceso->path);
+    free(proceso); 
+
 }
 
 void limpiarInstrucciones(Proceso *proceso) {
@@ -447,7 +450,7 @@ int obtener_marco(int pid,int pagina){
 //-----------------------------conexion kernel y memoria------------------------------------
 void* atenderPeticionesKernel() {
 
-    while (seguirCorriendo) {
+    while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
         int* pclient = malloc(sizeof(int));
@@ -652,7 +655,9 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
                 //log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
                 //log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
+                pthread_mutex_lock(&listaProcesosActivos);
                 resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
+                pthread_mutex_unlock(&listaProcesosActivos);
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
                 enviar_resultado_instruccion_resize(resultado_cambio,socketCliente);                
                 break;
