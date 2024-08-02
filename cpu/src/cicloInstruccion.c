@@ -39,11 +39,18 @@ void* ciclo_de_instruccion() {
             
         }
 
-        instruccion = decode(instruccion_a_decodificar,procesoEjecutando->PID);
+        instruccion = decode(cadena_instruccion,procesoEjecutando->PID);
 
         int bloqueado = execute2(instruccion,procesoEjecutando->PID);
 
         if(bloqueado == 1){
+            int tamanio_array = 0;
+            while ((cadena_instruccion)[tamanio_array] != NULL) {
+                free(cadena_instruccion[tamanio_array]);
+                tamanio_array++;
+            }
+            free(cadena_instruccion);
+            free(instruccion_a_decodificar);
             bloqueado = 0;
             return NULL;
         }
@@ -135,11 +142,11 @@ char* fetch(Proceso *procesoEjecutando) {
 
 }
 
-t_instruccion decode(char *instruccionDecodificar, int pid) {
+t_instruccion decode(char **cadena_instruccion, int pid) {
 
     t_instruccion instruccion;
 
-    char **cadena_instruccion = string_split(instruccionDecodificar , " ");
+    //char **cadena_instruccion = string_split(instruccionDecodificar , " ");
 
     int tamanio_array = 0;
     while ((cadena_instruccion)[tamanio_array] != NULL) {
@@ -381,7 +388,7 @@ direccion_fisica *traduccion_mmu(uint32_t dl, int pid){
 
     direccion->numero_frame = buscar_frame(nro_pagina,pid);
     direccion->desplazamiento = dl - nro_pagina * tam_pagina;
-     
+
     return direccion;
 }
 
@@ -680,7 +687,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             }
             
             //free(loQueDevuelve);
-            
+            free(direccion_fisica);
             
             // guardar en registros
             
@@ -692,7 +699,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //MOV_OUT (Registro Dirección, Registro Datos): 
             //Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica almacenada en el Registro Dirección.
 
-            direccion_fisica *direccion_fisica = malloc(sizeof(direccion_fisica));
+            direccion_fisica *direccion_fisica = NULL;//= malloc(sizeof(direccion_fisica));
             void* datos_a_escribir;
             //void* loQueDevuelve;
             uint8_t registro_datos_8;
@@ -769,11 +776,6 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
-
-
-
-
-            
             uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             if (size_dato == 1){
 
@@ -788,8 +790,11 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
 
             if (operacion == 1)
             {
+                free(direccion_fisica);
                 break;
             }
+            free(direccion_fisica);
+            break;
    
         }
         default:
@@ -1045,26 +1050,32 @@ op_code recibir_confirmacion_memoria_resize(){
     recv(memoria_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
     recv(memoria_fd, &(paquete->buffer->size), sizeof(int), 0);
     switch(paquete->codigo_operacion){
-            case OK:
-            {
-                printf("Instrucción resize realizada!! \n");
-                return OK;
-                break;
-            }
-            case OUT_OF_MEMORY:
-            {
-                //enviar a kernel 
-                printf("Instrucción resize: OUT OF MEMORYY ! \n");
-                return OUT_OF_MEMORY;
-                break;
-            }
-            default:
-            {   
-                log_error(loggerCpu, "Error");
-                break;
-            }
+        case OK:
+        {
+            printf("Instrucción resize realizada!! \n");
+                free(paquete->buffer);
+                free(paquete);
+            return OK;
+            break;
+        }
+        case OUT_OF_MEMORY:
+        {
+            //enviar a kernel 
+            printf("Instrucción resize: OUT OF MEMORYY ! \n");
+            free(paquete->buffer);
+            free(paquete);
+            return OUT_OF_MEMORY;
+            break;
+        }
+        default:
+        {   
+            log_error(loggerCpu, "Error");
+            break;
+        }
 
     }
+    free(paquete->buffer);
+    free(paquete);
     return PROCESO_EXIT;   
 
 }
@@ -1086,6 +1097,9 @@ int recibir_marco_memoria(){
         case ENVIO_MARCO:
         {
             memcpy(&marco_recibido, stream, sizeof(int));
+            free(paquete->buffer->stream);
+            free(paquete->buffer);
+            free(paquete);
             return marco_recibido;
         }
         default:
@@ -1093,7 +1107,10 @@ int recibir_marco_memoria(){
             log_error(loggerCpu, "Error");
             break;
         }
-    }   
+    }
+    free(paquete->buffer->stream);
+    free(paquete->buffer);
+    free(paquete);
     return 0;    
 
 }

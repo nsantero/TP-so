@@ -50,7 +50,7 @@ direccion_fisica *traduccion_mmu(uint32_t dl, int pid);
 
 uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros);
 
-t_instruccion decode(char *instruccionDecodificar, int pid);
+t_instruccion decode(char **instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
 

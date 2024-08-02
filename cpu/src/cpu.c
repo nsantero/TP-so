@@ -46,6 +46,9 @@ int pedir_tam_pagina_memoria(){
             case ENVIO_TAM_PAGINA:
             {
                 memcpy(&tam_pagina_recibido, stream, sizeof(int));
+                free(paquete->buffer->stream);
+                free(paquete->buffer);
+                free(paquete);
                 return tam_pagina_recibido;
             }
             default:
@@ -289,6 +292,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);
                 free(procesoEjecutando);
+                procesoEjecutando = NULL;
                 break;
             }
             
@@ -324,7 +328,7 @@ void* check_interrupts() {
 				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 pthread_mutex_lock(&mutexProcesoEjecutando);
                 pthread_mutex_lock(&mutexInterrupcion);
-                if(procesoEjecutando->PID == pidInterrumpido){
+                if((procesoEjecutando != NULL) && (procesoEjecutando->PID == pidInterrumpido)){
                     interrumpir = 1;
                 }
                 pthread_mutex_unlock(&mutexProcesoEjecutando);
@@ -336,7 +340,7 @@ void* check_interrupts() {
                 memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 pthread_mutex_lock(&mutexProcesoEjecutando);
                 pthread_mutex_lock(&mutexInterrupcion);
-                if(procesoEjecutando->PID == pidInterrumpido){
+                if((procesoEjecutando != NULL) && (procesoEjecutando->PID == pidInterrumpido)){
                     //mutex interrumpir
                     interrumpir = 2;
                 }
