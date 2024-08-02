@@ -205,7 +205,7 @@ void inicializar_bitmap_dat(Interfaz interfaz){
     
     FILE* bitmapDat= txt_open_for_append(path_bitmap);
 
-    size_t size =ceil((double)(interfaz.blockCount/8));
+    size_t size =ceil((double)interfaz.blockCount/8);
     char buffer[size];
     memset(buffer,0,size);
     fwrite(buffer,1,size,bitmapDat);
@@ -300,14 +300,17 @@ void truncarArchivo(Peticion_Interfaz_DialFS* peticion){
     int tamanioEnbytesActual;
     char* path=obtenerInfoDeArchivo(nombreArchivo,&bloqueInicial,&tamanioEnbytesActual);
     free(path);
-    off_t cantBloquesNecesarios=(tamanio/interfaz_DialFS.blockSize);
-    off_t cantbloquesActuales=(tamanioEnbytesActual/interfaz_DialFS.blockSize);
+    off_t cantBloquesNecesarios=ceil((double)tamanio/interfaz_DialFS.blockSize);
+    off_t cantbloquesActuales=ceil((double)tamanioEnbytesActual/interfaz_DialFS.blockSize);
+    if(tamanioEnbytesActual!=0){cantbloquesActuales--;}
+    if(tamanio!=0){cantBloquesNecesarios--;}
+    //aca esto esta pensado para q de uno menos de lo q es, pero cuando es excto da lo q es :)
      //caso hay q achicar el archivo, se liberan los bloques
         
     if(cantbloquesActuales>cantBloquesNecesarios){ //caso, necesita menos bloques
-        
-        for(;cantbloquesActuales>cantBloquesNecesarios;cantbloquesActuales--){
-            liberarBloque(cantbloquesActuales);            
+        int cantBloquesAliberar=cantbloquesActuales-cantBloquesNecesarios;
+        for(int i=0;i<cantBloquesAliberar;i++){
+            liberarBloque(bloqueInicial+cantBloquesNecesarios+i+1);            
         }  
         cambiarInfoDeArchivo(nombreArchivo,-1,tamanio);
         log_info(loggerIO,"PID: %d - Truncar  Archivo: %s - Tamaño: %d",peticion->PID,nombreArchivo,tamanio);  
@@ -600,7 +603,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
 //abro el bitmap
    
 //abro el FS
-    uint32_t cantBloqAux=ceil((double)((tamanioEnbytesActual/tamBloq)));
+    uint32_t cantBloqAux=ceil((double)tamanioEnbytesActual/tamBloq);
     if(tamanioEnbytesActual==0){cantBloqAux++;}
     uint32_t bloqueFin=offsetInicialDelArchivo+cantBloqAux-1;
 
@@ -618,8 +621,8 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
             }
             char* aux001=obtenerInfoDeArchivo(nombreAMover,NULL,&tamanioEnBytesDelArchivo);  //actualiza el i para q siga desde el final del archivo(siempre va a dejar por lo menos un bloque libre al final)
             free(aux001);
-            cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
-            if(tamanioEnbytesActual==0){cantBloqAux++;}
+            cantBloqAux=ceil((double)tamanioEnBytesDelArchivo/tamBloq);
+            if(tamanioEnBytesDelArchivo==0){cantBloqAux++;}
             i+=cantBloqAux-1;             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
            
             free(nombreAMover);
@@ -650,7 +653,7 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
                 offsetAux = buscarBloqueLibreDesdeElFinal();
                 moverArchivo(nombreAMover,offsetAux);
             }
-            cantBloqAux=ceil((double)((tamanioEnBytesDelArchivo/tamBloq)));
+            cantBloqAux=ceil((double)tamanioEnBytesDelArchivo/tamBloq);
             if(tamanioEnBytesDelArchivo==0){cantBloqAux++;}
             ultimoBloqueAControlar-=cantBloqAux;
             paraElForDeAca=bloqueFin;            
@@ -708,7 +711,7 @@ void moverArchivo(char* nombreArchivo,off_t nuevoBloqueInicialOFinal){
     off_t bloqueInicialOriginal;
     char* aux1=obtenerInfoDeArchivo(nombreArchivo,&bloqueInicialOriginal,&tamanioEnBytes);
     free(aux1);
-    int cantidadDeBloques=ceil((double)(tamanioEnBytes/interfaz_DialFS.blockSize));
+    int cantidadDeBloques=ceil((double)tamanioEnBytes/interfaz_DialFS.blockSize);
     if(tamanioEnBytes==0){cantidadDeBloques++;}
 
     cambiarInfoDeArchivo(nombreArchivo,-bloqueInicialOriginal,-1);
