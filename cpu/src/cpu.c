@@ -78,6 +78,8 @@ int main(int argc, char* argv[]) {
     iniciarLogger();
     armarConfig();
 
+    printf("Modulo CPU \n");
+    
 	//me conecto a memoria
 	memoria_fd = crear_conexion(loggerCpu,"MEMORIA",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
@@ -91,7 +93,7 @@ int main(int argc, char* argv[]) {
     
     tam_pagina = pedir_tam_pagina_memoria();
 
-    printf("se recibio tam de pagina :%d\n", tam_pagina);
+    printf("Se recibio tamaño de pagina: %d \n", tam_pagina);
 
     crearTLB();
     //Proceso proceso;
@@ -120,7 +122,7 @@ void paquete_memoria_marco(int pid,int pagina){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("Se solicita la pagina a memoria: %d\n", pagina);
+    //printf("Se solicita la pagina a memoria: %d\n", pagina);
        
 }
 
@@ -204,7 +206,7 @@ void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("Se solicita resize a memoria: %d\n", tam_nuevo);
+    //printf("Se solicita resize a memoria: %d\n", tam_nuevo);
        
 }
 
@@ -218,8 +220,8 @@ void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("se solicita instruccion del pid :%d\n", PID_paquete);
-    printf("PC:%d\n", PC_paquete);
+    printf("PID: %d - Se solicita instruccion - PC: %d \n", PID_paquete,PC_paquete);
+    //printf("PC:%d\n", PC_paquete);
     
 }
 

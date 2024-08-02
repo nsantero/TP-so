@@ -79,6 +79,8 @@ int main(int argc, char *argv[])
 
     inicializarMemoria();
     esquemaPaginacion();
+
+    printf("Modulo Memoria \n");
     
     server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
     

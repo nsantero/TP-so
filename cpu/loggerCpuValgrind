@@ -1,0 +1,126 @@
+==10035== Memcheck, a memory error detector
+==10035== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==10035== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==10035== Command: ./bin/cpu
+==10035== Parent PID: 9993
+==10035== 
+==10035== 
+==10035== HEAP SUMMARY:
+==10035==     in use at exit: 4,764 bytes in 299 blocks
+==10035==   total heap usage: 3,084 allocs, 2,785 frees, 80,202 bytes allocated
+==10035== 
+==10035== 12 bytes in 1 blocks are definitely lost in loss record 6 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10C746: fetch (cicloInstruccion.c:116)
+==10035==    by 0x10C354: ciclo_de_instruccion (cicloInstruccion.c:20)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 36 (16 direct, 20 indirect) bytes in 1 blocks are definitely lost in loss record 21 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10EAA4: pedir_tam_pagina_memoria (cpu.c:36)
+==10035==    by 0x10ED2A: main (cpu.c:91)
+==10035== 
+==10035== 36 (24 direct, 12 indirect) bytes in 1 blocks are definitely lost in loss record 22 of 42
+==10035==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x486F5BE: _string_array_push (string.c:333)
+==10035==    by 0x486F567: _string_split (string.c:328)
+==10035==    by 0x486ECDE: string_split (string.c:159)
+==10035==    by 0x10C39C: ciclo_de_instruccion (cicloInstruccion.c:24)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 36 (16 direct, 20 indirect) bytes in 1 blocks are definitely lost in loss record 23 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10E902: recibir_marco_memoria (cicloInstruccion.c:1075)
+==10035==    by 0x10D690: buscar_frame (cicloInstruccion.c:568)
+==10035==    by 0x10DD7D: utilizacion_memoria (cicloInstruccion.c:748)
+==10035==    by 0x10E55C: execute2 (cicloInstruccion.c:918)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 36 bytes in 3 blocks are definitely lost in loss record 24 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10D0D8: traduccion_mmu (cicloInstruccion.c:372)
+==10035==    by 0x10D834: utilizacion_memoria (cicloInstruccion.c:626)
+==10035==    by 0x10E501: execute2 (cicloInstruccion.c:912)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 96 bytes in 12 blocks are definitely lost in loss record 29 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10DB0C: utilizacion_memoria (cicloInstruccion.c:695)
+==10035==    by 0x10E55C: execute2 (cicloInstruccion.c:918)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 144 bytes in 12 blocks are definitely lost in loss record 32 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10D0D8: traduccion_mmu (cicloInstruccion.c:372)
+==10035==    by 0x10DC5A: utilizacion_memoria (cicloInstruccion.c:724)
+==10035==    by 0x10E55C: execute2 (cicloInstruccion.c:918)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 192 (96 direct, 96 indirect) bytes in 6 blocks are definitely lost in loss record 36 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10E842: recibir_confirmacion_memoria_resize (cicloInstruccion.c:1042)
+==10035==    by 0x10E5B5: execute2 (cicloInstruccion.c:928)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 272 bytes in 1 blocks are possibly lost in loss record 37 of 42
+==10035==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==10035==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==10035==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==10035==    by 0x49F17B4: allocate_stack (allocatestack.c:430)
+==10035==    by 0x49F17B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==10035==    by 0x10ED73: main (cpu.c:102)
+==10035== 
+==10035== 272 bytes in 1 blocks are possibly lost in loss record 38 of 42
+==10035==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==10035==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==10035==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==10035==    by 0x49F17B4: allocate_stack (allocatestack.c:430)
+==10035==    by 0x49F17B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==10035==    by 0x10ED90: main (cpu.c:103)
+==10035== 
+==10035== 432 (192 direct, 240 indirect) bytes in 12 blocks are definitely lost in loss record 40 of 42
+==10035==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x10E902: recibir_marco_memoria (cicloInstruccion.c:1075)
+==10035==    by 0x10D690: buscar_frame (cicloInstruccion.c:568)
+==10035==    by 0x10D138: traduccion_mmu (cicloInstruccion.c:382)
+==10035==    by 0x10DC5A: utilizacion_memoria (cicloInstruccion.c:724)
+==10035==    by 0x10E55C: execute2 (cicloInstruccion.c:918)
+==10035==    by 0x10C47E: ciclo_de_instruccion (cicloInstruccion.c:44)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== 1,931 (1,392 direct, 539 indirect) bytes in 45 blocks are definitely lost in loss record 42 of 42
+==10035==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10035==    by 0x486F5BE: _string_array_push (string.c:333)
+==10035==    by 0x486F567: _string_split (string.c:328)
+==10035==    by 0x486ECDE: string_split (string.c:159)
+==10035==    by 0x10C821: decode (cicloInstruccion.c:142)
+==10035==    by 0x10C455: ciclo_de_instruccion (cicloInstruccion.c:42)
+==10035==    by 0x49F0AC2: start_thread (pthread_create.c:442)
+==10035==    by 0x4A81A03: clone (clone.S:100)
+==10035== 
+==10035== LEAK SUMMARY:
+==10035==    definitely lost: 2,024 bytes in 94 blocks
+==10035==    indirectly lost: 927 bytes in 165 blocks
+==10035==      possibly lost: 544 bytes in 2 blocks
+==10035==    still reachable: 1,269 bytes in 38 blocks
+==10035==         suppressed: 0 bytes in 0 blocks
+==10035== Reachable blocks (those to which a pointer was found) are not shown.
+==10035== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==10035== 
+==10035== For lists of detected and suppressed errors, rerun with: -s
+==10035== ERROR SUMMARY: 12 errors from 12 contexts (suppressed: 0 from 0)
