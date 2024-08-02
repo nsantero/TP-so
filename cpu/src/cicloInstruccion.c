@@ -845,7 +845,7 @@ int execute2(t_instruccion instruccion_a_ejecutar,int pid){
         }
         case SIGNAL:
         {
-            log_info(loggerCpu, "PID: <%d> - Ejecutando: <WAIT> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <SIGNAL> - <%s>\n", procesoEjecutando->PID,instruccion_a_ejecutar.operando1);
             bloqueado = ejecutar_signal(procesoEjecutando, instruccion_a_ejecutar.operando1);
             break;
         }
@@ -1052,7 +1052,7 @@ op_code recibir_confirmacion_memoria_resize(){
     switch(paquete->codigo_operacion){
         case OK:
         {
-            printf("Instrucción resize realizada!! \n");
+            //printf("Instrucción resize realizada!! \n");
                 free(paquete->buffer);
                 free(paquete);
             return OK;
@@ -1061,7 +1061,7 @@ op_code recibir_confirmacion_memoria_resize(){
         case OUT_OF_MEMORY:
         {
             //enviar a kernel 
-            printf("Instrucción resize: OUT OF MEMORYY ! \n");
+            //printf("Instrucción resize: OUT OF MEMORYY ! \n");
             free(paquete->buffer);
             free(paquete);
             return OUT_OF_MEMORY;

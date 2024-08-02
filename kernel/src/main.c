@@ -21,6 +21,8 @@ int main(int argc, char *argv[]) {
     inicializarListas();
     inicializar_sem_planificadores();
 
+    log_info(loggerKernel, "Modulo KERNEL");
+
     //CONEXIONES HACER EN ARCHIVO APARTE PARA DESPEJAR MAIN
 
 	// Conecto kernel con cpu y memoria

@@ -49,7 +49,7 @@ int generarPID() {
 }
 
 PCB* crearPCB(char* path) {
-    printf("Creando PCB... \n");
+    //printf("Creando PCB... \n");
     PCB* nuevoPCB = malloc(sizeof(PCB)); //reserva de memoria
      if (nuevoPCB == NULL) {
         return NULL; 

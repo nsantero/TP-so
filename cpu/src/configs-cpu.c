@@ -17,6 +17,6 @@ void armarConfig(){
 }
 
 void iniciarLogger(){
-    loggerCpu = log_create("../cpu/cpu.log","Cpu", 0, LOG_LEVEL_INFO);
+    loggerCpu = log_create("../cpu/cpu.log","Cpu", 1, LOG_LEVEL_INFO);
     log_info(loggerCpu,"Logger creado");
 }
