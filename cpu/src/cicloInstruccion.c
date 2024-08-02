@@ -667,13 +667,13 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 //registro_datos_8=*(uint8_t*)loQueDevuelve;
                 
                 valorAPasarASet=registro_datos_8;
-                printf("datos: %d\n",registro_datos_8);
+                //printf("datos: %d\n",registro_datos_8);
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
                 log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
 
             }else{
                 //registro_datos_32=*(uint32_t*)loQueDevuelve;
-                printf("datos: %d\n",registro_datos_32);
+                //printf("datos: %d\n",registro_datos_32);
                 valorAPasarASet=registro_datos_32;
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
                 log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
@@ -1047,14 +1047,14 @@ op_code recibir_confirmacion_memoria_resize(){
     switch(paquete->codigo_operacion){
             case OK:
             {
-                printf("Instrucción resize realizada!! \n");
+                //printf("Instrucción resize realizada!! \n");
                 return OK;
                 break;
             }
             case OUT_OF_MEMORY:
             {
                 //enviar a kernel 
-                printf("Instrucción resize: OUT OF MEMORYY ! \n");
+                //printf("Instrucción resize: OUT OF MEMORYY ! \n");
                 return OUT_OF_MEMORY;
                 break;
             }

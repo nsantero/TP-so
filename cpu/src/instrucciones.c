@@ -57,12 +57,12 @@ void ejecutar_sum(CPU_Registers *cpu,  char* destino,  char* origen) {
     // Realizar la suma si ambos registros son válidos
     if (reg_destino_8 && reg_origen_8) {
         *reg_destino_8 += *reg_origen_8;
-        printf("SUM - %s = %d\n", destino, *reg_destino_8);
+        //printf("SUM - %s = %d\n", destino, *reg_destino_8);
     } else if (reg_destino_32 && reg_origen_32) {
         *reg_destino_32 += *reg_origen_32;
-        printf("SUM - %s = %d\n", destino, *reg_destino_32);
+        //printf("SUM - %s = %d\n", destino, *reg_destino_32);
     } else {
-        printf("Registro no reconocido: %s o %s\n", destino, origen);
+        //printf("Registro no reconocido: %s o %s\n", destino, origen);
     }
 }
 
@@ -94,12 +94,12 @@ void ejecutar_sub(CPU_Registers *cpu,  char* destino,  char* origen) {
     // Realizar la resta si ambos registros son válidos
     if (reg_destino_8 && reg_origen_8) {
         *reg_destino_8 -= *reg_origen_8;
-        printf("SUB - %s = %d\n", destino, *reg_destino_8);
+        //printf("SUB - %s = %d\n", destino, *reg_destino_8);
     } else if (reg_destino_32 && reg_origen_32) {
         *reg_destino_32 -= *reg_origen_32;
-        printf("SUB - %s = %d\n", destino, *reg_destino_32);
+       // printf("SUB - %s = %d\n", destino, *reg_destino_32);
     } else {
-        printf("Registro no reconocido: %s o %s\n", destino, origen);
+        //printf("Registro no reconocido: %s o %s\n", destino, origen);
     }
 }
 
@@ -123,9 +123,9 @@ void ejecutar_jnz(CPU_Registers *cpu, char* registro, uint32_t nueva_instruccion
     // Si el valor del registro es distinto de cero, actualizar el PC
     if (valor_registro != 0) {
         cpu->PC = nueva_instruccion;
-        printf("JNZ - Registro %s distinto de cero, saltando a instrucción %d\n", registro, nueva_instruccion);
+        //printf("JNZ - Registro %s distinto de cero, saltando a instrucción %d\n", registro, nueva_instruccion);
     } else {
-        printf("JNZ - Registro %s es cero, no se realiza salto\n", registro);
+        //printf("JNZ - Registro %s es cero, no se realiza salto\n", registro);
     }
 }
 

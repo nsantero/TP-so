@@ -116,11 +116,11 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
             //double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
 
-            log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
+            //log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
 
             int tam_actual = proceso->tam_proceso;
             
-            log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
+            //log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
             int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
 
@@ -167,6 +167,10 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
             
             if (dif_cantidad>cantidadFrameLibre()){
+                
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Out Of Memory - Tamaño solicitado: %d",pid_a_cambiar,tam_a_cambiar);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 return OUT_OF_MEMORY;
 
@@ -362,6 +366,10 @@ void remover_proceso(int pid_remover){
 
         if (proceso->pid == pid_remover) {
 
+            pthread_mutex_lock(&actualizarLoggerMemoria);
+            log_info(loggerMemoria,"PID: %d - Eliminacion Tabla De Paginas - Tamaño: %d",pid_remover,proceso->cantidad_paginas_asiganadas);
+            pthread_mutex_unlock(&actualizarLoggerMemoria);
+
             if (proceso->cantidad_paginas_asiganadas != 0) {
 
                 for (j = (proceso->cantidad_paginas_asiganadas-1); j >=0; j--) {
@@ -513,6 +521,10 @@ void* manejarClienteKernel(void *arg)
                 list_add(lista_ProcesosActivos,proceso);
                 pthread_mutex_unlock(&listaProcesosActivos);
 
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Creacion Proceso",proceso->pid);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
+
                 break;
             }
             case FINALIZAR_PROCESO:
@@ -525,6 +537,10 @@ void* manejarClienteKernel(void *arg)
                 remover_proceso(pid_remover);
                 pthread_mutex_unlock(&listaProcesosActivos);
                 //log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Eliminacion Proceso",pid_remover);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 break;
             }
