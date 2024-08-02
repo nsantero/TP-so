@@ -146,6 +146,14 @@ void finalizarProceso(uint32_t pid){
         //recurso->instancias++;
         for(int i=0; i<list_size(proceso->recursosEnUso); i++){
             Recurso *recursoALiberar = list_get(proceso->recursosEnUso,i);
+            Recurso *recursoEnSistema = buscarRecurso(recursoALiberar->nombre);
+            if(recursoEnSistema != NULL){
+                recursoEnSistema->instancias++;
+            }
+            recursoEnSistema = buscarRecurso(proceso->recursoBloqueante);
+            if(recursoEnSistema != NULL){
+                recursoEnSistema->instancias++;
+            }
             for(int j=0; j<list_size(lista_BLOCKED_RECURSOS); j++){
                 PCB *procesoBloqueado = list_get(lista_BLOCKED_RECURSOS, j);
                 if (strcmp(recursoALiberar->nombre, procesoBloqueado->recursoBloqueante) == 0){
