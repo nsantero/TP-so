@@ -150,7 +150,7 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     
                 }
                 pthread_mutex_lock(&actualizarLoggerMemoria);
-                log_info(loggerMemoria,"PID: %d - Reduccion Tabla De Paginas - Tamaño Actual: %d - Tamaño a ampliar: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
+                log_info(loggerMemoria,"PID: %d - Reduccion Tabla De Paginas - Tamaño Actual: %d - Tamaño a Reducir: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
@@ -168,9 +168,9 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             
             if (dif_cantidad>cantidadFrameLibre()){
                 
-                pthread_mutex_lock(&actualizarLoggerMemoria);
-                log_info(loggerMemoria,"PID: %d - Out Of Memory - Tamaño solicitado: %d",pid_a_cambiar,tam_a_cambiar);
-                pthread_mutex_unlock(&actualizarLoggerMemoria);
+                //pthread_mutex_lock(&actualizarLoggerMemoria);
+                //log_info(loggerMemoria,"PID: %d - Out Of Memory - Tamaño solicitado: %d",pid_a_cambiar,tam_a_cambiar);
+                //pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 return OUT_OF_MEMORY;
 
@@ -486,7 +486,10 @@ void* manejarClienteKernel(void *arg)
         paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
 
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(bytes <= 0){
+		    exit(0);
+	    }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);

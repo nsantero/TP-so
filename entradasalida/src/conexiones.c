@@ -34,7 +34,10 @@ void recibirPeticionDeIO_GEN(){
         paquete->buffer->stream = NULL;
 
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -93,7 +96,10 @@ void recibirPeticionDeIO_STDIN(){
         paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -168,7 +174,10 @@ void recibirPeticionDeIO_STDOUT(){
         paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -244,7 +253,10 @@ void recibirPeticionDeIO_DialFS(){
         paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);

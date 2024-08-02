@@ -610,12 +610,15 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             void* loQueDevuelve=NULL;
             uint8_t registro_datos_8;
             int size_dato = 0;
-            uint32_t registro_datos_32;
+            uint32_t registro_datos_32 =0;
             int cantidadDePaginas = 0;
             int nro_pagina = 0 ;
             int tam = 0;
             void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
+            uint32_t dirFisica;
+            uint8_t datos8 = 0;
+            uint32_t datos32 = 0;
 
 
             uint32_t direccion_logica = leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters);
@@ -640,8 +643,17 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 tam=bytesDisponiblesEnPag;
             }
             datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             //datos_leidos = recibir_confirmacion_memoria_mov_in();
             memcpy(loQueDevuelve, datos_leidos,tam);
+            if(size_dato == 1){
+                memcpy(&datos8,loQueDevuelve,tam);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+            }
+            if(size_dato == 4){
+                memcpy(&datos32,loQueDevuelve,tam);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+            }
             free(datos_leidos);
             direccion_fisica->desplazamiento = 0;
             for(int i=1; i<cantidadDePaginas;i++){
@@ -652,8 +664,17 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 if (i<(cantidadDePaginas-1)){
 
                     datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
+                    dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
                     //datos_leidos = recibir_confirmacion_memoria_mov_in();
                     memcpy(loQueDevuelve +tam , datos_leidos, tam_pagina);
+                    if(size_dato == 1){
+                        memcpy(&datos8,loQueDevuelve +tam,tam_pagina);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+                    }
+                    if(size_dato == 4){
+                        memcpy(&datos32,loQueDevuelve +tam,tam_pagina);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+                    }
                     tam+=tam_pagina;
                     
                     free(datos_leidos);
@@ -661,14 +682,22 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }else{
                     
                     datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
+                    dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
                     //datos_leidos = recibir_confirmacion_memoria_mov_in();
                     memcpy(loQueDevuelve+tam, datos_leidos, size_dato-tam);
+                    if(size_dato == 1){
+                        memcpy(&datos8,loQueDevuelve +tam,size_dato-tam);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+                    }
+                    if(size_dato == 4){
+                        memcpy(&datos32,loQueDevuelve +tam,size_dato-tam);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+                    }
                     free(datos_leidos);
 
                 }
-                
             }
-            int32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             uint32_t valorAPasarASet=0;
             if(size_dato==1){
                 //registro_datos_8=*(uint8_t*)loQueDevuelve;
@@ -713,6 +742,9 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             //void* datos_leidos = NULL;
             uint32_t bytesDisponiblesEnPag;
             void* buffer;
+            uint32_t dirFisica;
+            uint8_t datos8 = 0;
+            uint32_t datos32 = 0;
 
             //void* registro_datos = &(leerValorDelRegistro(instruccion_memoria.operando2,procesoEjecutando->cpuRegisters));
 
@@ -742,6 +774,16 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             buffer=malloc(tam);
             memcpy(buffer,datos_a_escribir,tam);
             operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            if(size_dato == 1){
+                memcpy(&datos8,datos_a_escribir,tam);
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+            }
+            if(size_dato == 4){
+                memcpy(&datos32,datos_a_escribir,tam);
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+            }
+            
 
             if (operacion == -1){}
             //memcpy(loQueDevuelve, buffer,tam);
@@ -759,6 +801,15 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     buffer=malloc(tam_pagina);
                     memcpy(buffer,datos_a_escribir+tam,tam_pagina);
                     operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+                    dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+                    if(size_dato == 1){
+                        memcpy(&datos8,datos_a_escribir+tam,tam_pagina);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+                    }
+                    if(size_dato == 4){
+                        memcpy(&datos32,datos_a_escribir+tam,tam_pagina);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+                    }
                     tam+=tam_pagina;                   
                     if (operacion == -1){}
                     //memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
@@ -768,6 +819,15 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                     buffer=malloc(size_dato-tam);
                     memcpy(buffer,datos_a_escribir+tam,size_dato-tam);
                     operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
+                    dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+                    if(size_dato == 1){
+                        memcpy(&datos8,datos_a_escribir+tam,size_dato-tam);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos8);
+                    }
+                    if(size_dato == 4){
+                        memcpy(&datos32,datos_a_escribir+tam,size_dato-tam);
+                        log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,datos32);
+                    }
                     //datos_leidos = recibir_confirmacion_memoria_mov_out();
 
                     if (operacion == -1){}
@@ -776,7 +836,7 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 }
                 
             }
-            uint32_t dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
             if (size_dato == 1){
 
                 log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);

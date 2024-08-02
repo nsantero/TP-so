@@ -46,7 +46,10 @@ t_paquete* recibirPaquete(int socket){
 	paquete->buffer->size = 0;
 	paquete->buffer->stream = NULL;
 
-	recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	int bytes = recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	if(bytes <= 0){
+		exit(0);
+	}
 	recv(socket, &(paquete->buffer->size), sizeof(int), 0);
 	paquete->buffer->stream = malloc(paquete->buffer->size);
 	recv(socket, paquete->buffer->stream, paquete->buffer->size, 0);

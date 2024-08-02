@@ -53,7 +53,7 @@ int pedir_tam_pagina_memoria(){
             }
             default:
             {   
-                log_error(loggerCpu, "Error");
+                //log_error(loggerCpu, "Error");
                 break;
             }
     }      
@@ -124,7 +124,7 @@ void paquete_memoria_marco(int pid,int pagina){
     eliminar_paquete(paquete_memoria);
     
     //printf("Se solicita la pagina a memoria: %d\n", pagina);
-    log_info(loggerCpu, "Se solicita la pagina a memoria: %d", pagina);
+    //log_info(loggerCpu, "Se solicita la pagina a memoria: %d", pagina);
        
 }
 
@@ -252,7 +252,10 @@ void* manejarClienteKernel(void *arg)
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        if(bytes <= 0){
+            exit(0);
+        }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -319,7 +322,10 @@ void* check_interrupts() {
         paquete->buffer = malloc(sizeof(t_buffer));
 
         
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        if(bytes <= 0){
+            exit(0);
+        }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);

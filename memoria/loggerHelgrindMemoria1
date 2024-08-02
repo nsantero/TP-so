@@ -1,0 +1,1427 @@
+==14283== Helgrind, a thread error detector
+==14283== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==14283== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==14283== Command: ./bin/memoria
+==14283== Parent PID: 14275
+==14283== 
+==14283== ---Thread-Announcement------------------------------------------
+==14283== 
+==14283== Thread #3 was created
+==14283==    at 0x4A889F3: clone (clone.S:76)
+==14283==    by 0x4A898EE: __clone_internal (clone-internal.c:83)
+==14283==    by 0x49F76D8: create_thread (pthread_create.c:295)
+==14283==    by 0x49F81FF: pthread_create@@GLIBC_2.34 (pthread_create.c:828)
+==14283==    by 0x4853767: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B2DF: atenderPeticionesKernel (conexiones.c:448)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== ---Thread-Announcement------------------------------------------
+==14283== 
+==14283== Thread #4 was created
+==14283==    at 0x4A889F3: clone (clone.S:76)
+==14283==    by 0x4A898EE: __clone_internal (clone-internal.c:83)
+==14283==    by 0x49F76D8: create_thread (pthread_create.c:295)
+==14283==    by 0x49F81FF: pthread_create@@GLIBC_2.34 (pthread_create.c:828)
+==14283==    by 0x4853767: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B2DF: atenderPeticionesKernel (conexiones.c:448)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== ---Thread-Announcement------------------------------------------
+==14283== 
+==14283== Thread #1 is the program's root thread
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90F18 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10AE9E: buscar_instruccion (conexiones.c:266)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 4 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744AB: list_link_element (list.c:355)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f18 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B90F10 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10AE2C: buscar_instruccion (conexiones.c:268)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x487449A: list_link_element (list.c:354)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f10 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B91320 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873454: list_get (list.c:57)
+==14283==    by 0x10AE2C: buscar_instruccion (conexiones.c:268)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b91320 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90970 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AE35: buscar_instruccion (conexiones.c:270)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90970 is 0 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B90980 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AE7B: buscar_instruccion (conexiones.c:272)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90980 is 16 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B914F8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10AE86: buscar_instruccion (conexiones.c:272)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b914f8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BAF6: cargarInstrucciones (conexiones.c:776)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B914F0 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10AE59: buscar_instruccion (conexiones.c:274)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b914f0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BAF6: cargarInstrucciones (conexiones.c:776)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B92620 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873454: list_get (list.c:57)
+==14283==    by 0x10AE59: buscar_instruccion (conexiones.c:274)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b92620 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10BB81: cargarInstrucciones (conexiones.c:789)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B92580 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AE62: buscar_instruccion (conexiones.c:276)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b92580 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BB31: cargarInstrucciones (conexiones.c:784)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B92588 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AE6D: buscar_instruccion (conexiones.c:278)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b92588 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BB31: cargarInstrucciones (conexiones.c:784)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B925D0 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4855B06: strlen (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10AF41: paquete_cpu_envio_instruccion (conexiones.c:308)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b925d0 is 0 bytes inside a block of size 9 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B925D1 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4855B14: strlen (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10AF41: paquete_cpu_envio_instruccion (conexiones.c:308)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b925d1 is 1 bytes inside a block of size 9 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 8 at 0x4B90F10 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744D8: list_unlink_element (list.c:360)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x487364F: list_remove (list.c:95)
+==14283==    by 0x4873788: list_remove_and_destroy_element (list.c:111)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10AE2C: buscar_instruccion (conexiones.c:268)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f10 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B90F18 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744E9: list_unlink_element (list.c:361)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x487364F: list_remove (list.c:95)
+==14283==    by 0x4873788: list_remove_and_destroy_element (list.c:111)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 4 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10AE9E: buscar_instruccion (conexiones.c:266)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f18 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 8 at 0x4B914F0 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744D8: list_unlink_element (list.c:360)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x48738B8: list_clean (list.c:143)
+==14283==    by 0x4873902: list_clean_and_destroy_elements (list.c:149)
+==14283==    by 0x4873957: list_destroy_and_destroy_elements (list.c:158)
+==14283==    by 0x10B039: limpiarInstrucciones (conexiones.c:340)
+==14283==    by 0x10A8A7: destroy_process_entry (conexiones.c:31)
+==14283==    by 0x4873799: list_remove_and_destroy_element (list.c:112)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283== 
+==14283== This conflicts with a previous read of size 8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10AE59: buscar_instruccion (conexiones.c:274)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b914f0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BAF6: cargarInstrucciones (conexiones.c:776)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B914F8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744E9: list_unlink_element (list.c:361)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x48738B8: list_clean (list.c:143)
+==14283==    by 0x4873902: list_clean_and_destroy_elements (list.c:149)
+==14283==    by 0x4873957: list_destroy_and_destroy_elements (list.c:158)
+==14283==    by 0x10B039: limpiarInstrucciones (conexiones.c:340)
+==14283==    by 0x10A8A7: destroy_process_entry (conexiones.c:31)
+==14283==    by 0x4873799: list_remove_and_destroy_element (list.c:112)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283== 
+==14283== This conflicts with a previous read of size 4 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10AE86: buscar_instruccion (conexiones.c:272)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b914f8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BAF6: cargarInstrucciones (conexiones.c:776)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 8 at 0x4B90F10 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x487449A: list_link_element (list.c:354)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10AE2C: buscar_instruccion (conexiones.c:268)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f10 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B90F18 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744AB: list_link_element (list.c:355)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 4 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10AE9E: buscar_instruccion (conexiones.c:266)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f18 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90988 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AB61: actualizar_tam_proceso (conexiones.c:139)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90988 is 24 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90998 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AB6B: actualizar_tam_proceso (conexiones.c:143)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90998 is 40 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ---Thread-Announcement------------------------------------------
+==14283== 
+==14283== Thread #2 was created
+==14283==    at 0x4A889F3: clone (clone.S:76)
+==14283==    by 0x4A898EE: __clone_internal (clone-internal.c:83)
+==14283==    by 0x49F76D8: create_thread (pthread_create.c:295)
+==14283==    by 0x49F81FF: pthread_create@@GLIBC_2.34 (pthread_create.c:828)
+==14283==    by 0x4853767: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BE68: main (memoria.c:90)
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during write of size 1 at 0x4B8E640 by thread #3
+==14283== Locks held: none
+==14283==    at 0x48597B4: mempcpy (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49EE664: _IO_new_file_xsputn (fileops.c:1235)
+==14283==    by 0x49EE664: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==14283==    by 0x49E2A9C: fputs (iofputs.c:38)
+==14283==    by 0x48747E2: txt_write_in_file (txt.c:27)
+==14283==    by 0x48754D9: _log_write_in_level (log.c:138)
+==14283==    by 0x487518F: log_info (log.c:91)
+==14283==    by 0x10AC8E: actualizar_tam_proceso (conexiones.c:193)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 1 by thread #2
+==14283== Locks held: none
+==14283==    at 0x48597B4: mempcpy (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49EE664: _IO_new_file_xsputn (fileops.c:1235)
+==14283==    by 0x49EE664: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==14283==    by 0x49E2A9C: fputs (iofputs.c:38)
+==14283==    by 0x48747E2: txt_write_in_file (txt.c:27)
+==14283==    by 0x48754D9: _log_write_in_level (log.c:138)
+==14283==    by 0x487518F: log_info (log.c:91)
+==14283==    by 0x10C5E2: esperarClienteV2 (shared.c:160)
+==14283==    by 0x10B2A6: atenderPeticionesKernel (conexiones.c:444)
+==14283==  Address 0x4b8e640 is 0 bytes inside a block of size 4,096 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49E1BA3: _IO_file_doallocate (filedoalloc.c:101)
+==14283==    by 0x49F0CDF: _IO_doallocbuf (genops.c:347)
+==14283==    by 0x49EFF5F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:744)
+==14283==    by 0x49EE6D4: _IO_new_file_xsputn (fileops.c:1243)
+==14283==    by 0x49EE6D4: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1196)
+==14283==    by 0x49E2A9C: fputs (iofputs.c:38)
+==14283==    by 0x48747E2: txt_write_in_file (txt.c:27)
+==14283==    by 0x48754D9: _log_write_in_level (log.c:138)
+==14283==    by 0x487518F: log_info (log.c:91)
+==14283==    by 0x10C055: iniciarLoggerMemoria (configs.c:22)
+==14283==    by 0x10BDC8: main (memoria.c:71)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B90990 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10ACD6: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90990 is 32 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B912D8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x48732EE: list_add (list.c:41)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B912D0 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4874487: list_link_element (list.c:353)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 8 at 0x4B912D0 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487449A: list_link_element (list.c:354)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4873609: list_iterate (list.c:87)
+==14283==    by 0x48738F6: list_clean_and_destroy_elements (list.c:148)
+==14283==    by 0x4873957: list_destroy_and_destroy_elements (list.c:158)
+==14283==    by 0x10A89B: destroy_process_entry (conexiones.c:30)
+==14283==    by 0x4873799: list_remove_and_destroy_element (list.c:112)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==  Address 0x4b912d0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B912D8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x48744AB: list_link_element (list.c:355)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 4 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x487388C: list_is_empty (list.c:138)
+==14283==    by 0x48738C4: list_clean (list.c:142)
+==14283==    by 0x4873902: list_clean_and_destroy_elements (list.c:149)
+==14283==    by 0x4873957: list_destroy_and_destroy_elements (list.c:158)
+==14283==    by 0x10A89B: destroy_process_entry (conexiones.c:30)
+==14283==    by 0x4873799: list_remove_and_destroy_element (list.c:112)
+==14283==    by 0x10B123: remover_proceso (conexiones.c:372)
+==14283==  Address 0x4b912d8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B90988 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10ACFC: actualizar_tam_proceso (conexiones.c:211)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90988 is 24 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 4 at 0x4B90998 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AD06: actualizar_tam_proceso (conexiones.c:212)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 4 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x10B0A0: remover_proceso (conexiones.c:356)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90998 is 40 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90F18 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10B264: obtener_marco (conexiones.c:418)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 4 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744AB: list_link_element (list.c:355)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f18 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B90F10 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10B1E7: obtener_marco (conexiones.c:420)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x487449A: list_link_element (list.c:354)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90f10 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10BBE3: crearListas (memoria.c:12)
+==14283==    by 0x10BDDC: main (memoria.c:75)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B91320 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873454: list_get (list.c:57)
+==14283==    by 0x10B1E7: obtener_marco (conexiones.c:420)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b91320 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10B526: manejarClienteKernel (conexiones.c:503)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90970 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10B1F0: obtener_marco (conexiones.c:422)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90970 is 0 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B90990 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10B241: obtener_marco (conexiones.c:424)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90990 is 32 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B912D8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487386C: list_size (list.c:134)
+==14283==    by 0x10B24C: obtener_marco (conexiones.c:424)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B912D0 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10B214: obtener_marco (conexiones.c:426)
+==14283==    by 0x10B792: manejarClienteKernel (conexiones.c:663)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B96D10 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4855B06: strlen (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10CDFC: agregar_string_a_paquete (paquetes.c:70)
+==14283==    by 0x10AF65: paquete_cpu_envio_instruccion (conexiones.c:309)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b96d10 is 0 bytes inside a block of size 11 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B96D11 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4855B14: strlen (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10CDFC: agregar_string_a_paquete (paquetes.c:70)
+==14283==    by 0x10AF65: paquete_cpu_envio_instruccion (conexiones.c:309)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b96d11 is 1 bytes inside a block of size 11 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B96D10 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4858D10: memmove (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10CE97: agregar_string_a_paquete (paquetes.c:77)
+==14283==    by 0x10AF65: paquete_cpu_envio_instruccion (conexiones.c:309)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b96d10 is 0 bytes inside a block of size 11 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B96D14 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4858D1F: memmove (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10CE97: agregar_string_a_paquete (paquetes.c:77)
+==14283==    by 0x10AF65: paquete_cpu_envio_instruccion (conexiones.c:309)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b96d14 is 4 bytes inside a block of size 11 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B96D1A by thread #3
+==14283== Locks held: none
+==14283==    at 0x4858D40: memmove (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10CE97: agregar_string_a_paquete (paquetes.c:77)
+==14283==    by 0x10AF65: paquete_cpu_envio_instruccion (conexiones.c:309)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b96d1a is 10 bytes inside a block of size 11 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x4A0B58E: strdup (strdup.c:42)
+==14283==    by 0x10BB47: cargarInstrucciones (conexiones.c:785)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B99408 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4874516: list_get_indirect_in_index (list.c:368)
+==14283==    by 0x4873448: list_get (list.c:56)
+==14283==    by 0x10AE59: buscar_instruccion (conexiones.c:274)
+==14283==    by 0x10AF31: paquete_cpu_envio_instruccion (conexiones.c:306)
+==14283==    by 0x10B5D0: manejarClienteKernel (conexiones.c:539)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b99408 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10BB81: cargarInstrucciones (conexiones.c:789)
+==14283==    by 0x10B4D9: manejarClienteKernel (conexiones.c:496)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B90998 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x10B0A0: remover_proceso (conexiones.c:356)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 4 by thread #3
+==14283== Locks held: none
+==14283==    at 0x10AD06: actualizar_tam_proceso (conexiones.c:212)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b90998 is 40 bytes inside a block of size 48 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B463: manejarClienteKernel (conexiones.c:482)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B912D0 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4874516: list_get_indirect_in_index (list.c:368)
+==14283==    by 0x4873448: list_get (list.c:56)
+==14283==    by 0x10B0CA: remover_proceso (conexiones.c:360)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 8 by thread #3
+==14283== Locks held: none
+==14283==    at 0x487449A: list_link_element (list.c:354)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d0 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B93FA8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4873451: list_get (list.c:57)
+==14283==    by 0x10B0CA: remover_proceso (conexiones.c:360)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b93fa8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #3
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B94040 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4873454: list_get (list.c:57)
+==14283==    by 0x10B0CA: remover_proceso (conexiones.c:360)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b94040 is 0 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #3
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B93FF8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x10B0D3: remover_proceso (conexiones.c:363)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b93ff8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10ACA1: actualizar_tam_proceso (conexiones.c:197)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #3
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 1 at 0x4B8E310 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4874DB4: bitarray_clean_bit (bitarray.c:61)
+==14283==    by 0x10A82F: liberarFrame (conexiones.c:12)
+==14283==    by 0x10B0E2: remover_proceso (conexiones.c:364)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 1 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4874D5E: bitarray_set_bit (bitarray.c:51)
+==14283==    by 0x10A989: asignarFrameLibre (conexiones.c:66)
+==14283==    by 0x10ACC2: actualizar_tam_proceso (conexiones.c:202)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b8e310 is 0 bytes inside a block of size 8 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BC60: esquemaPaginacion (memoria.c:27)
+==14283==    by 0x10BDF0: main (memoria.c:78)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during write of size 1 at 0x4B8E310 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x4874DC9: bitarray_clean_bit (bitarray.c:61)
+==14283==    by 0x10A82F: liberarFrame (conexiones.c:12)
+==14283==    by 0x10B0E2: remover_proceso (conexiones.c:364)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous read of size 1 by thread #3
+==14283== Locks held: none
+==14283==    at 0x4874CDC: bitarray_test_bit (bitarray.c:47)
+==14283==    by 0x10A90A: cantidadFrameLibre (conexiones.c:44)
+==14283==    by 0x10AC52: actualizar_tam_proceso (conexiones.c:184)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b8e310 is 0 bytes inside a block of size 8 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BC60: esquemaPaginacion (memoria.c:27)
+==14283==    by 0x10BDF0: main (memoria.c:78)
+==14283==  Block was alloc'd by thread #1
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 8 at 0x4B94048 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744D0: list_unlink_element (list.c:360)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x487364F: list_remove (list.c:95)
+==14283==    by 0x4873788: list_remove_and_destroy_element (list.c:111)
+==14283==    by 0x10B0FE: remover_proceso (conexiones.c:365)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b94048 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x487444D: list_create_element (list.c:346)
+==14283==    by 0x48745AF: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #3
+==14283== 
+==14283== ----------------------------------------------------------------
+==14283== 
+==14283==  Lock at 0x111180 was first observed
+==14283==    at 0x4850CCF: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10B510: manejarClienteKernel (conexiones.c:502)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x111180 is 0 bytes inside data symbol "listaProcesosActivos"
+==14283== 
+==14283== Possible data race during read of size 4 at 0x4B912D8 by thread #4
+==14283== Locks held: 1, at address 0x111180
+==14283==    at 0x48744DF: list_unlink_element (list.c:361)
+==14283==    by 0x4874621: list_remove_indirect (list.c:392)
+==14283==    by 0x487364F: list_remove (list.c:95)
+==14283==    by 0x4873788: list_remove_and_destroy_element (list.c:111)
+==14283==    by 0x10B0FE: remover_proceso (conexiones.c:365)
+==14283==    by 0x10B563: manejarClienteKernel (conexiones.c:515)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283== 
+==14283== This conflicts with a previous write of size 4 by thread #3
+==14283== Locks held: none
+==14283==    at 0x48744AB: list_link_element (list.c:355)
+==14283==    by 0x48745C5: list_add_element (list.c:382)
+==14283==    by 0x4873319: list_add (list.c:42)
+==14283==    by 0x10ACE8: actualizar_tam_proceso (conexiones.c:207)
+==14283==    by 0x10B72D: manejarClienteKernel (conexiones.c:648)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Address 0x4b912d8 is 8 bytes inside a block of size 16 alloc'd
+==14283==    at 0x484A919: malloc (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x48732AE: list_create (list.c:34)
+==14283==    by 0x10B4F9: manejarClienteKernel (conexiones.c:500)
+==14283==    by 0x485396A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x49F7AC2: start_thread (pthread_create.c:442)
+==14283==    by 0x4A88A03: clone (clone.S:100)
+==14283==  Block was alloc'd by thread #4
+==14283== 
+==14283== 
+==14283== Process terminating with default action of signal 1 (SIGHUP)
+==14283==    at 0x49F4117: __futex_abstimed_wait_common64 (futex-internal.c:57)
+==14283==    by 0x49F4117: __futex_abstimed_wait_common (futex-internal.c:87)
+==14283==    by 0x49F4117: __futex_abstimed_wait_cancelable64 (futex-internal.c:139)
+==14283==    by 0x49F9623: __pthread_clockjoin_ex (pthread_join_common.c:105)
+==14283==    by 0x48508F5: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==14283==    by 0x10BE79: main (memoria.c:96)
+==14283== 
+==14283== Use --history-level=approx or =none to gain increased speed, at
+==14283== the cost of reduced accuracy of conflicting-access information
+==14283== For lists of detected and suppressed errors, rerun with: -s
+==14283== ERROR SUMMARY: 20162 errors from 50 contexts (suppressed: 1599 from 60)

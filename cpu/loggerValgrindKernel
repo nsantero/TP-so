@@ -1,0 +1,275 @@
+==30163== Memcheck, a memory error detector
+==30163== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==30163== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==30163== Command: ./bin/cpu
+==30163== Parent PID: 30124
+==30163== 
+==30163== Thread 4:
+==30163== Conditional jump or move depends on uninitialised value(s)
+==30163==    at 0x49D3AD6: __vfprintf_internal (vfprintf-internal.c:1516)
+==30163==    by 0x49BD79E: printf (printf.c:33)
+==30163==    by 0x10D99C: utilizacion_memoria (cicloInstruccion.c:697)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163==  Uninitialised value was created by a stack allocation
+==30163==    at 0x10D404: utilizacion_memoria (cicloInstruccion.c:568)
+==30163== 
+==30163== Use of uninitialised value of size 8
+==30163==    at 0x49B72EB: _itoa_word (_itoa.c:177)
+==30163==    by 0x49D2ABD: __vfprintf_internal (vfprintf-internal.c:1516)
+==30163==    by 0x49BD79E: printf (printf.c:33)
+==30163==    by 0x10D99C: utilizacion_memoria (cicloInstruccion.c:697)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163==  Uninitialised value was created by a stack allocation
+==30163==    at 0x10D404: utilizacion_memoria (cicloInstruccion.c:568)
+==30163== 
+==30163== Conditional jump or move depends on uninitialised value(s)
+==30163==    at 0x49B72FC: _itoa_word (_itoa.c:177)
+==30163==    by 0x49D2ABD: __vfprintf_internal (vfprintf-internal.c:1516)
+==30163==    by 0x49BD79E: printf (printf.c:33)
+==30163==    by 0x10D99C: utilizacion_memoria (cicloInstruccion.c:697)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163==  Uninitialised value was created by a stack allocation
+==30163==    at 0x10D404: utilizacion_memoria (cicloInstruccion.c:568)
+==30163== 
+==30163== Thread 3:
+==30163== Invalid read of size 4
+==30163==    at 0x10EF0A: check_interrupts (cpu.c:288)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163==  Address 0x4ba5a10 is 0 bytes inside a block of size 36 free'd
+==30163==    at 0x484B27F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10EDCB: manejarClienteKernel (cpu.c:252)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163==  Block was alloc'd at
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10EC0A: manejarClienteKernel (cpu.c:219)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 
+==30163== Process terminating with default action of signal 1 (SIGHUP)
+==30163==    at 0x49EE117: __futex_abstimed_wait_common64 (futex-internal.c:57)
+==30163==    by 0x49EE117: __futex_abstimed_wait_common (futex-internal.c:87)
+==30163==    by 0x49EE117: __futex_abstimed_wait_cancelable64 (futex-internal.c:139)
+==30163==    by 0x49F3623: __pthread_clockjoin_ex (pthread_join_common.c:105)
+==30163==    by 0x10E865: main (cpu.c:105)
+==30163== 
+==30163== HEAP SUMMARY:
+==30163==     in use at exit: 30,442 bytes in 1,865 blocks
+==30163==   total heap usage: 10,758 allocs, 8,893 frees, 223,196 bytes allocated
+==30163== 
+==30163== Thread 1:
+==30163== 12 bytes in 1 blocks are definitely lost in loss record 7 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10CE88: traduccion_mmu (cicloInstruccion.c:366)
+==30163==    by 0x10BD71: ejecutarCopyString (instrucciones.c:219)
+==30163==    by 0x10DC4E: execute2 (cicloInstruccion.c:757)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 36 (16 direct, 20 indirect) bytes in 1 blocks are definitely lost in loss record 26 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E572: pedir_tam_pagina_memoria (cpu.c:36)
+==30163==    by 0x10E7E2: main (cpu.c:88)
+==30163== 
+==30163== 36 (16 direct, 20 indirect) bytes in 1 blocks are definitely lost in loss record 27 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10CEE8: traduccion_mmu (cicloInstruccion.c:376)
+==30163==    by 0x10BD71: ejecutarCopyString (instrucciones.c:219)
+==30163==    by 0x10DC4E: execute2 (cicloInstruccion.c:757)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 44 bytes in 44 blocks are definitely lost in loss record 29 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E29E: recibir_confirmacion_memoria_mov_out (cicloInstruccion.c:901)
+==30163==    by 0x10D7BC: utilizacion_memoria (cicloInstruccion.c:666)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 72 (32 direct, 40 indirect) bytes in 2 blocks are definitely lost in loss record 32 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10CEE8: traduccion_mmu (cicloInstruccion.c:376)
+==30163==    by 0x10A9AE: mandarPaqueteaKernelSTD (utils.c:59)
+==30163==    by 0x10DCF0: execute2 (cicloInstruccion.c:770)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 72 (32 direct, 40 indirect) bytes in 2 blocks are definitely lost in loss record 33 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10AB3C: mandarPaqueteaKernelSTD (utils.c:90)
+==30163==    by 0x10DCF0: execute2 (cicloInstruccion.c:770)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 96 (48 direct, 48 indirect) bytes in 3 blocks are definitely lost in loss record 35 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E2F7: recibir_confirmacion_memoria_resize (cicloInstruccion.c:919)
+==30163==    by 0x10E03A: execute2 (cicloInstruccion.c:835)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 108 (48 direct, 60 indirect) bytes in 3 blocks are definitely lost in loss record 36 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10CEE8: traduccion_mmu (cicloInstruccion.c:376)
+==30163==    by 0x10A9AE: mandarPaqueteaKernelSTD (utils.c:59)
+==30163==    by 0x10DD4B: execute2 (cicloInstruccion.c:777)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 180 (80 direct, 100 indirect) bytes in 5 blocks are definitely lost in loss record 41 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10AB3C: mandarPaqueteaKernelSTD (utils.c:90)
+==30163==    by 0x10DD4B: execute2 (cicloInstruccion.c:777)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 272 bytes in 1 blocks are possibly lost in loss record 44 of 66
+==30163==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==30163==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==30163==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==30163==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
+==30163==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==30163==    by 0x10E82B: main (cpu.c:99)
+==30163== 
+==30163== 272 bytes in 1 blocks are possibly lost in loss record 45 of 66
+==30163==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==30163==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==30163==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==30163==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
+==30163==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==30163==    by 0x10E848: main (cpu.c:100)
+==30163== 
+==30163== 272 bytes in 1 blocks are possibly lost in loss record 46 of 66
+==30163==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x40147D9: calloc (rtld-malloc.h:44)
+==30163==    by 0x40147D9: allocate_dtv (dl-tls.c:375)
+==30163==    by 0x40147D9: _dl_allocate_tls (dl-tls.c:634)
+==30163==    by 0x49F27B4: allocate_stack (allocatestack.c:430)
+==30163==    by 0x49F27B4: pthread_create@@GLIBC_2.34 (pthread_create.c:647)
+==30163==    by 0x10EDAB: manejarClienteKernel (cpu.c:250)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 352 bytes in 44 blocks are definitely lost in loss record 47 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10D52F: utilizacion_memoria (cicloInstruccion.c:598)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 414 bytes in 16 blocks are definitely lost in loss record 49 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10C556: fetch (cicloInstruccion.c:115)
+==30163==    by 0x10C168: ciclo_de_instruccion (cicloInstruccion.c:19)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 528 bytes in 44 blocks are definitely lost in loss record 52 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10CE88: traduccion_mmu (cicloInstruccion.c:366)
+==30163==    by 0x10D65A: utilizacion_memoria (cicloInstruccion.c:625)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 966 (552 direct, 414 indirect) bytes in 16 blocks are definitely lost in loss record 56 of 66
+==30163==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x48705BE: _string_array_push (in /usr/lib/libcommons.so)
+==30163==    by 0x4870567: _string_split (in /usr/lib/libcommons.so)
+==30163==    by 0x486FCDE: string_split (in /usr/lib/libcommons.so)
+==30163==    by 0x10C1B0: ciclo_de_instruccion (cicloInstruccion.c:23)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 1,584 (704 direct, 880 indirect) bytes in 44 blocks are definitely lost in loss record 58 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10CEE8: traduccion_mmu (cicloInstruccion.c:376)
+==30163==    by 0x10D65A: utilizacion_memoria (cicloInstruccion.c:625)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 1,584 (704 direct, 880 indirect) bytes in 44 blocks are definitely lost in loss record 59 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E3D5: recibir_marco_memoria (cicloInstruccion.c:952)
+==30163==    by 0x10D3FB: buscar_frame (cicloInstruccion.c:562)
+==30163==    by 0x10D70E: utilizacion_memoria (cicloInstruccion.c:651)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 1,628 (704 direct, 924 indirect) bytes in 44 blocks are definitely lost in loss record 61 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10E1B8: recibir_confirmacion_memoria_mov_out (cicloInstruccion.c:883)
+==30163==    by 0x10D7BC: utilizacion_memoria (cicloInstruccion.c:666)
+==30163==    by 0x10DFE1: execute2 (cicloInstruccion.c:825)
+==30163==    by 0x10C292: ciclo_de_instruccion (cicloInstruccion.c:43)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 7,413 (5,288 direct, 2,125 indirect) bytes in 165 blocks are definitely lost in loss record 65 of 66
+==30163==    at 0x484DCD3: realloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x48705BE: _string_array_push (in /usr/lib/libcommons.so)
+==30163==    by 0x4870567: _string_split (in /usr/lib/libcommons.so)
+==30163==    by 0x486FCDE: string_split (in /usr/lib/libcommons.so)
+==30163==    by 0x10C5D1: decode (cicloInstruccion.c:135)
+==30163==    by 0x10C269: ciclo_de_instruccion (cicloInstruccion.c:41)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== 8,188 (2,688 direct, 5,500 indirect) bytes in 168 blocks are definitely lost in loss record 66 of 66
+==30163==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==30163==    by 0x10C472: fetch (cicloInstruccion.c:95)
+==30163==    by 0x10C168: ciclo_de_instruccion (cicloInstruccion.c:19)
+==30163==    by 0x49F1AC2: start_thread (pthread_create.c:442)
+==30163==    by 0x4A82A03: clone (clone.S:100)
+==30163== 
+==30163== LEAK SUMMARY:
+==30163==    definitely lost: 12,262 bytes in 647 blocks
+==30163==    indirectly lost: 11,051 bytes in 1,180 blocks
+==30163==      possibly lost: 816 bytes in 3 blocks
+==30163==    still reachable: 6,313 bytes in 35 blocks
+==30163==         suppressed: 0 bytes in 0 blocks
+==30163== Reachable blocks (those to which a pointer was found) are not shown.
+==30163== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==30163== 
+==30163== For lists of detected and suppressed errors, rerun with: -s
+==30163== ERROR SUMMARY: 306 errors from 25 contexts (suppressed: 0 from 0)
