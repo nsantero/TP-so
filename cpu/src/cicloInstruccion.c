@@ -705,14 +705,14 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 valorAPasarASet=registro_datos_8;
                 //printf("datos: %d\n",registro_datos_8);
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
-                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Total Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
 
             }else{
                 //registro_datos_32=*(uint32_t*)loQueDevuelve;
                 //printf("datos: %d\n",registro_datos_32);
                 valorAPasarASet=registro_datos_32;
                 ejecutar_set(&procesoEjecutando->cpuRegisters, instruccion_memoria.operando1, valorAPasarASet);
-                log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
+                log_info(loggerCpu,"PID: <%d> - Accion - Leer - Direccion Fisica: <%d> - Valor Total Leido: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
             }
             
             //free(loQueDevuelve);
@@ -788,10 +788,10 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
             if (operacion == -1){}
             //memcpy(loQueDevuelve, buffer,tam);
             free(buffer);
+
             direccion_fisica->desplazamiento = 0;
-
-
             for(int i=1; i<cantidadDePaginas;i++){
+                
 
                 nro_pagina = floor(direccion_logica / tam_pagina)+i;                 
                 direccion_fisica->numero_frame = buscar_frame(nro_pagina,pid);
@@ -837,14 +837,14 @@ void utilizacion_memoria(t_instruccion instruccion_memoria,int pid){
                 
             }
             dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
-            if (size_dato == 1){
+            //if (size_dato == 1){
 
-                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
+            //    log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_8);
 
-            }
+            //}
             if (size_dato == 4){
 
-                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
+                log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Total Escrito: <%d>\n",procesoEjecutando->PID,dirFisica,registro_datos_32);
             }
             //printf("datos: %d\n",uintDevuelve);
 
