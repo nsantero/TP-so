@@ -116,7 +116,7 @@ void ejecutar_jnz(CPU_Registers *cpu, char* registro, uint32_t nueva_instruccion
     else if (strcmp(registro, "ECX") == 0) valor_registro = cpu->ECX;
     else if (strcmp(registro, "EDX") == 0) valor_registro = cpu->EDX;
     else {
-        printf("Registro no reconocido: %s\n", registro);
+        //printf("Registro no reconocido: %s\n", registro);
         return;
     }
 
@@ -191,22 +191,22 @@ int recibir_resultado_recursos(){
         case WAIT_SUCCESS:
         {   
             respuesta = 1;
-            printf("Se pudo hacer el wait \n");
+            //printf("Se pudo hacer el wait \n");
             break;
         }
         case WAIT_BLOCK:
         {
             respuesta = 0;
-            printf("No se puede hacer el wait, devuelvo el proceso \n");
+            //printf("No se puede hacer el wait, devuelvo el proceso \n");
             break;
         }
         case SIGNAL_SUCCESS:
             respuesta = 1;
-            printf("Se pudo hacer el signal \n");
+            //printf("Se pudo hacer el signal \n");
             break;
         default:
         {   
-            log_error(loggerCpu, "Error el codigo no es correcto");
+            //log_error(loggerCpu, "Error el codigo no es correcto");
             break;
         }
       
