@@ -24,7 +24,7 @@ void* ciclo_de_instruccion() {
         char **cadena_instruccion = string_split(instruccion_a_decodificar , " ");
         
         if (strstr(cadena_instruccion[0], "EXIT") != NULL ){
-
+            log_info(loggerCpu, "PID: <%d> - Ejecutando: <EXIT>\n", procesoEjecutando->PID);
             valor =0;
             mandarPaqueteaKernel(PROCESO_EXIT);
             int tamanio_array = 0;
