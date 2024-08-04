@@ -46,11 +46,14 @@ int pedir_tam_pagina_memoria(){
             case ENVIO_TAM_PAGINA:
             {
                 memcpy(&tam_pagina_recibido, stream, sizeof(int));
+                free(paquete->buffer->stream);
+                free(paquete->buffer);
+                free(paquete);
                 return tam_pagina_recibido;
             }
             default:
             {   
-                log_error(loggerCpu, "Error");
+                //log_error(loggerCpu, "Error");
                 break;
             }
     }      
@@ -75,6 +78,9 @@ int main(int argc, char* argv[]) {
     iniciarLogger();
     armarConfig();
 
+    //printf("Modulo CPU \n");
+    log_info(loggerCpu, "Modulo CPU");
+    
 	//me conecto a memoria
 	memoria_fd = crear_conexion(loggerCpu,"MEMORIA",configuracionCpu.IP_MEMORIA, configuracionCpu.PUERTO_MEMORIA);
 	log_info(loggerCpu, "Me conecte a memoria!");
@@ -88,7 +94,7 @@ int main(int argc, char* argv[]) {
     
     tam_pagina = pedir_tam_pagina_memoria();
 
-    printf("se recibio tam de pagina :%d\n", tam_pagina);
+    //printf("Se recibio tamaño de pagina: %d \n", tam_pagina);
 
     crearTLB();
     //Proceso proceso;
@@ -117,7 +123,8 @@ void paquete_memoria_marco(int pid,int pagina){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("Se solicita la pagina a memoria: %d\n", pagina);
+    //printf("Se solicita la pagina a memoria: %d\n", pagina);
+    //log_info(loggerCpu, "Se solicita la pagina a memoria: %d", pagina);
        
 }
 
@@ -201,7 +208,7 @@ void paquete_memoria_resize(int PID_paquete,int tam_nuevo){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("Se solicita resize a memoria: %d\n", tam_nuevo);
+    //printf("Se solicita resize a memoria: %d\n", tam_nuevo);
        
 }
 
@@ -215,8 +222,8 @@ void paquete_memoria_pedido_instruccion(int PID_paquete,int PC_paquete){
     enviar_paquete(paquete_memoria, memoria_fd);
     eliminar_paquete(paquete_memoria);
     
-    printf("se solicita instruccion del pid :%d\n", PID_paquete);
-    printf("PC:%d\n", PC_paquete);
+    //printf("PID: %d - Se solicita instruccion - PC: %d \n", PID_paquete,PC_paquete);
+    //printf("PC:%d\n", PC_paquete);
     
 }
 
@@ -245,7 +252,10 @@ void* manejarClienteKernel(void *arg)
         t_paquete* paquete = malloc(sizeof(t_paquete));
         paquete->buffer = malloc(sizeof(t_buffer));
 
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        if(bytes <= 0){
+            exit(0);
+        }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -284,11 +294,12 @@ void* manejarClienteKernel(void *arg)
                 pthread_mutex_lock(&mutexInterrupcion);
                 interrumpir = 0;
                 pthread_mutex_unlock(&mutexInterrupcion);
-                log_info(loggerCpu, "Se recibio el proceso:%d\n", procesoEjecutando->PID);
+                //log_info(loggerCpu, "Se recibio el proceso:%d\n", procesoEjecutando->PID);
                 pthread_t hiloCicloDeEjecucion;
                 pthread_create(&hiloCicloDeEjecucion, NULL, ciclo_de_instruccion,NULL);
                 pthread_join(hiloCicloDeEjecucion, NULL);
                 free(procesoEjecutando);
+                procesoEjecutando = NULL;
                 break;
             }
             
@@ -311,7 +322,10 @@ void* check_interrupts() {
         paquete->buffer = malloc(sizeof(t_buffer));
 
         
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        if(bytes <= 0){
+            exit(0);
+        }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -324,7 +338,7 @@ void* check_interrupts() {
 				memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 pthread_mutex_lock(&mutexProcesoEjecutando);
                 pthread_mutex_lock(&mutexInterrupcion);
-                if(procesoEjecutando->PID == pidInterrumpido){
+                if((procesoEjecutando != NULL) && (procesoEjecutando->PID == pidInterrumpido)){
                     interrumpir = 1;
                 }
                 pthread_mutex_unlock(&mutexProcesoEjecutando);
@@ -336,7 +350,7 @@ void* check_interrupts() {
                 memcpy(&pidInterrumpido, stream, sizeof(uint32_t));
                 pthread_mutex_lock(&mutexProcesoEjecutando);
                 pthread_mutex_lock(&mutexInterrupcion);
-                if(procesoEjecutando->PID == pidInterrumpido){
+                if((procesoEjecutando != NULL) && (procesoEjecutando->PID == pidInterrumpido)){
                     //mutex interrumpir
                     interrumpir = 2;
                 }

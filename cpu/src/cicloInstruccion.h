@@ -9,12 +9,14 @@
 extern char memoria[MEM_SIZE][20]; // Cada instrucción tiene un tamaño máximo de 20 caracteres
 
 extern char* instruccionRecibida;
+extern int instante_modificacion_tlb;
 
 char* fetch(Proceso *proceso);
 
 extern int instante_modificacion_tlb;
 
 op_code recibir_confirmacion_memoria_resize();
+void destroy_page_tlb(void *element);
 
 int valorDelRegistro(char *dl,CPU_Registers registros);
 
@@ -50,7 +52,7 @@ direccion_fisica *traduccion_mmu(uint32_t dl, int pid);
 
 uint32_t leerValorDelRegistro(char *dl,CPU_Registers registros);
 
-t_instruccion decode(char *instruccionDecodificar, int pid);
+t_instruccion decode(char **instruccionDecodificar, int pid);
 
 void execute(CPU_Registers *cpu, t_instruccion instruccion_a_ejecutar);
 

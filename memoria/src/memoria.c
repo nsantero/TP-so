@@ -82,6 +82,8 @@ int main(int argc, char *argv[])
     inicializarMemoria();
     esquemaPaginacion();
     
+    log_info(loggerMemoria, "Modulo Memoria");
+    
     server_fd = iniciarServidorV2(loggerMemoria, configuracionMemoria.PUERTO_ESCUCHA);
     
     pthread_mutex_lock(&actualizarLoggerMemoria);

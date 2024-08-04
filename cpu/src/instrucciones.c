@@ -57,12 +57,12 @@ void ejecutar_sum(CPU_Registers *cpu,  char* destino,  char* origen) {
     // Realizar la suma si ambos registros son válidos
     if (reg_destino_8 && reg_origen_8) {
         *reg_destino_8 += *reg_origen_8;
-        printf("SUM - %s = %d\n", destino, *reg_destino_8);
+        //printf("SUM - %s = %d\n", destino, *reg_destino_8);
     } else if (reg_destino_32 && reg_origen_32) {
         *reg_destino_32 += *reg_origen_32;
-        printf("SUM - %s = %d\n", destino, *reg_destino_32);
+        //printf("SUM - %s = %d\n", destino, *reg_destino_32);
     } else {
-        printf("Registro no reconocido: %s o %s\n", destino, origen);
+        //printf("Registro no reconocido: %s o %s\n", destino, origen);
     }
 }
 
@@ -94,12 +94,12 @@ void ejecutar_sub(CPU_Registers *cpu,  char* destino,  char* origen) {
     // Realizar la resta si ambos registros son válidos
     if (reg_destino_8 && reg_origen_8) {
         *reg_destino_8 -= *reg_origen_8;
-        printf("SUB - %s = %d\n", destino, *reg_destino_8);
+        //printf("SUB - %s = %d\n", destino, *reg_destino_8);
     } else if (reg_destino_32 && reg_origen_32) {
         *reg_destino_32 -= *reg_origen_32;
-        printf("SUB - %s = %d\n", destino, *reg_destino_32);
+       // printf("SUB - %s = %d\n", destino, *reg_destino_32);
     } else {
-        printf("Registro no reconocido: %s o %s\n", destino, origen);
+        //printf("Registro no reconocido: %s o %s\n", destino, origen);
     }
 }
 
@@ -116,16 +116,16 @@ void ejecutar_jnz(CPU_Registers *cpu, char* registro, uint32_t nueva_instruccion
     else if (strcmp(registro, "ECX") == 0) valor_registro = cpu->ECX;
     else if (strcmp(registro, "EDX") == 0) valor_registro = cpu->EDX;
     else {
-        printf("Registro no reconocido: %s\n", registro);
+        //printf("Registro no reconocido: %s\n", registro);
         return;
     }
 
     // Si el valor del registro es distinto de cero, actualizar el PC
     if (valor_registro != 0) {
         cpu->PC = nueva_instruccion;
-        printf("JNZ - Registro %s distinto de cero, saltando a instrucción %d\n", registro, nueva_instruccion);
+        //printf("JNZ - Registro %s distinto de cero, saltando a instrucción %d\n", registro, nueva_instruccion);
     } else {
-        printf("JNZ - Registro %s es cero, no se realiza salto\n", registro);
+        //printf("JNZ - Registro %s es cero, no se realiza salto\n", registro);
     }
 }
 
@@ -191,22 +191,22 @@ int recibir_resultado_recursos(){
         case WAIT_SUCCESS:
         {   
             respuesta = 1;
-            printf("Se pudo hacer el wait \n");
+            //printf("Se pudo hacer el wait \n");
             break;
         }
         case WAIT_BLOCK:
         {
             respuesta = 0;
-            printf("No se puede hacer el wait, devuelvo el proceso \n");
+            //printf("No se puede hacer el wait, devuelvo el proceso \n");
             break;
         }
         case SIGNAL_SUCCESS:
             respuesta = 1;
-            printf("Se pudo hacer el signal \n");
+            //printf("Se pudo hacer el signal \n");
             break;
         default:
         {   
-            log_error(loggerCpu, "Error el codigo no es correcto");
+            //log_error(loggerCpu, "Error el codigo no es correcto");
             break;
         }
       
@@ -227,6 +227,9 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){
     int nro_pagina =0;
     int tam =0;
     void* datos_leidos=NULL;
+    char * datos;
+    //char datos32Ascii;
+    uint32_t dirFisica;
 
     //-----------------------RECIBE EL STRING A COPIAR-----------------------------------//
     direccion_fisica = traduccion_mmu(dirLogOriginal,pid);
@@ -241,7 +244,14 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){
     datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam);
     //datos_leidos = recibir_confirmacion_memoria_mov_in();
     memcpy(bufferStrcpy, datos_leidos,tam);
+    datos = malloc(tam+1);
+    datos[tam] = '\0';
+    memcpy(datos,bufferStrcpy,tam);
+    //datos32Ascii = (char)datos32;
+    dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+    log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
     free(datos_leidos);
+    free(datos);
     direccion_fisica->desplazamiento = 0;
     for(int i=1; i<cantidadDePaginas;i++){
 
@@ -253,20 +263,33 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){
             datos_leidos = enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina);
             //datos_leidos = recibir_confirmacion_memoria_mov_in();
             memcpy(bufferStrcpy +tam , datos_leidos, tam_pagina);
+            datos = malloc(tam_pagina+1);
+            datos[tam_pagina] = '\0';
+            memcpy(datos,bufferStrcpy+tam,tam_pagina);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
             tam+=tam_pagina;
             
             free(datos_leidos);
+            free(datos);
 
         }else{
             
             datos_leidos= enviar_paquete_mov_in_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam);
             //datos_leidos = recibir_confirmacion_memoria_mov_in();
             memcpy(bufferStrcpy+tam, datos_leidos, size_dato-tam);
+            datos = malloc(size_dato-tam+1);
+            datos[size_dato-tam] = '\0';
+            memcpy(datos,bufferStrcpy+tam,size_dato-tam);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            log_info(loggerCpu,"PID: <%d> - Accion - Leer- Direccion Fisica: <%d> - Valor Leido: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
             free(datos_leidos);
+            free(datos);
 
         }
         
     }
+    free(direccion_fisica);
 
 
     //----------------------MANDA EL STRING A MEMORIA--------------------------------//
@@ -297,37 +320,53 @@ void ejecutarCopyString(Proceso *procesoEjecutando, int size_dato){
             buffer=malloc(tam);
             memcpy(buffer,bufferStrcpy,tam);
             operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam,buffer);
+            datos = malloc(tam+1);
+            datos[tam] = '\0';
+            memcpy(datos,buffer,tam);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
 
             if (operacion == -1){}
             //memcpy(loQueDevuelve, buffer,tam);
             free(buffer);
+            free(datos);
 
         }else if (i<(cantidadDePaginas-1)){
 
             buffer=malloc(tam_pagina);
             memcpy(buffer,bufferStrcpy+tam,tam_pagina);
             operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,tam_pagina,buffer);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            datos = malloc(tam_pagina+1);
+            datos[tam_pagina] = '\0';
+            memcpy(datos,buffer,tam_pagina);
+            log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
             tam+=tam_pagina;                   
             if (operacion == -1){}
             //memcpy(loQueDevuelve +tam+(tam_pagina*(i-1)) , buffer, tam_pagina);
             free(buffer);
+            free(datos);
 
         }else{
             buffer=malloc(size_dato-tam);
             memcpy(buffer,bufferStrcpy+tam,size_dato-tam);
             operacion = enviar_paquete_mov_out_memoria(direccion_fisica->PID,direccion_fisica->numero_frame,direccion_fisica->desplazamiento,size_dato-tam,buffer);
+            dirFisica = (direccion_fisica->numero_frame*tam_pagina)+direccion_fisica->desplazamiento;
+            datos = malloc(size_dato-tam+1);
+            datos[size_dato-tam] = '\0';
+            memcpy(datos,buffer,size_dato-tam);
+            log_info(loggerCpu,"PID: <%d> - Accion - Escribir - Direccion Fisica: <%d> - Valor Escrito: <%s>\n",procesoEjecutando->PID,dirFisica,datos);
             //datos_leidos = recibir_confirmacion_memoria_mov_out();
 
             if (operacion == -1){}
             //memcpy(loQueDevuelve+tam+(tam_pagina*(i-1)), buffer, size_dato-tam);
             free(buffer);
+            free(datos);
         }
         
     }
-
-
-   
- 
+    free(direccion_fisica);
+    free(bufferStrcpy);
 }
 
 

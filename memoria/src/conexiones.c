@@ -15,24 +15,6 @@ void liberarFrame(int frame){
 
 }
 
-void destroy_page_entry(void *element) {
-
-    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
-    free(reg_tp_proceso); 
-
-}
-
-void destroy_process_entry(void *element) {
-
-    Proceso *proceso = (Proceso *)element;
-    list_destroy( proceso->tabla_de_paginas);
-    free(proceso->path);
-    list_destroy_and_destroy_elements(proceso->tabla_de_paginas, destroy_page_entry);
-    limpiarInstrucciones(proceso);
-    free(proceso); 
-
-}
-
 int cantidadFrameLibre(){
 
     int cant_frames_libres = 0;
@@ -138,8 +120,13 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             
             int cantidad_paginas = ceil((double)tam_a_cambiar/memoria.pagina_tam);
 
+            //double calculo_paginas = (double)tam_a_cambiar/memoria.pagina_tam;
+
+            //log_info(loggerMemoria, "Cantidad de paginas del nuevo tamaño:%d", cantidad_paginas);
+
             int tam_actual = proceso->tam_proceso;
             
+            //log_info(loggerMemoria, "Tamaño actual del proceso:%d", tam_actual);
 
             int dif_cantidad = cantidad_paginas- proceso->cantidad_paginas_asiganadas;
 
@@ -159,17 +146,18 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                 for (int i = size; i >= hasta; i--) {
 
                     Registro_tabla_paginas_proceso *reg_tp_proceso = list_get(proceso->tabla_de_paginas,i);
+
+                    //log_info(loggerMemoria, "Se elimina la pagina:%d", reg_tp_proceso->numero_de_pagina);    
                 
                     liberarFrame(reg_tp_proceso->numero_de_frame); 
+                    //log_info(loggerMemoria, "Modificado: %s",reg_tp_proceso->modificado);
                         
                     list_remove_and_destroy_element(proceso->tabla_de_paginas, i,destroy_page_entry);
                     
                 }
-
                 pthread_mutex_lock(&actualizarLoggerMemoria);
-                log_info(loggerMemoria,"PID: %d - Reduccion Tabla De Paginas - Tamaño Actual: %d - Tamaño a ampliar: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
+                log_info(loggerMemoria,"PID: %d - Reduccion Tabla De Paginas - Tamaño Actual: %d - Tamaño a Reducir: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
-
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
                 //log_info(loggerMemoria, "cantidad actual de paginas:%d",list_size(proceso->tabla_de_paginas));    
@@ -185,6 +173,10 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
             
             if (dif_cantidad>cantidadFrameLibre()){
+                
+                //pthread_mutex_lock(&actualizarLoggerMemoria);
+                //log_info(loggerMemoria,"PID: %d - Out Of Memory - Tamaño solicitado: %d",pid_a_cambiar,tam_a_cambiar);
+                //pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Resize - %d - OUT OF MEMORY",pid_a_cambiar,tam_a_cambiar);
@@ -196,7 +188,6 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
             //Caso Ampliacion de un proceso
             if(proceso->tam_proceso == 0){
 
-              
 
                 for (int i = 0; i < cantidad_paginas; i++) {
 
@@ -216,8 +207,6 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
 
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
-                //log_info(loggerMemoria, "Se amplio el proceso.");
-
                 pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Creacion de Tabla de Paginas - Tamaño %d",pid_a_cambiar,cantidad_paginas);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
@@ -249,11 +238,9 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
                     
 
                 }
-
                 pthread_mutex_lock(&actualizarLoggerMemoria);
                 log_info(loggerMemoria,"PID: %d - Ampliacion Tabla De Paginas - Tamaño Actual: %d - Tamaño a ampliar: %d",pid_a_cambiar,tam_actual,tam_a_cambiar);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
-
                 proceso->tam_proceso = tam_a_cambiar;
                 proceso->cantidad_paginas_asiganadas = cantidad_paginas;
                 //log_info(loggerMemoria, "Se amplio el proceso.");
@@ -268,6 +255,8 @@ op_code actualizar_tam_proceso(int pid_a_cambiar,int tam_a_cambiar){
         }
     }
     return -1;
+
+    return 0;
 
 }
 
@@ -319,9 +308,10 @@ void paquete_cpu_envio_instruccion(int PID_paquete,int PC_paquete,int socket_cli
 
     t_paquete *paquete_cpu = crear_paquete(ENVIO_INSTRUCCION);
 
-    pthread_mutex_lock(&instruccionMutex);
+    pthread_mutex_lock(&listaProcesosActivos);
     char* instruccion = buscar_instruccion(PID_paquete,PC_paquete);
-    
+    pthread_mutex_unlock(&listaProcesosActivos);
+
     agregar_entero_a_paquete32(paquete_cpu, (strlen(instruccion)+1));
     agregar_string_a_paquete(paquete_cpu, instruccion);
 
@@ -354,6 +344,22 @@ void destruirInstruccion(void *elemento) {
     free(instruccion);
 }
 
+void destroy_page_entry(void *element) {
+
+    Registro_tabla_paginas_proceso *reg_tp_proceso = (Registro_tabla_paginas_proceso *)element;
+    free(reg_tp_proceso); 
+
+}
+
+void destroy_process_entry(void *element) {
+
+    Proceso *proceso = (Proceso *)element;
+    list_destroy_and_destroy_elements(proceso->tabla_de_paginas, destroy_page_entry);
+    free(proceso->path);
+    free(proceso); 
+
+}
+
 void limpiarInstrucciones(Proceso *proceso) {
     pthread_mutex_lock(&instruccionMutex);
     list_destroy_and_destroy_elements(proceso->instrucciones, destruirInstruccion);
@@ -372,6 +378,10 @@ void remover_proceso(int pid_remover){
         proceso = list_get(lista_ProcesosActivos,i);
 
         if (proceso->pid == pid_remover) {
+
+            pthread_mutex_lock(&actualizarLoggerMemoria);
+            log_info(loggerMemoria,"PID: %d - Eliminacion Tabla De Paginas - Tamaño: %d",pid_remover,proceso->cantidad_paginas_asiganadas);
+            pthread_mutex_unlock(&actualizarLoggerMemoria);
 
             if (proceso->cantidad_paginas_asiganadas != 0) {
 
@@ -463,7 +473,7 @@ int obtener_marco(int pid,int pagina){
 //-----------------------------conexion kernel y memoria------------------------------------
 void* atenderPeticionesKernel() {
 
-    while (seguirCorriendo) {
+    while (1) {
         int socketCliente = esperarClienteV2(loggerMemoria, server_fd);
         pthread_t client_thread;
         int* pclient = malloc(sizeof(int));
@@ -491,7 +501,10 @@ void* manejarClienteKernel(void *arg)
         paquete->buffer->size = 0;
         paquete->buffer->stream = NULL;
 
-        recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int bytes = recv(socketCliente, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(bytes <= 0){
+		    exit(0);
+	    }
         recv(socketCliente, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(socketCliente, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -526,7 +539,7 @@ void* manejarClienteKernel(void *arg)
                 pthread_mutex_unlock(&listaProcesosActivos);
 
                 pthread_mutex_lock(&actualizarLoggerMemoria);
-                log_info(loggerMemoria,"Se creo el PID: %d",proceso->pid);
+                log_info(loggerMemoria,"PID: %d - Creacion Proceso",proceso->pid);
                 pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 break;
@@ -543,6 +556,10 @@ void* manejarClienteKernel(void *arg)
                
                 pthread_mutex_unlock(&listaProcesosActivos);
                 //log_info(loggerMemoria, "Se elimino el proceso:%d", pid_remover);
+
+                pthread_mutex_lock(&actualizarLoggerMemoria);
+                log_info(loggerMemoria,"PID: %d - Eliminacion Proceso",pid_remover);
+                pthread_mutex_unlock(&actualizarLoggerMemoria);
 
                 break;
             }
@@ -679,11 +696,9 @@ void* manejarClienteKernel(void *arg)
                 memcpy(&nuevo_tamaño, stream, sizeof(int));
                 //log_info(loggerMemoria, "Se solicita resize del PID:%d", pid_a_cambiar);
                 //log_info(loggerMemoria, "Se solicita el tamaño:%d", nuevo_tamaño);
-
                 pthread_mutex_lock(&listaProcesosActivos);
                 resultado_cambio = actualizar_tam_proceso(pid_a_cambiar,nuevo_tamaño);
                 pthread_mutex_unlock(&listaProcesosActivos);
-
                 usleep(configuracionMemoria.RETARDO_RESPUESTA*1000);
 
                 pthread_mutex_lock(&actualizarLoggerMemoria);

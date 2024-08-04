@@ -46,7 +46,10 @@ t_paquete* recibirPaquete(int socket){
 	paquete->buffer->size = 0;
 	paquete->buffer->stream = NULL;
 
-	recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	int bytes = recv(socket, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	if(bytes <= 0){
+		exit(0);
+	}
 	recv(socket, &(paquete->buffer->size), sizeof(int), 0);
 	paquete->buffer->stream = malloc(paquete->buffer->size);
 	recv(socket, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -207,7 +210,7 @@ void* conexionesDispatch()
 					procesoKernel = list_get(lista_RUNNING, 0);
 					list_add(procesoKernel->recursosEnUso,recursoEncontrado);
 					pthread_mutex_lock(&mutexLogger);
-					log_info(loggerKernel,"Proceso %d pudo utilizar recurso %s.",procesoKernel->PID, recursoEncontrado->nombre);
+					//log_info(loggerKernel,"Proceso %d pudo utilizar recurso %s.",procesoKernel->PID, recursoEncontrado->nombre);
 					pthread_mutex_unlock(&mutexLogger);
 
 					pthread_mutex_unlock(&mutexListaRunning);
@@ -255,13 +258,11 @@ void* conexionesDispatch()
 					list_add(lista_EXIT, procesoKernel); 
 					pthread_mutex_unlock(&mutexListaRunning);
 					pthread_mutex_unlock(&mutexListaExit);
+					pthread_mutex_lock(&mutexLogger);
+					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_RESOURCE:%s>", procesoKernel->PID, recursoRecibido);
+					pthread_mutex_unlock(&mutexLogger);
 					sem_post(&semListaRunning);
 					paquete_memoria_finalizar_proceso(procesoKernel->PID);
-
-					pthread_mutex_lock(&mutexLogger);
-					log_info(loggerKernel,"Recurso %s no encontrado. Terminando proceso %d", recursoRecibido, procesoKernel->PID);
-					pthread_mutex_unlock(&mutexLogger);
-
    				}
 				// Si el recurso existe
 				if (recursoEncontrado != NULL) {
@@ -283,7 +284,7 @@ void* conexionesDispatch()
 							pthread_mutex_lock(&mutexListaReady);
 							pthread_mutex_lock(&mutexListaReadyPri);
 							pthread_mutex_lock(&mutexLogger);
-							log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s", procesoKernel->PID, recursoEncontrado->nombre);
+							//log_info(loggerKernel,"Proceso %d desbloqueado por señal de recurso %s", procesoKernel->PID, recursoEncontrado->nombre);
 							log_info(loggerKernel, "PID: %d - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", procesoKernel->PID);
 							loggear_pids_ready();
 							pthread_mutex_unlock(&mutexLogger);
@@ -371,10 +372,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel); //TODO falta pasarle la lista para bloquearla
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(interfazGenerica.nombre_interfaz);
 				break;
@@ -445,11 +451,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
-					//eliminarProceso(proceso); //TODO
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(interfazsSTDIN.nombre_interfaz);
 
@@ -524,10 +534,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionSTDOUT.nombre_interfaz);
 				
@@ -584,10 +599,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -645,10 +665,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -709,10 +734,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -798,10 +828,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);
@@ -888,10 +923,15 @@ void* conexionesDispatch()
 					pthread_mutex_unlock(&mutexLogger);
 				}
 				else{
-					terminarProceso(procesoKernel);
+					procesoKernel->estado = EXIT;
+					pthread_mutex_lock(&mutexListaExit);
+					list_add(lista_EXIT, procesoKernel); 
+					pthread_mutex_unlock(&mutexListaExit);
 					pthread_mutex_lock(&mutexLogger);
 					log_info(loggerKernel, "Finaliza el proceso %d - Motivo: <INVALID_INTERFACE>", procesoKernel->PID);
 					pthread_mutex_unlock(&mutexLogger);
+					sem_post(&semListaRunning);
+					paquete_memoria_finalizar_proceso(procesoKernel->PID);
 				}
 				free(peticionFS.nombre_interfaz);
 				free(peticionFS.nombreArchivo);

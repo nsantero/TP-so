@@ -18,7 +18,7 @@ void armarConfigMemoria(){
 
 void iniciarLoggerMemoria(){
 
-    loggerMemoria = log_create("../memoria/memoria.log","Memoria", 0, LOG_LEVEL_INFO);
+    loggerMemoria = log_create("../memoria/memoria.log","Memoria", 1, LOG_LEVEL_INFO);
     log_info(loggerMemoria,"Logger Memoria creado");
     
 }

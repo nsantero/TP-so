@@ -28,13 +28,16 @@ void recibirPeticionDeIO_GEN(){
     
         
         t_paquete* paquete = NULL;
-		paquete = malloc(sizeof(t_paquete));
-		paquete->buffer = NULL;
+        paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
-		paquete->buffer->stream = NULL;
+        paquete->buffer->stream = NULL;
 
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -87,12 +90,16 @@ void recibirPeticionDeIO_STDIN(){
     
         
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
         paquete->codigo_operacion = 0;
-	    paquete->buffer->size = 0;
-	    paquete->buffer->stream = NULL;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -161,12 +168,16 @@ void recibirPeticionDeIO_STDOUT(){
     while(1){
     
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
         paquete->codigo_operacion = 0;
-	    paquete->buffer->size = 0;
-	    paquete->buffer->stream = NULL;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
@@ -236,16 +247,22 @@ void recibirPeticionDeIO_DialFS(){
     
         
         t_paquete* paquete = malloc(sizeof(t_paquete));
+        paquete->buffer = NULL;
         paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->codigo_operacion = 0;
+        paquete->buffer->size = 0;
+        paquete->buffer->stream = NULL;
 
-        recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+        int rec = recv(kernel_fd, &(paquete->codigo_operacion), sizeof(op_code), 0);
+	    if(rec <= 0){
+		    exit(0);
+	    }
         recv(kernel_fd, &(paquete->buffer->size), sizeof(int), 0);
         paquete->buffer->stream = malloc(paquete->buffer->size);
         recv(kernel_fd, paquete->buffer->stream, paquete->buffer->size, 0);
         void *stream = paquete->buffer->stream;
 
-        Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
-        peticion->frames=list_create();
+        
         int bytes;
         int cantPags;
 
@@ -254,6 +271,8 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_CREATE:
             case IO_FS_DELETE:
             {
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -277,6 +296,8 @@ void recibirPeticionDeIO_DialFS(){
             }
             case IO_FS_TRUNCATE:
             {
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
@@ -304,6 +325,8 @@ void recibirPeticionDeIO_DialFS(){
             case IO_FS_WRITE:
             {
             //TODO separar los casos +- esta
+                Peticion_Interfaz_DialFS *peticion=malloc(sizeof(Peticion_Interfaz_DialFS));
+                peticion->frames=list_create();
                 stream+=sizeof(int);
                 memcpy(&peticion->operacion, stream, sizeof(OperacionesDeDialFS));
                 stream += sizeof(OperacionesDeDialFS);
