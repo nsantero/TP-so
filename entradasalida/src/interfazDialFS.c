@@ -624,7 +624,6 @@ void compactarBloquesFSParaQEntreElArchivo(char* nombreDelArchivo,off_t offsetIn
             cantBloqAux=ceil((double)tamanioEnBytesDelArchivo/tamBloq);
             if(tamanioEnBytesDelArchivo==0){cantBloqAux++;}
             i+=cantBloqAux-1;             //                                                      (excepto q ya este compactado, pero ahi pasa al siguiente archivo q no se mueve y listo)
-           
             free(nombreAMover);
         }
     }//esto aca lee y mueve todos los archivos incluido el q quiere agrandar q estan al principio
@@ -690,7 +689,6 @@ char* buscarArchivoConBloqueInicial(off_t offsetBloqueInicial){
             nombre=entry->d_name;
             char* aux000=obtenerInfoDeArchivo(nombre,&offsetAux,NULL);
             free(aux000);
-            
             if (offsetAux==offsetBloqueInicial){
                 aDevolver = strdup(entry->d_name); //VER
             }

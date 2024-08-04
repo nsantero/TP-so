@@ -13,6 +13,8 @@ extern int instante_modificacion_tlb;
 
 char* fetch(Proceso *proceso);
 
+extern int instante_modificacion_tlb;
+
 op_code recibir_confirmacion_memoria_resize();
 void destroy_page_tlb(void *element);
 
